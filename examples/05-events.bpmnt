@@ -1,0 +1,16 @@
+# Timers, boundary events (interrupting and not), event-based gateway.
+title "Support ticket"
+
+start message Ticket raised
+user Triage ticket
+  on timer 4 hours [non-interrupting] -> send Notify team lead -> end Lead notified
+user Resolve ticket
+  on timer 2 days
+    user Specialist investigation
+    # open interrupting boundary chain: merges back after "Resolve ticket"
+send Ask customer to confirm
+event Wait for customer
+  - catch message Customer confirms
+  - catch message Customer reopens -> Resolve ticket
+  - wait 7 days
+end Ticket closed

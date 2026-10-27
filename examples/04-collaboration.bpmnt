@@ -1,0 +1,30 @@
+# Two expanded pools, one collapsed pool, message flows between them.
+title "Order fulfilment"
+
+pool Customer
+  start Need product
+  send Place order ~> Receive order
+  receive Confirmation
+  end Done
+
+pool Company
+  lane Sales
+  receive Receive order
+  task Check credit
+  xor Credit OK?
+    yes:
+      lane Warehouse
+      task Pick items
+      task Pack parcel
+    no:
+      send Request prepayment ~(invoice)~> Bank
+      receive Payment received
+  lane Finance
+  task Issue invoice
+  lane Warehouse
+  task Ship parcel
+  send Send confirmation ~> Confirmation
+  end Shipped
+
+pool Bank [collapsed]
+Bank ~(payment)~> Payment received

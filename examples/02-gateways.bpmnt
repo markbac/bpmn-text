@@ -1,0 +1,25 @@
+# XOR/AND/OR gateways, labels, automatic joins, a loop and an empty branch.
+title "Article publishing"
+
+start Draft ready
+task Write article @write
+user Review article
+xor Approved?
+  yes:
+  needs changes:
+    task Apply feedback
+    -> write                     # loop back; this branch is closed
+  rejected: end Article dropped
+# Only the empty "yes" branch is open ("needs changes" jumps back,
+# "rejected" ends), so no join is needed: the gateway flows straight on.
+and
+  - task Create images
+  - task Write social posts
+  - task Translate article
+# AND-join inserted here automatically
+or Extra channels?
+  newsletter: service Add to newsletter
+  podcast:    task Record audio version
+  else:
+task Publish
+end Published

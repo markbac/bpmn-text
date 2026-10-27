@@ -1,0 +1,9 @@
+# A single process: no pools, no lanes, implicit flow only.
+title "Expense claim"
+
+start Receipt collected
+user Fill in claim form
+service Submit to finance system
+wait 5 days
+user Check reimbursement
+end Claim complete

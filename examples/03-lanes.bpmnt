@@ -1,0 +1,22 @@
+# One pool with lanes. Lane switches inside a branch are scoped to that branch.
+title "Leave request"
+
+pool HR department
+  lanes Employee, Manager, HR
+  lane Employee
+  start Leave needed
+  user Submit leave request
+  lane Manager
+  user Review request
+  xor Approved?
+    yes:
+      lane HR
+      service Update leave balance
+    no:
+      lane Employee
+      user Read rejection reason
+      end Request rejected
+  # lane is back to Manager here; the single open branch ("yes") connects directly
+  user Inform team
+  lane Employee
+  end Leave booked
