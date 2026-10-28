@@ -9,10 +9,10 @@ repository's issues.
 | Milestone | Goal | Issues |
 |---|---|---|
 | **M0 – Foundations** | Repo, CI, test harness, layout spike, example corpus. | #1–#5 |
-| **M1 – Language core** | Lexer, parser, diagnostics, model builder, implicit flow, validation, formatter. | #6–#16 |
+| **M1 – Language core** | Lexer, parser, diagnostics, model builder, implicit flow, validation, formatter. | #6–#12, #14–#16, #58 |
 | **M2 – BPMN output & layout** | BPMN XML + DI generation and the lane/pool-aware layout engine; compile() API. | #17–#26 |
 | **M3 – CLI** | bpmn-text build / check / fmt and SVG/PNG rendering. | #27–#30 |
-| **M4 – Common extras** | Intermediate & boundary events, subprocesses, data, annotations, markers, groups, colours, fan-out and documentation end-to-end. | #31–#36, #51–#57 |
+| **M4 – Common extras** | Intermediate & boundary events, subprocesses, data, annotations, markers, groups, colours, fan-out and documentation end-to-end. | #31–#36, #59–#65 |
 | **M5 – Web editor** | Live split-view editor running fully client-side. | #37–#42 |
 | **M6 – VS Code extension** | Language server, extension, live preview, packaging. | #43–#46 |
 | **M7 – Docs & release** | Tutorial, cookbook, benchmarks, release workflow. | #47–#50 |
@@ -62,8 +62,8 @@ flowchart LR
 | #10 | Parser: subprocesses, boundary events, notes, data and attributes | `type: feature` `area: parser` | #8 |
 | #11 | Model IR and declare pass (symbol table, lane scoping) | `type: feature` `area: model` | #8 |
 | #12 | Reference resolution with suggestions | `type: feature` `area: model` | #11 |
-| #13 | Implicit flow and automatic join gateways | `type: feature` `area: model` | #9, #11, #12 |
-| #14 | Validator rules | `type: feature` `area: model` | #13 |
+| #58 | Implicit flow and automatic join gateways | `type: feature` `area: model` | #9, #11, #12 |
+| #14 | Validator rules | `type: feature` `area: model` | #58 |
 | #15 | Deterministic ID generation | `type: feature` `area: model` | #11 |
 | #16 | Formatter | `type: feature` `area: parser` | #8, #9, #10 |
 
@@ -71,7 +71,7 @@ flowchart LR
 
 | # | Issue | Labels | Depends on |
 |---|---|---|---|
-| #17 | BPMN semantic XML generation (bpmn-moddle) | `type: feature` `area: bpmn` | #13, #15 |
+| #17 | BPMN semantic XML generation (bpmn-moddle) | `type: feature` `area: bpmn` | #58, #15 |
 | #18 | Layout engine scaffold, sizing and label metrics | `type: feature` `area: layout` | #3, #11 |
 | #19 | Layout: global layering and ordering | `type: feature` `area: layout` | #18 |
 | #20 | Layout: lane and pool banding and coordinates | `type: feature` `area: layout` | #19 |
@@ -101,13 +101,13 @@ flowchart LR
 | #34 | Data objects, data stores and associations | `type: feature` `area: model` `area: layout` `area: bpmn` | #26 |
 | #35 | Text annotations | `type: feature` `area: layout` `area: bpmn` | #26 |
 | #36 | Activity markers and call activities | `type: feature` `area: bpmn` | #26 |
-| #51 | Groups: notation, model and BPMN output | `type: feature` `area: parser` `area: model` `area: bpmn` | #13, #17 |
-| #52 | Layout: group column partitions and group boxes | `type: feature` `area: layout` | #51, #20, #23 |
-| #53 | Colours on pools, lanes, groups and elements | `type: feature` `area: parser` `area: bpmn` | #24 |
-| #54 | Fan-out without gateways: multi-target jumps and fork | `type: feature` `area: parser` `area: model` | #13 |
-| #55 | Element documentation (doc and [doc:]) | `type: feature` `area: parser` `area: model` `area: bpmn` | #10, #17 |
-| #56 | Collapsed subprocess placeholders (sub without body) | `type: feature` `area: parser` `area: bpmn` | #33 |
-| #57 | Realistic multi-phase example as acceptance test | `type: test` | #51, #52, #53, #54, #55, #56 |
+| #59 | Groups: notation, model and BPMN output | `type: feature` `area: parser` `area: model` `area: bpmn` | #58, #17 |
+| #60 | Layout: group column partitions and group boxes | `type: feature` `area: layout` | #59, #20, #23 |
+| #61 | Colours on pools, lanes, groups and elements | `type: feature` `area: parser` `area: bpmn` | #24 |
+| #62 | Fan-out without gateways: multi-target jumps and fork | `type: feature` `area: parser` `area: model` | #58 |
+| #63 | Element documentation (doc and [doc:]) | `type: feature` `area: parser` `area: model` `area: bpmn` | #10, #17 |
+| #64 | Collapsed subprocess placeholders (sub without body) | `type: feature` `area: parser` `area: bpmn` | #33 |
+| #65 | Realistic multi-phase example as acceptance test | `type: test` | #59, #60, #61, #62, #63, #64 |
 
 ### M5 – Web editor
 
