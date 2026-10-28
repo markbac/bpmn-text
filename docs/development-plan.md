@@ -12,7 +12,7 @@ repository's issues.
 | **M1 – Language core** | Lexer, parser, diagnostics, model builder, implicit flow, validation, formatter. | #6–#16 |
 | **M2 – BPMN output & layout** | BPMN XML + DI generation and the lane/pool-aware layout engine; compile() API. | #17–#26 |
 | **M3 – CLI** | bpmn-text build / check / fmt and SVG/PNG rendering. | #27–#30 |
-| **M4 – Common extras** | Intermediate & boundary events, subprocesses, data, annotations, markers end-to-end. | #31–#36 |
+| **M4 – Common extras** | Intermediate & boundary events, subprocesses, data, annotations, markers, groups, colours, fan-out and documentation end-to-end. | #31–#36, #51–#57 |
 | **M5 – Web editor** | Live split-view editor running fully client-side. | #37–#42 |
 | **M6 – VS Code extension** | Language server, extension, live preview, packaging. | #43–#46 |
 | **M7 – Docs & release** | Tutorial, cookbook, benchmarks, release workflow. | #47–#50 |
@@ -101,6 +101,13 @@ flowchart LR
 | #34 | Data objects, data stores and associations | `type: feature` `area: model` `area: layout` `area: bpmn` | #26 |
 | #35 | Text annotations | `type: feature` `area: layout` `area: bpmn` | #26 |
 | #36 | Activity markers and call activities | `type: feature` `area: bpmn` | #26 |
+| #51 | Groups: notation, model and BPMN output | `type: feature` `area: parser` `area: model` `area: bpmn` | #13, #17 |
+| #52 | Layout: group column partitions and group boxes | `type: feature` `area: layout` | #51, #20, #23 |
+| #53 | Colours on pools, lanes, groups and elements | `type: feature` `area: parser` `area: bpmn` | #24 |
+| #54 | Fan-out without gateways: multi-target jumps and fork | `type: feature` `area: parser` `area: model` | #13 |
+| #55 | Element documentation (doc and [doc:]) | `type: feature` `area: parser` `area: model` `area: bpmn` | #10, #17 |
+| #56 | Collapsed subprocess placeholders (sub without body) | `type: feature` `area: parser` `area: bpmn` | #33 |
+| #57 | Realistic multi-phase example as acceptance test | `type: test` | #51, #52, #53, #54, #55, #56 |
 
 ### M5 – Web editor
 

@@ -59,7 +59,7 @@ pool Company
 |---|---|
 | Encoding | UTF-8. LF and CRLF line endings are both accepted. |
 | Indentation | Spaces only (a tab is an error with a quick fix). Any consistent increase opens a block, as in Python. The canonical style is 2 spaces. |
-| Comments | `#` to the end of the line, when at line start or preceded by whitespace and not inside a string. |
+| Comments | `#` to the end of the line, when at line start or preceded by whitespace, and not inside a string, an attribute list `[...]` (so `[color: #1F4E79]` works) or `doc` text. |
 | Strings | `"..."` with escapes `\"`, `\\`, `\n` (line break in a label). |
 | Bare names | Unquoted text running to the end of the line or to the first *terminator* (`->`, `-(`, `~>`, `~(`, `@`, `[`, ` #`, or a trailing `:` in branch position). Leading and trailing whitespace is trimmed. |
 | IDs | `@` followed by `[A-Za-z_][A-Za-z0-9_-]*`. |
@@ -159,6 +159,8 @@ Activity markers are given as attributes:
 
 Gateways are always followed by a block of branches (§7).
 
+`fork` takes the same branch block but draws **no** gateway (§7.4).
+
 ### 4.4 Data and annotations
 
 | Notation | BPMN element |
@@ -193,8 +195,72 @@ user Approve order @approve [parallel, reads: Order]
 | `non-interrupting` | `on` (boundary) | Dashed boundary event |
 | `collection` | `data` | Collection data object |
 | `lane: X` | flow nodes in a pool with lanes | Place this element in lane X without switching (§9) |
+| `doc: "…"` | any element, pool, lane, group | Documentation (§4.6) |
+| `color: c` | any element, pool, lane, group | Fill colour (§4.7) |
+| `stroke: c` | any element, pool, lane, group | Border/line colour (§4.7) |
 
 Unknown attributes produce a warning, not an error.
+
+### 4.6 Documentation
+
+`doc` attaches text to the **preceding** element as `bpmn:documentation`.
+BPMN tools show it in their properties panel, and it stays in the `.bpmn`
+file.
+
+```
+service Validate order
+doc Checks every order line against the product catalogue and rejects unknown items.
+```
+
+* **Raw text.** In `doc <text>`, everything after `doc ` to the end of the
+  line is raw text. `#`, `->` and quotes have no special meaning there.
+* **Several `doc` lines** in a row are joined with line breaks.
+* **Block form:** `doc` with nothing after it, followed by an indented block.
+  The block is raw text: nothing in it is parsed, and blank lines become
+  paragraph breaks.
+
+  ```
+  service Reserve stock
+  doc
+    Reserves the ordered quantities in every warehouse that holds
+    the items, preferring the warehouse closest to the customer.
+
+    Exception: if no stock is available -> the order is back-ordered.
+  ```
+
+* **Placement.** A `doc` before the first element of a pool, group or `sub`
+  body documents that container. A `doc` before the first element of the
+  file documents the process or collaboration.
+* `[doc: "…"]` is the one-line attribute equivalent.
+* Like notes, `doc` lines do not interrupt implicit flow.
+
+### 4.7 Colours
+
+`[color: …]` sets the fill and `[stroke: …]` sets the border and text
+colour. They can be used on elements, pools, lanes and groups.
+
+```
+lanes Sales [color: #1F4E79], Warehouse [color: green]
+task Escalate [color: #FFE0E0, stroke: red]
+```
+
+* **Values:** `#RRGGBB`, `#RGB`, or a named colour from the bpmn-js palette
+  (`blue`, `orange`, `green`, `red`, `purple`) or CSS names. An invalid value
+  is error **BT104**.
+* **Output:** both the OMG *BPMN in Color* attributes
+  (`color:background-color` / `color:border-color`) and the bpmn-js `bioc:`
+  attributes, so the colours survive in Camunda Modeler, bpmn.io and other
+  tools.
+* **Lane colour** fills the whole lane band. BPMN DI has no way to colour
+  only the lane header.
+* **Lane attributes** may be given wherever the lane is named (`lanes`,
+  `lane`). Conflicting values are warning **BT251**, and the last one wins.
+
+### 4.8 Collapsed subprocess placeholders
+
+`sub <name> [collapsed]` **without a body** is allowed. It draws a collapsed
+subprocess whose detail is documented elsewhere, for example *"Credit
+check"*. Use `call` instead if it refers to a reusable process.
 
 ---
 
@@ -216,8 +282,27 @@ Implicit flow **does not** leave:
 * a line whose last element is a **reference** (a jump, §6.2);
 * a **gateway**, whose outgoing flows are its branches (§7).
 
-Lane switches (§9), notes, data and store declarations, and message flows do
-**not** interrupt implicit flow.
+Lane switches (§9), notes, `doc` lines, data and store declarations, group
+blocks (§9.1) and message flows do **not** interrupt implicit flow.
+
+**Start events.** Implicit flow **never enters a start event**. A `start` in
+the middle of a block begins a new, independent chain. If the element before
+it is still open (not an end event, jump or gateway), that element gets
+warning **BT302 dead end**. Close it with an `end` or a jump.
+
+```
+pool Company
+  lane Sales
+  start timer Monthly planning
+  user Create order
+  end message Order issued        # closes the first chain
+  lane Field service
+  start timer Visit day           # new chain; nothing flows into it
+  user Install equipment
+```
+
+**End of a block.** Open ends left at the end of a pool or `sub` body are
+dead ends (BT302). Open ends at the end of a branch are open branches (§7.1).
 
 ---
 
@@ -248,6 +333,18 @@ task Fix order
 
 A line made of only `-> Target` creates a flow from the previous element to
 `Target`.
+
+**Several targets.** A jump can name several targets separated by commas.
+Each one gets its own flow from the same source, with **no gateway**:
+
+```
+service Publish order -> Update billing, Update CRM
+-> Retry, Notify operator          # standalone form, from the previous element
+```
+
+Several flows into one element (an uncontrolled merge) need no special
+syntax. Just jump to it from each source. For splits that *continue in story
+order*, use `fork` (§7.4).
 
 **Name resolution**
 
@@ -357,6 +454,35 @@ xor Merge @m
 A gateway with no branch block is a plain node. Jumps (`-> m`) can target it,
 and implicit flow continues out of it.
 
+### 7.4 Fan-out without a gateway: `fork`
+
+`fork` uses the same branch syntax as `and`, but **no gateway is drawn**.
+Each branch starts with a flow straight from the preceding element. This is
+an *uncontrolled split*: all branches run in parallel.
+
+```
+service Publish order
+fork
+  -
+    lane Billing
+    service Update billing
+    -> Sync done
+  -
+    lane CRM
+    service Update CRM
+    -> Sync done
+xor Sync done
+```
+
+* Branches may be unlabelled (`-`) or labelled. A label goes on the flow,
+  but there are no conditions and no `else:` (BT221).
+* **Joins.** Open `fork` branches join like `and` branches (§7.1), with an
+  inserted **parallel** join when there are two or more. This keeps the
+  model semantically correct. To avoid the inserted join, end each branch
+  with a jump to an element of your choice, as above.
+* A `fork` must follow an element that implicit flow leaves. A `fork` right
+  after an end event, a jump or a gateway is error **BT224**.
+
 ---
 
 ## 8. Subprocesses
@@ -408,6 +534,45 @@ pool Company
 4. **Inline override.** `task Audit [lane: Finance]` places one element in
    another lane without switching.
 5. **Nested lanes** (child lane sets) are not supported in v1.
+6. **Repeated `lanes`.** `lanes` may appear several times. Each one appends
+   lanes in order, which keeps long lane lists readable. Items may carry
+   attributes: `lanes Billing [color: green], CRM [color: green]`.
+
+### 9.1 Groups
+
+A group is a dashed box around related elements, typically a **phase** of
+the process. It is written as a block:
+
+```
+pool Company
+  group Fulfilment
+    lane Sales
+    start
+    user Create order
+    ...
+  group After-sales [color: #FFF5F5]
+    lane Sales
+    start
+    user Send satisfaction survey
+    ...
+```
+
+* **Transparency.** A group block does not create a flow scope or a lane
+  scope. Implicit flow and lane switches continue into, through and out of
+  the group exactly as if the `group` line were not there. It only marks
+  which elements belong to the group.
+* **Layout.** Groups are laid out as **consecutive columns**. All elements
+  of one group are placed in columns before the elements of the next group
+  in document order, and no element outside a group shares its columns. By
+  default the box spans the **full height of the pool** (all lanes), as for
+  a phase. `[fit]` shrinks the box to the bounding box of its members
+  instead.
+* **Across pools.** Using the same group name in several pools gives *one*
+  group whose box covers its members in all of those pools.
+* **Restrictions (v1).** Groups cannot be nested, and an element can belong
+  to only one group (BT250). Groups cannot be used inside a `sub`.
+* **BPMN output:** a `bpmn:group` with a `categoryValue` (the label), plus a
+  DI shape.
 
 ---
 
@@ -458,6 +623,7 @@ possible, a quick fix.
 | BT101 | error | Unknown keyword (with "did you mean …?") |
 | BT102 | error | Event type not allowed here (e.g. `start terminate`) |
 | BT103 | warning | Unknown attribute |
+| BT104 | error | Invalid colour value |
 | BT201 | error | Ambiguous reference |
 | BT202 | error | Unknown reference (with closest-name suggestion) |
 | BT203 | error | Duplicate `@id` |
@@ -467,9 +633,12 @@ possible, a quick fix.
 | BT220 | error | Invalid branch start for event-based gateway |
 | BT221 | error | `else:` on a parallel or event-based gateway |
 | BT222 | warning | Gateway with a single branch |
+| BT224 | error | `fork` without an open preceding element |
 | BT230 | error | Element before first lane in a pool with lanes |
 | BT240 | error | Invalid boundary event configuration |
 | BT241 | warning | Non-interrupting boundary chain ends open |
+| BT250 | error | Nested group, element in two groups, or group inside a `sub` |
+| BT251 | warning | Conflicting lane attributes |
 | BT301 | warning | Unreachable element (no incoming flow, not a start) |
 | BT302 | warning | Dead end (non-end element with no outgoing flow) |
 | BT303 | info | Process has no start or no end event |
@@ -485,13 +654,13 @@ directive    = "title" , name , NL
              | "option" , WORD , WORD , NL ;
 pool         = "pool" , name , [ attrs ] , NL , [ INDENT , body , DEDENT ] ;
 body         = { statement } ;
-statement    = element_stmt | gateway_stmt | sub_stmt
-             | lane_stmt | lanes_stmt | goto_stmt | msg_stmt
-             | note_stmt | data_stmt ;
+statement    = element_stmt | gateway_stmt | fork_stmt | sub_stmt
+             | group_stmt | lane_stmt | lanes_stmt | goto_stmt | msg_stmt
+             | note_stmt | doc_stmt | data_stmt ;
 
 element_stmt = element , [ tail ] , NL , [ INDENT , { boundary } , DEDENT ] ;
 element      = keyword , [ type ] , [ name ] , [ id ] , [ attrs ] ;
-tail         = { flow_op , target } ;
+tail         = { flow_op , target } , [ "," , reference , { "," , reference } ] ;
 flow_op      = "->" | "-(" , label , ")->" | "~>" | "~(" , label , ")~>" ;
 target       = element | reference ;
 reference    = id | name ;
@@ -502,14 +671,18 @@ branch       = ( label , ":" | "-" | "else" , ":" ) , [ chain ] , NL ,
                [ INDENT , body , DEDENT ] ;
 chain        = target , tail ;
 
+fork_stmt    = "fork" , NL , INDENT , branch , { branch } , DEDENT ;
+
 sub_stmt     = "sub" , name , [ id ] , [ attrs ] , NL ,
-               INDENT , { statement | boundary } , DEDENT ;
+               [ INDENT , { statement | boundary } , DEDENT ] ;   (* body optional only when collapsed *)
+group_stmt   = "group" , name , [ attrs ] , NL , INDENT , body , DEDENT ;
+doc_stmt     = "doc" , ( TEXT , NL | NL , INDENT , RAW_TEXT_LINES , DEDENT ) ;
 boundary     = "on" , ev_type , [ name ] , [ id ] , [ attrs ] , [ tail ] , NL ,
                [ INDENT , body , DEDENT ] ;
 
 lane_stmt    = "lane" , name , NL ;
-lanes_stmt   = "lanes" , name , { "," , name } , NL ;
-goto_stmt    = flow_op , target , NL ;
+lanes_stmt   = "lanes" , name , [ attrs ] , { "," , name , [ attrs ] } , NL ;
+goto_stmt    = flow_op , target , { "," , reference } , NL ;
 msg_stmt     = reference , ( "~>" | "~(" , label , ")~>" ) , reference , NL ;
 note_stmt    = "note" , name , NL ;
 data_stmt    = ( "data" | "store" ) , name , [ attrs ] , NL ;

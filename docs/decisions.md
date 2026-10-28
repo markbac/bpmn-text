@@ -116,3 +116,50 @@ through a generator extension hook.
 
 **Consequences.** Executable Camunda/Zeebe support can be added later as an
 extension without changing the grammar.
+
+---
+
+## ADR-009: Groups are transparent blocks laid out as column partitions — *Accepted*
+
+**Context.** Real process documents use BPMN groups to mark **phases**, such
+as *Fulfilment* and *After-sales*. Each phase is a dashed box
+spanning all lanes. A group is purely visual in BPMN, but if layout ignores
+it, elements from different phases end up inside each other's boxes.
+
+**Decision.** `group X` is a block that does **not** affect flow or lane
+scoping. It only tags its members. Layout uses ELK partitioning so that each
+group's members take up consecutive columns that no other element shares.
+By default the box spans the full pool height, and `[fit]` makes it hug its
+members. Nested and overlapping groups are out of scope for v1.
+
+**Consequences.** Phase diagrams lay out correctly with no manual hints.
+Groups that are not contiguous in story order are not supported; the
+workaround is a `[fit]` group per contiguous run.
+
+---
+
+## ADR-010: Gateway-less fan-out (`fork`, multi-target jumps) — *Accepted*
+
+**Context.** Many existing diagrams split flow by giving a task several
+outgoing flows, with no parallel gateway. A transcription must be able to
+reproduce that exactly.
+
+**Decision.** Multi-target jumps (`-> A, B`) and a `fork` block, which has
+branch syntax but draws no gateway. Open `fork` branches still join through
+an inserted *parallel* gateway to stay semantically correct. Authors who want
+no join end each branch with a jump.
+
+**Consequences.** Diagrams can be transcribed exactly without losing the
+story-order style. Uncontrolled merges need no extra syntax.
+
+---
+
+## ADR-011: Colours emitted in both colour namespaces — *Accepted*
+
+**Decision.** `[color:]` and `[stroke:]` are written as both OMG *BPMN in
+Color* (`color:background-color`, `color:border-color`) and bpmn-js
+`bioc:fill` / `bioc:stroke` attributes.
+
+**Consequences.** Colours show in bpmn.io, Camunda Modeler and other tools
+that support the OMG extension. Lane colours fill the whole lane, since DI
+cannot colour only the lane header.

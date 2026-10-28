@@ -198,20 +198,26 @@ but simpler:
 ```ts
 interface Model {
   title?: string;
+  documentation?: string;
   pools: Pool[];                 // always ≥ 1 (implicit pool for plain processes)
   messageFlows: MessageFlow[];
   dataStores: DataStore[];
+  groups: Group[];               // document order = column order
 }
-interface Pool    { id; name; collapsed: boolean; implicit: boolean;
-                    lanes: Lane[]; process?: Container }
+interface Style   { fill?: string; stroke?: string }      // normalised #RRGGBB
+interface Group   { id; name; fit: boolean; style?: Style; documentation?: string;
+                    members: string[] /* flow node ids, across pools */ }
+interface Pool    { id; name; collapsed: boolean; implicit: boolean; style?: Style;
+                    documentation?: string; lanes: Lane[]; process?: Container }
 interface Container {            // a process or a subprocess
   nodes: FlowNode[];            // events, tasks, gateways, subprocesses
   flows: SequenceFlow[];
   dataObjects: DataObject[];
   annotations: Annotation[];
 }
-interface FlowNode { id; kind; eventType?; name?; laneId?; markers;
+interface FlowNode { id; kind; eventType?; name?; laneId?; groupId?; markers;
                      boundaries: BoundaryEvent[]; children?: Container;
+                     style?: Style; documentation?: string;
                      generated?: 'join';        // inserted join gateway
                      source: Range }            // source map for editor/LSP
 ```
@@ -220,13 +226,19 @@ The builder runs in passes:
 
 1. **Declare.** Walk the AST, create IR nodes, assign lanes (a lane-scope
    stack is pushed for each branch and boundary chain), and register names
-   and IDs in a symbol table.
+   and IDs in a symbol table. Group blocks are *transparent*: they set the
+   current group on the nodes declared inside them, and push no flow or
+   lane scope. `doc` and `[doc:]` attach documentation, and colour
+   attributes are normalised into a `Style`.
 2. **Resolve.** Bind references to targets using `@id`, then normalised name.
    Report BT201/BT202 with closest-match suggestions (Damerau–Levenshtein).
 3. **Connect.** Apply the implicit-flow rules from notation §5–§7. The
    builder tracks a set of **open ends** (node + pending label + default
    flag). At the end of each gateway block, it merges them into the next
-   statement, inserting join gateways where the rules require.
+   statement, inserting join gateways where the rules require. A `start`
+   discards the current open ends (reporting each as BT302). A `fork`
+   gives each branch an open end that starts at the preceding element, with
+   no gateway node. Multi-target jumps create one flow per target.
 4. **IDs.** Assign deterministic IDs (§8).
 
 Each pass reports diagnostics and still returns a best-effort model, so the
@@ -271,13 +283,14 @@ The interface is asynchronous because elkjs runs in a worker in the browser.
 |---|---|---|
 | 0 | **Sizing** | Standard BPMN sizes: task 100×80, event 36×36, gateway 50×50, data object 36×50, data store 50×50. Label sizes are estimated from text length (with a font-metrics table, so the result is the same in Node and the browser). |
 | 1 | **Subprocesses** | Expanded subprocesses are laid out bottom-up, recursively running the whole engine on their body. The result fixes their size. Collapsed ones get task size and a separate diagram plane. |
-| 2 | **Global layering** | All flow nodes of **all pools** go into one ELK `layered` graph (direction RIGHT). Edges are sequence flows (high priority) and message flows (low priority, used only to align columns across pools, FR-25). `considerModelOrder` keeps document order, and model-order cycle breaking makes loops show as back edges in story order. Boundary events are folded into their host. Output: a **layer** (column) and in-layer order for each node. |
+| 2 | **Global layering** | All flow nodes of **all pools** go into one ELK `layered` graph (direction RIGHT). Edges are sequence flows (high priority) and message flows (low priority, used only to align columns across pools, FR-25). `considerModelOrder` keeps document order, and model-order cycle breaking makes loops show as back edges in story order. Boundary events are folded into their host. **Groups** use ELK *partitioning* (`elk.partitioning.activate`): each node gets a partition index from its group's document order, with ungrouped nodes between groups getting their own partitions. All columns of group *i* therefore come before those of group *i+1* and are never shared (FR-29). Output: a **layer** (column) and in-layer order for each node. |
 | 3 | **Band assignment** | For each pool and each lane, the nodes in each layer are stacked into **rows**, ordered by the ELK order with a barycentre pass to reduce crossings. The *main path* (first branch of each split) is kept on row 0 so the happy path is a straight line. Lane height = rows × row height + padding, plus extra rows reserved for boundary chains and data objects. |
 | 4 | **Coordinates** | Column x positions are shared across all pools. Each gap between columns is widened to fit the number of edge tracks routed through it. Lane y positions are stacked within the pool, and pools are stacked with a fixed gap. Every lane is stretched to the pool width, and every pool to the widest pool (FR-21/22). |
 | 5 | **Sequence-flow routing** | Orthogonal routing through the **channels** between columns and the **gutters** between rows. Each edge segment in a channel gets its own track, so parallel segments do not overlap. BPMN conventions apply: gateways exit from their top or bottom side towards branches above or below, and back edges leave from the bottom and run along the lane gutter. Long edges that skip columns use virtual points through free row space. |
 | 6 | **Message flows** | Routed vertically between pools. If the endpoint x positions differ, an elbow is placed in the gap between the pools. Collapsed pools are thin bands, and their flows attach at the other endpoint's x position. |
 | 7 | **Attachments** | Boundary events are spread evenly along the host's bottom border, and their chains run downwards into the reserved rows. Data objects and stores are placed in a reserved row next to their activity, and annotations above their element, each with an association line. |
 | 8 | **Labels** | External labels for events (below), gateways (above), and flows (next to the first segment, avoiding shapes). |
+| 9 | **Groups** | Each group box covers its column range (with padding into the column gaps). Vertically it spans the full height of every pool the group occurs in, or with `[fit]` the bounding box of its members. Group labels go at the top centre. Gaps between columns at group boundaries are widened so the dashed borders never touch shapes or labels. |
 
 ### 6.3 Layout quality checks
 
@@ -300,6 +313,15 @@ tests and benchmarks. It reports:
   gateways, `dataObject`/`dataObjectReference`/`dataStoreReference`,
   `textAnnotation` with `association`, `boundaryEvent` with `attachedToRef`
   and `cancelActivity`, and event definitions.
+* **Groups:** a `bpmn:category` with one `categoryValue` per group, and
+  `bpmn:group` elements (`categoryValueRef`) in the collaboration, or in the
+  process when there is no collaboration.
+* **Documentation:** `bpmn:documentation` children (`textFormat="text/plain"`).
+* **Colours:** the OMG `color:` namespace
+  (`http://www.omg.org/spec/BPMN/non-normative/color/1.0`) and the bpmn-js
+  `bioc:` namespace (`http://bpmn.io/schema/bpmn/biocolor/1.0`) on
+  `BPMNShape`/`BPMNEdge`. Edges inherit the stroke of their source element
+  only when the source sets one.
 * **DI part:** one `BPMNDiagram` per plane (main plane plus one per
   collapsed subprocess). It contains `BPMNShape` (with `isHorizontal="true"`
   for pools and lanes, and `isExpanded` for subprocesses), `BPMNEdge` with

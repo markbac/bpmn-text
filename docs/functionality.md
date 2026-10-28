@@ -38,7 +38,12 @@ BPMN tools.
   * boundary events (interrupting and non-interrupting);
   * data objects, data stores, data associations;
   * text annotations;
-  * loop and multi-instance markers.
+  * loop and multi-instance markers;
+  * **groups** (phases drawn as dashed boxes);
+  * **colours** on elements, pools, lanes and groups;
+  * **documentation** text on any element (`bpmn:documentation`);
+  * **fan-out without gateways** (several outgoing flows, `fork`) and
+    uncontrolled merges.
 * **Deliverables**
   1. **Core library** (`@bpmn-text/core` and friends): parse, validate,
      lay out and generate BPMN XML. Usable from Node and the browser.
@@ -55,8 +60,9 @@ BPMN tools.
   types, forms, condition expressions, I/O mappings). The architecture leaves
   room for this as an extension (see [architecture.md §9](architecture.md)).
 * Reverse conversion (`.bpmn` → text).
-* Nested lanes (child lane sets), event subprocesses, transactions, groups,
-  conversations, choreographies.
+* Nested lanes (child lane sets), nested or overlapping groups, event
+  subprocesses, transactions, conversations, choreographies.
+* Colouring only a lane's header (BPMN DI can only colour the whole lane).
 * Manual layout hints or pinned coordinates.
 * Round-tripping manual edits made in a modeller back into the text.
 
@@ -74,6 +80,11 @@ BPMN tools.
 | FR-6 | Report **all** syntax and semantic problems in one run, with stable codes, line/column ranges and, where possible, suggestions ("did you mean …?") and quick fixes. |
 | FR-7 | Validate model rules (cross-pool flows, unreachable nodes, dead ends, invalid boundary/gateway configurations; see notation §11). |
 | FR-8 | Generate deterministic element IDs derived from names, so the same input always produces byte-identical output. |
+| FR-9 | Never connect implicit flow into a start event. Support several independent chains (several start events) in one pool. |
+| FR-14 | Support fan-out without a gateway (multi-target jumps, `fork`) and uncontrolled merges. |
+| FR-15 | Attach documentation text to elements, pools, lanes, groups and the process, emitted as `bpmn:documentation`. |
+| FR-16 | Apply fill and stroke colours, emitted as both OMG BPMN-in-Color and bpmn-js `bioc` attributes. |
+| FR-17 | Support groups: `bpmn:group` with a category value, spanning one or more pools. |
 
 ### 4.2 Output
 
@@ -97,6 +108,7 @@ BPMN tools.
 | FR-26 | Place boundary events on the host's border, data objects near their activity, and annotations near their element. |
 | FR-27 | Lay out expanded subprocesses recursively and size them to their content. |
 | FR-28 | Lay out a 200-node collaboration in under 1 second on a typical laptop. |
+| FR-29 | Lay out each group as a run of consecutive columns that no other element shares. By default the group box spans the full pool height; `[fit]` makes it hug its members. |
 
 ### 4.4 CLI
 
@@ -142,8 +154,11 @@ BPMN tools.
 
 ## 6. Success criteria
 
-* All six files in `examples/` compile without errors and open cleanly in
+* All files in `examples/` compile without errors and open cleanly in
   Camunda Modeler. A reviewer judges the layouts "would not need manual
-  tidying" for at least 5 of the 6.
+  tidying" for at least 5 of the first 6.
+* A realistic multi-lane, multi-phase example (groups, colours, `fork`,
+  documentation) compiles to a diagram that is readable without manual
+  tidying.
 * A first-time user can write the order-fulfilment example from the notation
   reference in under 15 minutes.

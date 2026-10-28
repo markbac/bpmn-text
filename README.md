@@ -68,6 +68,8 @@ gateways, lane placement and the whole diagram layout are inferred.
 * **Lane-aware layout.** ELK layered layout for flow ordering, combined with
   custom lane banding and orthogonal routing. This is validated by a spike
   first (ADR-004).
+* **Groups, colours, documentation, gateway-less fan-out**, so real-world
+  diagrams can be transcribed faithfully (ADR-009–011).
 * **Descriptive BPMN first.** Execution attributes (Camunda/Zeebe) are out of
   scope for v1, and an extension hook leaves room for them later.
 
