@@ -1,0 +1,5 @@
+# BT002: A tab used for indentation.
+# expect: BT002 @ 4:1
+pool Company
+	start
+  end

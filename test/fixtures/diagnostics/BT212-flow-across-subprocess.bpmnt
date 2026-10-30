@@ -1,0 +1,12 @@
+# BT212: A jump from inside a subprocess to an element outside it.
+# expect: BT212 @ 10:10
+start
+sub Handle payment
+  start
+  service Charge card
+  xor Charged?
+    yes: end Paid
+    no:
+      -> Notify customer
+task Notify customer
+end

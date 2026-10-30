@@ -1,0 +1,7 @@
+# BT251: A lane given two different fill colours.
+# expect: BT251 @ 5:15
+pool Company
+  lanes Sales [color: green]
+  lane Sales [color: red]
+  start
+  end

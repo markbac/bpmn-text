@@ -1,0 +1,5 @@
+# BT304: A send task with no message flow.
+# expect: BT304 @ 4:1
+start
+send Notify customer
+end

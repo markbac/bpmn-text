@@ -1,0 +1,6 @@
+# BT240: An error boundary event marked non-interrupting.
+# expect: BT240 @ 5:27
+start
+service Charge card
+  on error Card declined [non-interrupting] -> end Payment failed
+end Paid

@@ -1,0 +1,9 @@
+# A collapsed subprocess with no body, next to a call activity.
+# covers: §4.8, §8
+title "Loan application"
+
+start Application received
+sub Credit check [collapsed]
+call Standard KYC process
+user Decide on loan
+end Decided

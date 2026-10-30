@@ -1,0 +1,6 @@
+# BT003: A dedent that matches no open block.
+# expect: BT003 @ 6:3
+pool Company
+    start
+    task Check order
+  end

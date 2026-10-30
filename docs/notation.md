@@ -180,7 +180,9 @@ note Uses the nightly snapshot, not live stock
 ### 4.5 Attributes
 
 Attributes are written in square brackets after the name, separated by commas.
-Flags have no value. Key/value pairs use `:`.
+Flags have no value. Key/value pairs use `:`. A key can take several values
+separated by commas; an item of the form `key:` ends that list and starts the
+next attribute, so `[reads: A, B, writes: C]` reads A and B and writes C.
 
 ```
 user Approve order @approve [parallel, reads: Order]
@@ -451,7 +453,7 @@ jump to it:
 xor Merge @m
 ```
 
-A gateway with no branch block is a plain node. Jumps (`-> m`) can target it,
+A gateway with no branch block is a plain node. Jumps (`-> @m`) can target it,
 and implicit flow continues out of it.
 
 ### 7.4 Fan-out without a gateway: `fork`
@@ -481,7 +483,8 @@ xor Sync done
   model semantically correct. To avoid the inserted join, end each branch
   with a jump to an element of your choice, as above.
 * A `fork` must follow an element that implicit flow leaves. A `fork` right
-  after an end event, a jump or a gateway is error **BT224**.
+  after an end event, a jump, or a gateway block with no open branches is
+  error **BT224**.
 
 ---
 
@@ -602,8 +605,8 @@ on <event-type> [name] [@id] [[attributes]] [flow tail]
   **open**, it merges into the host activity's next element through an
   automatic XOR join, as described in §7.1.
 * A **non-interrupting** boundary chain must end with an end event or a jump.
-  If it ends open, it gets warning **BT241** and is not merged, because
-  merging it would duplicate the token on the main path.
+  If it ends open, it gets warning **BT241** (instead of BT302) and is not
+  merged, because merging it would duplicate the token on the main path.
 * For a `sub` with a body, `on` lines may appear anywhere in its block. All
   other lines form the body.
 
@@ -639,7 +642,7 @@ possible, a quick fix.
 | BT241 | warning | Non-interrupting boundary chain ends open |
 | BT250 | error | Nested group, element in two groups, or group inside a `sub` |
 | BT251 | warning | Conflicting lane attributes |
-| BT301 | warning | Unreachable element (no incoming flow, not a start) |
+| BT301 | warning | Unreachable element (no incoming sequence or message flow, not a start event) |
 | BT302 | warning | Dead end (non-end element with no outgoing flow) |
 | BT303 | info | Process has no start or no end event |
 | BT304 | info | Send/receive element without a message flow |
@@ -680,7 +683,7 @@ doc_stmt     = "doc" , ( TEXT , NL | NL , INDENT , RAW_TEXT_LINES , DEDENT ) ;
 boundary     = "on" , ev_type , [ name ] , [ id ] , [ attrs ] , [ tail ] , NL ,
                [ INDENT , body , DEDENT ] ;
 
-lane_stmt    = "lane" , name , NL ;
+lane_stmt    = "lane" , name , [ attrs ] , NL ;
 lanes_stmt   = "lanes" , name , [ attrs ] , { "," , name , [ attrs ] } , NL ;
 goto_stmt    = flow_op , target , { "," , reference } , NL ;
 msg_stmt     = reference , ( "~>" | "~(" , label , ")~>" ) , reference , NL ;

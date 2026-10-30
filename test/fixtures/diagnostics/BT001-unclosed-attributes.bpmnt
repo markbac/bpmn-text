@@ -1,0 +1,5 @@
+# BT001: Syntax error: an attribute list is never closed.
+# expect: BT001 @ 4:18
+start
+task Check order [loop
+end

@@ -1,0 +1,22 @@
+# Every activity type and marker, data objects, the id: and lane: attributes,
+# and a start event that begins a second chain in the same pool.
+# covers: §4.2, §4.4, §4.5, §5, §9
+title "Activity types"
+
+pool Office
+  lanes Clerk, Manager
+  lane Clerk
+  start Request received
+  data Request form [collection]
+  user Fill in form [writes: Request form]
+  script Validate fields [reads: Request form]
+  manual File paper copy [sequential]
+  rule Decide approval level [id: decide]
+  task Countersign [lane: Manager]
+  call Standard archiving
+  service Notify requester
+  end Done
+  start timer Month end
+  lane Manager
+  user Review filed requests [loop]
+  end Reviewed

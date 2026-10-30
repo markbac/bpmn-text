@@ -1,0 +1,5 @@
+# BT102: `terminate` is an end event type, not a start event type.
+# expect: BT102 @ 3:7
+start terminate
+task Check order
+end

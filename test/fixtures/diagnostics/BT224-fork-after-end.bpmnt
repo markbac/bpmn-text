@@ -1,0 +1,11 @@
+# BT224: A fork after an end event has nothing to fan out from; its branches are then unreachable.
+# expect: BT224 @ 8:1
+# expect: BT301 @ 9:5
+# expect: BT301 @ 10:5
+start
+task Check order
+end Done
+fork
+  - task Update billing
+  - task Update CRM
+end Synced

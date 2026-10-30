@@ -1,4 +1,5 @@
 # A single process: no pools, no lanes, implicit flow only.
+# covers: §4.1, §4.2, §5
 title "Expense claim"
 
 start Receipt collected

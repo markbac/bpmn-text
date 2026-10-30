@@ -1,0 +1,6 @@
+# BT303: A process that loops forever and has no end event.
+# expect: BT303 @ 3:1
+start
+task Check order
+task Fix order
+-> Check order

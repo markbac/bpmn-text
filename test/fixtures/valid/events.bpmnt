@@ -1,0 +1,33 @@
+# Start, intermediate and end event types (link events are not covered yet).
+# covers: §4.1
+title "Event types"
+
+pool Customer
+  start Need goods
+  send Place order ~> Order received
+  catch message Goods arrived
+  end Goods received
+
+pool Warehouse
+  start message Order received
+  catch signal Stock replenished
+  catch conditional Truck available
+  wait 1 day
+  throw escalation Delay reported
+  throw signal Order picked
+  xor Outcome?
+    shipped: end message Goods dispatched ~> Goods arrived
+    lost: end error Parcel lost
+    late: end escalation Too late
+    cancelled: end compensation Undo order
+    closed: end signal Order closed
+    else: end terminate Abort
+  start timer Every Monday
+  task Count stock
+  end
+  start signal Inventory alert
+  task Recount shelf
+  end
+  start conditional Temperature too high
+  task Move goods
+  end

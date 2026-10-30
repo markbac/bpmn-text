@@ -1,4 +1,5 @@
 # Subprocesses, data objects/stores, annotations and activity markers.
+# covers: §4.2, §4.4, §4.5, §8, §10
 title "Invoice run"
 
 store Accounting DB

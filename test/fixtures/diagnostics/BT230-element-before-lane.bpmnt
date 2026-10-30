@@ -1,0 +1,7 @@
+# BT230: An element before the first `lane` in a pool that uses lanes.
+# expect: BT230 @ 4:3
+pool Company
+  start
+  lane Sales
+  task Check order
+  end

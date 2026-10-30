@@ -1,0 +1,25 @@
+# Fan-out without a gateway: a fork whose branches jump to a merge, and a
+# multi-target jump.
+# covers: §6.2, §7.4
+title "Order sync"
+
+pool Shop
+  lanes Orders, Billing, CRM
+  lane Orders
+  start Order placed
+  service Publish order
+  fork
+    -
+      lane Billing
+      service Update billing
+      -> Sync done
+    -
+      lane CRM
+      service Update CRM
+      -> Sync done
+  xor Sync done
+  service Archive order -> Audit log, Search index
+  service Audit log
+  end Logged
+  service Search index
+  end Indexed

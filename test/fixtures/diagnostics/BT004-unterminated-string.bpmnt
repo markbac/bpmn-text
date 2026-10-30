@@ -1,0 +1,5 @@
+# BT004: A string with no closing quote.
+# expect: BT004 @ 4:6
+start
+task "Check order
+end

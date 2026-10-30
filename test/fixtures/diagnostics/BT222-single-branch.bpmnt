@@ -1,0 +1,6 @@
+# BT222: A gateway with only one branch.
+# expect: BT222 @ 4:1
+start
+xor Approved?
+  yes: task Ship
+end

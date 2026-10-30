@@ -1,0 +1,21 @@
+# Documentation on the collaboration, a pool, a lane and elements, in line,
+# attribute and block form.
+# covers: §4.6
+title "Refunds"
+doc Handles refunds for orders returned within 30 days.
+
+pool Shop
+  doc The online shop, including its returns desk.
+  lanes Returns desk [doc: "Staff at the warehouse returns counter."]
+  lane Returns desk
+  start Parcel returned
+  service Validate order
+  doc Checks each line against the catalogue -> unknown items are rejected (see #refund-rules).
+  doc A second doc line is joined to the first with a line break.
+  user Inspect goods [doc: "Look for damage and missing parts."]
+  service Refund payment
+  doc
+    Refunds the original payment method.
+
+    Exception: gift cards are refunded as store credit.
+  end Refunded
