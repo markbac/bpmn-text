@@ -16,5 +16,8 @@
   ],
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean"
+  },
+  "devDependencies": {
+    "fast-check": "^4.10.0"
   }
 }
