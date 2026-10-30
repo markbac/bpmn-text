@@ -7,11 +7,12 @@
     "apps/*"
   ],
   "engines": {
-    "node": ">=20"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
     "build": "npm run build --workspaces",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "typecheck": "tsc -b"
@@ -19,6 +20,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.0",
     "@types/node": "^22.20.0",
+    "@vitest/coverage-v8": "^4.1.12",
     "eslint": "^9.39.0",
     "eslint-config-prettier": "^10.1.0",
     "prettier": "^3.6.0",

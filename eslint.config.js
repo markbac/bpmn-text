@@ -58,6 +58,10 @@ export default tseslint.config(
   { ignores: ['**/dist/', '**/build/', 'coverage/'] },
   js.configs.recommended,
   tseslint.configs.recommended,
+  {
+    files: ['scripts/**/*.js'],
+    languageOptions: { globals: { console: 'readonly', process: 'readonly' } },
+  },
   ...dependencyDirection,
   prettier,
 );

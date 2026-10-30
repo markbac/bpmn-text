@@ -21,6 +21,11 @@ export default defineConfig({
   ssr: { resolve: { conditions } },
   test: {
     passWithNoTests: true,
+    coverage: {
+      provider: 'v8',
+      include: ['packages/*/src/**', 'apps/*/src/**'],
+      reporter: ['text-summary', 'json-summary'],
+    },
     projects: workspaces.map((dir) => ({
       extends: true,
       root: dir,
