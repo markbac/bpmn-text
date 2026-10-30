@@ -18,3 +18,4 @@ export {
   type ValidateOptions,
 } from './validator.js';
 export { check, type CheckResult } from './check.js';
+export { format } from './formatter.js';
