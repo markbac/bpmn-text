@@ -9,16 +9,21 @@ export function printAst(node: unknown): unknown {
   if (Array.isArray(node)) return node.map(printAst);
   if (!node || typeof node !== 'object') return node;
   const o = node as Record<string, unknown>;
+  if (isRange(o)) return showRange(o);
   if ('value' in o && 'quoted' in o && 'range' in o) {
     return o.quoted ? JSON.stringify(o.value) : o.value;
   }
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(o)) {
     if (Array.isArray(v) && v.length === 0) continue;
-    out[k] = k === 'range' ? showRange(v as Range) : printAst(v);
+    out[k] = printAst(v);
   }
   return out;
 }
 
+const isRange = (o: object): o is Range =>
+  'start' in o &&
+  'end' in o &&
+  typeof (o.start as { line?: unknown }).line === 'number';
 const showRange = ({ start, end }: Range) =>
   `${start.line}:${start.col}-${end.line}:${end.col}`;

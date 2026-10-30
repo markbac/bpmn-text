@@ -11,6 +11,7 @@ cases. Both are inputs to the golden, diagnostics and layout tests, and
 | `examples/NN-name.bpmnt` | Complete, realistic processes, referenced from notation §13 |
 | `test/fixtures/valid/name.bpmnt` | Small valid files for features the examples do not show |
 | `test/fixtures/diagnostics/BTxxx-name.bpmnt` | One file per diagnostic code in notation §11 |
+| `test/fixtures/flows/NN-name.flows` | The hand-verified nodes, lanes and flows of each example, compared with the model builder's output |
 
 Expected outputs (such as golden `.bpmn` files) will sit next to their source
 with the same base name when the generator exists.

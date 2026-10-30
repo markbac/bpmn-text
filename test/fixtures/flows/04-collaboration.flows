@@ -1,0 +1,38 @@
+pool Participant_customer
+  node Event_need_product
+  node Activity_place_order
+  node Activity_confirmation
+  node Event_done
+  Event_need_product -> Activity_place_order
+  Activity_place_order -> Activity_confirmation
+  Activity_confirmation -> Event_done
+pool Participant_company
+  node Activity_receive_order in Lane_sales
+  node Activity_check_credit in Lane_sales
+  node Gateway_credit_ok in Lane_sales
+  node Activity_pick_items in Lane_warehouse
+  node Activity_pack_parcel in Lane_warehouse
+  node Activity_request_prepayment in Lane_sales
+  node Activity_payment_received in Lane_sales
+  node Activity_issue_invoice in Lane_finance
+  node Gateway_join_after_issue_invoice in Lane_finance
+  node Activity_ship_parcel in Lane_warehouse
+  node Activity_send_confirmation in Lane_warehouse
+  node Event_shipped in Lane_warehouse
+  Activity_receive_order -> Activity_check_credit
+  Activity_check_credit -> Gateway_credit_ok
+  Gateway_credit_ok -> Activity_pick_items [yes]
+  Activity_pick_items -> Activity_pack_parcel
+  Gateway_credit_ok -> Activity_request_prepayment [no]
+  Activity_request_prepayment -> Activity_payment_received
+  Activity_pack_parcel -> Gateway_join_after_issue_invoice
+  Activity_payment_received -> Gateway_join_after_issue_invoice
+  Gateway_join_after_issue_invoice -> Activity_issue_invoice
+  Activity_issue_invoice -> Activity_ship_parcel
+  Activity_ship_parcel -> Activity_send_confirmation
+  Activity_send_confirmation -> Event_shipped
+pool Participant_bank (collapsed)
+message Activity_place_order ~> Activity_receive_order
+message Activity_request_prepayment ~> Participant_bank [invoice]
+message Activity_send_confirmation ~> Activity_confirmation
+message Participant_bank ~> Activity_payment_received [payment]

@@ -1,0 +1,33 @@
+pool Participant_support_ticket (implicit)
+  node Event_ticket_raised
+  node Activity_triage_ticket
+  node Event_4_hours on Activity_triage_ticket
+  node Activity_notify_team_lead
+  node Event_lead_notified
+  node Activity_resolve_ticket
+  node Event_2_days on Activity_resolve_ticket
+  node Activity_specialist_investigation
+  node Activity_ask_customer_to_confirm
+  node Gateway_join_after_ask_customer_to_confirm
+  node Gateway_wait_for_customer
+  node Event_customer_confirms
+  node Event_customer_reopens
+  node Event_7_days
+  node Event_ticket_closed
+  node Gateway_join_after_ticket_closed
+  Event_ticket_raised -> Activity_triage_ticket
+  Event_4_hours -> Activity_notify_team_lead
+  Activity_notify_team_lead -> Event_lead_notified
+  Activity_triage_ticket -> Activity_resolve_ticket
+  Event_2_days -> Activity_specialist_investigation
+  Activity_resolve_ticket -> Gateway_join_after_ask_customer_to_confirm
+  Activity_specialist_investigation -> Gateway_join_after_ask_customer_to_confirm
+  Gateway_join_after_ask_customer_to_confirm -> Activity_ask_customer_to_confirm
+  Activity_ask_customer_to_confirm -> Gateway_wait_for_customer
+  Gateway_wait_for_customer -> Event_customer_confirms
+  Gateway_wait_for_customer -> Event_customer_reopens
+  Gateway_wait_for_customer -> Event_7_days
+  Event_customer_confirms -> Gateway_join_after_ticket_closed
+  Event_7_days -> Gateway_join_after_ticket_closed
+  Gateway_join_after_ticket_closed -> Event_ticket_closed
+  Event_customer_reopens -> Activity_resolve_ticket

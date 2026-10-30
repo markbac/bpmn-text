@@ -1,0 +1,18 @@
+pool Participant_hr_department
+  node Event_leave_needed in Lane_employee
+  node Activity_submit_leave_request in Lane_employee
+  node Activity_review_request in Lane_manager
+  node Gateway_approved in Lane_manager
+  node Activity_update_leave_balance in Lane_hr
+  node Activity_read_rejection_reason in Lane_employee
+  node Event_request_rejected in Lane_employee
+  node Activity_inform_team in Lane_manager
+  node Event_leave_booked in Lane_employee
+  Event_leave_needed -> Activity_submit_leave_request
+  Activity_submit_leave_request -> Activity_review_request
+  Activity_review_request -> Gateway_approved
+  Gateway_approved -> Activity_update_leave_balance [yes]
+  Gateway_approved -> Activity_read_rejection_reason [no]
+  Activity_read_rejection_reason -> Event_request_rejected
+  Activity_update_leave_balance -> Activity_inform_team
+  Activity_inform_team -> Event_leave_booked
