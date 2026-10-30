@@ -47,7 +47,7 @@ are not well structured use an explicit gateway with `@id` and jumps.
 
 ---
 
-## ADR-004: Layout = ELK layering + custom lane banding and routing — *Proposed*
+## ADR-004: Layout = ELK layering + custom lane banding and routing — *Accepted*
 
 **Context.** `bpmn-auto-layout` does not lay out lanes or pools. ELK's
 layered algorithm produces excellent left-to-right flow layouts, but its
@@ -64,9 +64,19 @@ the flow crosses. ELK's partitioning constrains *layers* (columns), not rows.
   full control. Kept as the fallback if ELK's model-order behaviour proves
   unreliable.
 
-**Decision (proposed).** A. The issue *"Spike: lane-aware layout"* confirms
-this on the example corpus (story-order preservation, loop handling,
-cross-pool alignment) and moves this ADR to *Accepted* or switches to C.
+**Decision.** A, confirmed by the spike in issue #3 on examples 02, 03 and
+04 ([report](spikes/lane-layout/README.md)). With ELK model order and
+model-order cycle breaking, no forward flow was drawn backwards, the one
+loop became a back edge, columns lined up across pools, there were no
+overlaps or edges through shapes, and the result was deterministic. Option
+C is not needed.
+
+**Consequences.** ELK must be given a single *story order* across pools, in
+which a message flow's target follows its source. Otherwise model-order
+cycle breaking reverses message flows from a later pool to an earlier one.
+Routing chooses each edge's shape by checking for obstacles, and widens
+column channels from a first pass that counts tracks (architecture §6.2,
+phases 2, 5 and 6).
 
 ---
 
