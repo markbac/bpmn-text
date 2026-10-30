@@ -181,8 +181,10 @@ note Uses the nightly snapshot, not live stock
 
 Attributes are written in square brackets after the name, separated by commas.
 Flags have no value. Key/value pairs use `:`. A key can take several values
-separated by commas; an item of the form `key:` ends that list and starts the
-next attribute, so `[reads: A, B, writes: C]` reads A and B and writes C.
+separated by commas. An item of the form `key:`, or one of the flags below,
+ends that list and starts the next attribute, so `[reads: A, B, loop, writes:
+C]` reads A and B, sets `loop` and writes C. Quote a value that is spelt like
+a flag.
 
 ```
 user Approve order @approve [parallel, reads: Order]

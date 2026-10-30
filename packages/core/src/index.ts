@@ -7,3 +7,5 @@ export {
   type Token,
   type TokenKind,
 } from './lexer.js';
+export type * from './ast.js';
+export { parse, type ParseResult } from './parser.js';
