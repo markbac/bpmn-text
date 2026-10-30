@@ -1,0 +1,26 @@
+{
+  "name": "@bpmn-text/editor",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Live web editor for bpmn-text.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean"
+  },
+  "dependencies": {
+    "@bpmn-text/core": "0.0.0",
+    "@bpmn-text/layout": "0.0.0",
+    "@bpmn-text/bpmn": "0.0.0"
+  }
+}

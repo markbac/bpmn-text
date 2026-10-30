@@ -1,0 +1,20 @@
+{
+  "name": "@bpmn-text/core",
+  "version": "0.0.0",
+  "description": "Lexer, parser, AST, model builder, validator, formatter and diagnostics for bpmn-text.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean"
+  }
+}

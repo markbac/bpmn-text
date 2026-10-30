@@ -77,3 +77,26 @@ gateways, lane placement and the whole diagram layout are inferred.
 
 TypeScript monorepo (npm workspaces) · elkjs · bpmn-moddle · bpmn-js ·
 CodeMirror 6 · vscode-languageserver · Vitest · Playwright
+
+## Development
+
+Requires Node 20 or later.
+
+```bash
+npm install
+npm run build      # tsup build of every workspace (ESM + .d.ts)
+npm test           # Vitest across all workspaces
+npm run typecheck  # tsc -b over the project references
+npm run lint       # ESLint (including dependency direction) and Prettier
+```
+
+Workspaces import each other through the `source` export condition, so
+type checking and tests run against TypeScript sources without a prior
+build. The allowed dependencies between workspaces (architecture §2) are
+defined in `eslint.config.js` and enforced by `npm run lint`.
+
+> **Note:** npm 10 crashes (`Cannot read properties of null (reading
+> 'edgesOut')`) when it has to resolve Vitest 4 without a lockfile.
+> Installing from the committed `package-lock.json` works with npm 10, but
+> regenerate the lockfile or add dependencies with npm 11
+> (`npx npm@11 install ...`).

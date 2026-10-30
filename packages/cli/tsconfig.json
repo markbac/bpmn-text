@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "build/types"
+  },
+  "include": ["src"],
+  "references": [
+    {
+      "path": "../core"
+    },
+    {
+      "path": "../layout"
+    },
+    {
+      "path": "../bpmn"
+    },
+    {
+      "path": "../render"
+    }
+  ]
+}
