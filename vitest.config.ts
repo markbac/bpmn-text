@@ -11,6 +11,7 @@ const workspaces = [
   'packages/render',
   'packages/cli',
   'packages/language-server',
+  'packages/test-utils',
   'apps/editor',
   'apps/vscode',
   'test',

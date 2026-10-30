@@ -122,7 +122,8 @@ bpmn-text/
 │  ├─ bpmn/              @bpmn-text/bpmn      IR + layout → BPMN XML (bpmn-moddle)
 │  ├─ render/            @bpmn-text/render    XML → SVG/PNG (bpmn-js in headless Chromium)
 │  ├─ cli/               bpmn-text            CLI + the public compile() facade
-│  └─ language-server/   @bpmn-text/language-server  LSP implementation
+│  ├─ language-server/   @bpmn-text/language-server  LSP implementation
+│  └─ test-utils/        @bpmn-text/test-utils  BPMN validity assertions for tests (private)
 ├─ apps/
 │  ├─ editor/            live web editor (Vite, CodeMirror 6, bpmn-js)
 │  └─ vscode/            VS Code extension (TextMate grammar, LSP client, preview webview)
@@ -138,6 +139,7 @@ core ← layout ← bpmn ← cli
 core ← language-server ← apps/vscode
 core, layout, bpmn ← apps/editor
 bpmn ← render ← cli (optional)
+test-utils ← tests of any workspace
 ```
 
 `core`, `layout` and `bpmn` must not use Node-only APIs (NFR-2).

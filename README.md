@@ -84,6 +84,7 @@ Requires Node 20.19+ or 22.12+.
 
 ```bash
 npm install
+npx playwright-core install chromium   # once; used by the bpmn-js import check
 npm run build      # tsup build of every workspace (ESM + .d.ts)
 npm test           # Vitest across all workspaces
 npm run test:coverage
@@ -95,6 +96,12 @@ Workspaces import each other through the `source` export condition, so
 type checking and tests run against TypeScript sources without a prior
 build. The allowed dependencies between workspaces (architecture §2) are
 defined in `eslint.config.js` and enforced by `npm run lint`.
+
+`@bpmn-text/test-utils` (private) provides `expectSchemaValid`,
+`expectModdleImport` and `expectBpmnJsImport` for asserting that generated
+BPMN XML is valid against the OMG BPMN 2.0 XSDs (vendored in
+`packages/test-utils/xsd`) and imports cleanly into bpmn-moddle and into
+bpmn-js running in headless Chromium.
 
 ### Continuous integration
 

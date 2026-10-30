@@ -21,6 +21,8 @@ describe('workspace dependency direction', () => {
     ['packages/language-server/src/index.ts', '@bpmn-text/layout'],
     ['apps/editor/src/index.ts', '@bpmn-text/render'],
     ['apps/vscode/src/index.ts', '@bpmn-text/core/internal'],
+    ['packages/core/src/index.ts', '@bpmn-text/test-utils'],
+    ['packages/test-utils/src/index.ts', '@bpmn-text/core'],
   ])('%s may not import %s', async (file, specifier) => {
     expect(await importErrors(file, specifier)).toHaveLength(1);
   });
@@ -33,6 +35,8 @@ describe('workspace dependency direction', () => {
     ['packages/language-server/src/index.ts', '@bpmn-text/core'],
     ['apps/editor/src/index.ts', '@bpmn-text/bpmn'],
     ['apps/vscode/src/index.ts', '@bpmn-text/language-server'],
+    ['packages/core/test/parser.test.ts', '@bpmn-text/test-utils'],
+    ['packages/cli/test/compile.test.ts', '@bpmn-text/render'],
   ])('%s may import %s', async (file, specifier) => {
     expect(await importErrors(file, specifier)).toHaveLength(0);
   });

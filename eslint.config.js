@@ -5,6 +5,8 @@ import tseslint from 'typescript-eslint';
 
 // Allowed workspace dependencies, matching docs/architecture.md §2.
 // Keys are workspace directories; values are the workspaces each may import.
+// Tests (files under a workspace's test/ directory) may also import
+// packages/test-utils.
 const workspaces = {
   'packages/core': [],
   'packages/layout': ['packages/core'],
@@ -19,6 +21,7 @@ const workspaces = {
   'packages/language-server': ['packages/core'],
   'apps/editor': ['packages/core', 'packages/layout', 'packages/bpmn'],
   'apps/vscode': ['packages/language-server'],
+  'packages/test-utils': [],
 };
 
 const packageNames = {
@@ -30,29 +33,40 @@ const packageNames = {
   'packages/language-server': '@bpmn-text/language-server',
   'apps/editor': '@bpmn-text/editor',
   'apps/vscode': 'bpmn-text-vscode',
+  'packages/test-utils': '@bpmn-text/test-utils',
 };
 
-const dependencyDirection = Object.entries(workspaces).map(([dir, allowed]) => {
-  const forbidden = Object.keys(workspaces)
-    .filter((other) => other !== dir && !allowed.includes(other))
-    .map((other) => packageNames[other]);
-  return {
-    files: [`${dir}/**/*.ts`],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: forbidden.flatMap((name) => [name, `${name}/*`]),
-              message: `${packageNames[dir]} may not depend on this package (see docs/architecture.md §2).`,
-            },
-          ],
-        },
-      ],
-    },
-  };
+const restrict = (files, forbidden, dir) => ({
+  files,
+  rules: {
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            group: forbidden.flatMap((name) => [name, `${name}/*`]),
+            message: `${packageNames[dir]} may not depend on this package (see docs/architecture.md §2).`,
+          },
+        ],
+      },
+    ],
+  },
 });
+
+const dependencyDirection = Object.entries(workspaces).flatMap(
+  ([dir, allowed]) => {
+    const forbidden = Object.keys(workspaces)
+      .filter((other) => other !== dir && !allowed.includes(other))
+      .map((other) => packageNames[other]);
+    const inTests = forbidden.filter(
+      (name) => name !== packageNames['packages/test-utils'],
+    );
+    return [
+      restrict([`${dir}/**/*.ts`], forbidden, dir),
+      restrict([`${dir}/test/**/*.ts`], inTests, dir),
+    ];
+  },
+);
 
 export default tseslint.config(
   { ignores: ['**/dist/', '**/build/', 'coverage/'] },
