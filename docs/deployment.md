@@ -84,16 +84,32 @@ bpmn-text 0.0.0 is up to date.
 | `--no-browser` | `-NoBrowser` | Skip Chromium: no SVG or PNG output |
 | `--keep-old-images` | `-KeepOldImages` | Keep the Docker images of earlier versions |
 | `--ca-file PATH` | `-CaFile PATH` | A proxy's CA certificate, for npm and Docker builds |
+| `--dir PATH` | `-Dir PATH` | Where to clone when run from outside a checkout (default `~/bpmn-text`) |
+| `--repo URL` | `-Repo URL` | What to clone (default this GitHub repository) |
 
 It needs Git and Node.js 22 LTS (20.19 or later works too), and Docker
 only for `--docker`.
 
 ## On a user's PC
 
+One command, from nothing to a running editor (it clones into
+`~/bpmn-text`):
+
 ```bash
-git clone https://github.com/markbac/bpmn-text.git
-cd bpmn-text
-scripts/update.sh --serve          # or .\scripts\update.ps1 -Serve
+curl -fsSL https://raw.githubusercontent.com/markbac/bpmn-text/main/scripts/update.sh | bash -s -- --serve
+```
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/markbac/bpmn-text/main/scripts/update.ps1))) -Serve
+```
+
+While the repository is private, fetch the script with the GitHub CLI
+(`gh api repos/markbac/bpmn-text/contents/scripts/update.sh -H "Accept:
+application/vnd.github.raw"`), or clone first:
+
+```bash
+git clone https://github.com/markbac/bpmn-text.git ~/bpmn-text
+~/bpmn-text/scripts/update.sh --serve          # or ~\bpmn-text\scripts\update.ps1 -Serve
 ```
 
 The editor is then at <http://localhost:8080> until you press Ctrl+C, and

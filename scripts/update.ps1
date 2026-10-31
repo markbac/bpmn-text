@@ -8,6 +8,11 @@
     script stops at the first step that fails, with what to do about it. scripts/update.sh does the same on
     Linux and macOS.
 
+    Run from outside a checkout, for example straight from the repository, it clones the repository first (to
+    ~\bpmn-text, or -Dir) and carries on there, so one command goes from nothing to a working install:
+
+      & ([scriptblock]::Create((irm https://raw.githubusercontent.com/markbac/bpmn-text/main/scripts/update.ps1))) -Serve
+
       1. Code       git pull --ff-only (skipped with -NoPull, or when this is not a Git checkout). When the
                     pull changes this script, the new version runs instead, with the same options
       2. Node       Node.js 20.19+ or 22.12+, and npm
@@ -49,6 +54,12 @@
 .PARAMETER CaFile
     The certificate of a TLS-inspecting proxy, for npm and the Docker builds.
 
+.PARAMETER Dir
+    Where to clone the repository when the script does not run from a checkout. Default ~\bpmn-text.
+
+.PARAMETER Repo
+    What to clone. Default the GitHub repository.
+
 .EXAMPLE
     .\scripts\update.ps1
 .EXAMPLE
@@ -66,16 +77,15 @@ param(
     [switch]$NoLink,
     [switch]$NoBrowser,
     [switch]$KeepOldImages,
-    [string]$CaFile
+    [string]$CaFile,
+    [string]$Dir = (Join-Path $HOME 'bpmn-text'),
+    [string]$Repo = 'https://github.com/markbac/bpmn-text.git'
 )
 
 Set-StrictMode -Version Latest
 # Programs report failure through their exit status, which every step checks. 'Stop' would also turn any line
 # a program writes to stderr into an error in Windows PowerShell 5.1, so it is not used.
 $ErrorActionPreference = 'Continue'
-$Root = Split-Path -Parent $PSScriptRoot
-# PowerShell reads a script once, when it starts: a pull that changes this file needs the new copy started.
-$script:SelfHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $PSCommandPath).Hash
 $script:Step = 0
 
 function Write-Step([string]$Text) {
@@ -90,7 +100,8 @@ function Write-Note([string]$Text) { Write-Host "    note  $Text" -ForegroundCol
 function Stop-Update([string]$Text, [string]$Advice) {
     Write-Host "    FAIL  $Text" -ForegroundColor Red
     if ($Advice) { Write-Host "          $Advice" -ForegroundColor Red }
-    exit 1
+    # Run as a script block from the console, exit would close the window.
+    if ($PSCommandPath) { exit 1 } else { throw "bpmn-text update failed: $Text" }
 }
 
 # Runs a program, shows its output, and stops the update when it fails.
@@ -107,6 +118,32 @@ function Invoke-Quiet([string]$What, [string]$Advice, [string]$Exe, [string[]]$A
         Stop-Update "$What failed (exit status $LASTEXITCODE)" $Advice
     }
 }
+
+# 0. A checkout: this one, or one cloned now. Run as a script block (piped from the repository), there is no
+# script file, so no checkout around it.
+$inCheckout = $PSScriptRoot -and (Test-Path (Join-Path (Split-Path -Parent $PSScriptRoot) 'packages/cli/package.json'))
+if (-not $inCheckout) {
+    Write-Step "Checkout"
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+        Stop-Update "git is not installed" "Install Git for Windows (winget install Git.Git) and open a new terminal"
+    }
+    if (Test-Path (Join-Path $Dir '.git')) {
+        Write-Ok "using the checkout in $Dir"
+    } else {
+        Invoke-Checked "git clone" "Check that you can reach $Repo (a private repository needs your Git credentials)" git @('clone', '--quiet', $Repo, $Dir)
+        Write-Ok "cloned $Repo to $Dir"
+    }
+    # The checkout's own script carries on, without the options that only matter here.
+    $again = @{}
+    foreach ($key in $PSBoundParameters.Keys) {
+        if ($key -ne 'Dir' -and $key -ne 'Repo') { $again[$key] = $PSBoundParameters[$key] }
+    }
+    & (Join-Path $Dir 'scripts/update.ps1') @again
+    if ($PSCommandPath) { exit $LASTEXITCODE } else { return }
+}
+$Root = Split-Path -Parent $PSScriptRoot
+# PowerShell reads a script once, when it starts: a pull that changes this file needs the new copy started.
+$script:SelfHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $PSCommandPath).Hash
 
 Push-Location $Root
 try {
@@ -266,6 +303,9 @@ try {
 
     Write-Host ""
     Write-Host "bpmn-text $version is up to date." -ForegroundColor Green
+    Write-Host "  Use it:        bpmn-text build diagram.bpmnt -f svg"
+    Write-Host "  Web editor:    $PSCommandPath -Serve"
+    Write-Host "  Update later:  $PSCommandPath"
 } finally {
     Pop-Location
 }

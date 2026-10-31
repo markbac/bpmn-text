@@ -5,12 +5,9 @@ customer orders, the company checks credit, picks and ships the goods, and
 a bank takes part in payment. Each step adds one idea and shows the diagram
 it produces.
 
-You need either the [web editor](../apps/editor/README.md) (nothing to
-install) or the command line, installed from a release:
-
-```bash
-npm install -g ./bpmn-text-<version>.tgz
-```
+You need either the [web editor](../apps/editor/README.md) or the command
+line. The [Quick start](../README.md#quick-start) command installs both, and
+starts the editor with `--serve`.
 
 With the command line, save each step as `order.bpmnt` and run:
 
