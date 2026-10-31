@@ -82,7 +82,8 @@ pool Participant_brightwave_broadband
   node Activity_credit_result in Lane_credit_and_fraud
   node Gateway_credit_decision in Lane_credit_and_fraud
   node Activity_review_application_manually in Lane_credit_and_fraud
-  node Gateway_approved_on_review in Lane_credit_and_fraud
+  node Gateway_approved in Lane_credit_and_fraud
+  node Gateway_join_after_approved in Lane_credit_and_fraud
   node Activity_decline_order in Lane_credit_and_fraud
   node Event_declined in Lane_credit_and_fraud
   node Activity_confirm_order in Lane_sales
@@ -145,8 +146,12 @@ pool Participant_brightwave_broadband
   Activity_run_credit_check -> Activity_credit_result
   Activity_credit_result -> Gateway_credit_decision
   Gateway_credit_decision -> Activity_review_application_manually [refer]
-  Activity_review_application_manually -> Gateway_approved_on_review
+  Activity_review_application_manually -> Gateway_join_after_approved
+  Gateway_credit_decision -> Gateway_join_after_approved [pass or fail]
+  Gateway_join_after_approved -> Gateway_approved
+  Gateway_approved -> Activity_decline_order [no]
   Activity_decline_order -> Event_declined
+  Gateway_approved -> Activity_confirm_order [yes]
   Activity_confirm_order -> Activity_place_wholesale_order
   Activity_place_wholesale_order -> Gateway_which_network
   Gateway_which_network -> Activity_order_from_openreach [openreach]
@@ -192,10 +197,6 @@ pool Participant_brightwave_broadband
   Activity_raise_service_ticket -> Event_ticket_raised
   Gateway_new_line_or_transfer -> Activity_run_credit_check [new line]
   Activity_switch_match_received -> Activity_run_credit_check
-  Gateway_credit_decision -> Activity_confirm_order [pass]
-  Gateway_approved_on_review -> Activity_confirm_order [yes]
-  Gateway_approved_on_review -> Activity_decline_order [no]
-  Gateway_credit_decision -> Activity_decline_order [fail]
   Activity_correct_order_details -> Activity_place_wholesale_order
   Activity_chase_the_network -> Gateway_wait_for_the_network
   Activity_troubleshoot_with_the_customer -> Activity_activate_service

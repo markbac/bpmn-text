@@ -102,20 +102,15 @@ pool Brightwave Broadband
     service Run credit check ~(applicant details)~> Credit agency
     receive Credit result
     xor Credit decision?
-      pass:
-        -> Confirm order
       refer:
         user Review application manually
-        doc Fraud analysts check identity documents within one working day.
-        xor Approved on review?
-          yes:
-            -> Confirm order
-          no:
-            -> Decline order
-      fail:
-        -> Decline order
-    send Decline order ~> Order declined
-    end Declined
+        doc Fraud analysts check identity documents within one working day and record approve or decline.
+      pass or fail:
+    xor Approved?
+      yes:
+      no:
+        send Decline order ~> Order declined
+        end Declined
     lane Sales
     send Confirm order ~> Order confirmed
     note Confirmation includes the earliest installation window
