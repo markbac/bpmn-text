@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" name="Order fulfilment" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-text">
+  <bpmn:collaboration id="Collaboration_1">
+    <bpmn:participant id="Participant_customer" name="Customer" processRef="Process_customer" />
+    <bpmn:participant id="Participant_company" name="Company" processRef="Process_company" />
+    <bpmn:participant id="Participant_bank" name="Bank" />
+    <bpmn:messageFlow id="MessageFlow_place_order__receive_order" sourceRef="Activity_place_order" targetRef="Activity_receive_order" />
+    <bpmn:messageFlow id="MessageFlow_request_prepayment__bank" name="invoice" sourceRef="Activity_request_prepayment" targetRef="Participant_bank" />
+    <bpmn:messageFlow id="MessageFlow_send_confirmation__confirmation" sourceRef="Activity_send_confirmation" targetRef="Activity_confirmation" />
+    <bpmn:messageFlow id="MessageFlow_bank__payment_received" name="payment" sourceRef="Participant_bank" targetRef="Activity_payment_received" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_customer" isExecutable="false">
+    <bpmn:startEvent id="Event_need_product" name="Need product">
+      <bpmn:outgoing>Flow_need_product__place_order</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sendTask id="Activity_place_order" name="Place order">
+      <bpmn:incoming>Flow_need_product__place_order</bpmn:incoming>
+      <bpmn:outgoing>Flow_place_order__confirmation</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:receiveTask id="Activity_confirmation" name="Confirmation">
+      <bpmn:incoming>Flow_place_order__confirmation</bpmn:incoming>
+      <bpmn:outgoing>Flow_confirmation__done</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:endEvent id="Event_done" name="Done">
+      <bpmn:incoming>Flow_confirmation__done</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_need_product__place_order" sourceRef="Event_need_product" targetRef="Activity_place_order" />
+    <bpmn:sequenceFlow id="Flow_place_order__confirmation" sourceRef="Activity_place_order" targetRef="Activity_confirmation" />
+    <bpmn:sequenceFlow id="Flow_confirmation__done" sourceRef="Activity_confirmation" targetRef="Event_done" />
+  </bpmn:process>
+  <bpmn:process id="Process_company" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Process_company">
+      <bpmn:lane id="Lane_sales" name="Sales">
+        <bpmn:flowNodeRef>Activity_receive_order</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_check_credit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_credit_ok</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_request_prepayment</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_payment_received</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_warehouse" name="Warehouse">
+        <bpmn:flowNodeRef>Activity_pick_items</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_pack_parcel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_ship_parcel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_send_confirmation</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_shipped</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_finance" name="Finance">
+        <bpmn:flowNodeRef>Activity_issue_invoice</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_join_after_issue_invoice</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:receiveTask id="Activity_receive_order" name="Receive order">
+      <bpmn:outgoing>Flow_receive_order__check_credit</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:task id="Activity_check_credit" name="Check credit">
+      <bpmn:incoming>Flow_receive_order__check_credit</bpmn:incoming>
+      <bpmn:outgoing>Flow_check_credit__credit_ok</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_credit_ok" name="Credit OK?">
+      <bpmn:incoming>Flow_check_credit__credit_ok</bpmn:incoming>
+      <bpmn:outgoing>Flow_credit_ok__pick_items</bpmn:outgoing>
+      <bpmn:outgoing>Flow_credit_ok__request_prepayment</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_pick_items" name="Pick items">
+      <bpmn:incoming>Flow_credit_ok__pick_items</bpmn:incoming>
+      <bpmn:outgoing>Flow_pick_items__pack_parcel</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_pack_parcel" name="Pack parcel">
+      <bpmn:incoming>Flow_pick_items__pack_parcel</bpmn:incoming>
+      <bpmn:outgoing>Flow_pack_parcel__join_after_issue_invoice</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sendTask id="Activity_request_prepayment" name="Request prepayment">
+      <bpmn:incoming>Flow_credit_ok__request_prepayment</bpmn:incoming>
+      <bpmn:outgoing>Flow_request_prepayment__payment_received</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:receiveTask id="Activity_payment_received" name="Payment received">
+      <bpmn:incoming>Flow_request_prepayment__payment_received</bpmn:incoming>
+      <bpmn:outgoing>Flow_payment_received__join_after_issue_invoice</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:task id="Activity_issue_invoice" name="Issue invoice">
+      <bpmn:incoming>Flow_join_after_issue_invoice__issue_invoice</bpmn:incoming>
+      <bpmn:outgoing>Flow_issue_invoice__ship_parcel</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_join_after_issue_invoice">
+      <bpmn:incoming>Flow_pack_parcel__join_after_issue_invoice</bpmn:incoming>
+      <bpmn:incoming>Flow_payment_received__join_after_issue_invoice</bpmn:incoming>
+      <bpmn:outgoing>Flow_join_after_issue_invoice__issue_invoice</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_ship_parcel" name="Ship parcel">
+      <bpmn:incoming>Flow_issue_invoice__ship_parcel</bpmn:incoming>
+      <bpmn:outgoing>Flow_ship_parcel__send_confirmation</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sendTask id="Activity_send_confirmation" name="Send confirmation">
+      <bpmn:incoming>Flow_ship_parcel__send_confirmation</bpmn:incoming>
+      <bpmn:outgoing>Flow_send_confirmation__shipped</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_shipped" name="Shipped">
+      <bpmn:incoming>Flow_send_confirmation__shipped</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_receive_order__check_credit" sourceRef="Activity_receive_order" targetRef="Activity_check_credit" />
+    <bpmn:sequenceFlow id="Flow_check_credit__credit_ok" sourceRef="Activity_check_credit" targetRef="Gateway_credit_ok" />
+    <bpmn:sequenceFlow id="Flow_credit_ok__pick_items" name="yes" sourceRef="Gateway_credit_ok" targetRef="Activity_pick_items" />
+    <bpmn:sequenceFlow id="Flow_pick_items__pack_parcel" sourceRef="Activity_pick_items" targetRef="Activity_pack_parcel" />
+    <bpmn:sequenceFlow id="Flow_credit_ok__request_prepayment" name="no" sourceRef="Gateway_credit_ok" targetRef="Activity_request_prepayment" />
+    <bpmn:sequenceFlow id="Flow_request_prepayment__payment_received" sourceRef="Activity_request_prepayment" targetRef="Activity_payment_received" />
+    <bpmn:sequenceFlow id="Flow_pack_parcel__join_after_issue_invoice" sourceRef="Activity_pack_parcel" targetRef="Gateway_join_after_issue_invoice" />
+    <bpmn:sequenceFlow id="Flow_payment_received__join_after_issue_invoice" sourceRef="Activity_payment_received" targetRef="Gateway_join_after_issue_invoice" />
+    <bpmn:sequenceFlow id="Flow_join_after_issue_invoice__issue_invoice" sourceRef="Gateway_join_after_issue_invoice" targetRef="Activity_issue_invoice" />
+    <bpmn:sequenceFlow id="Flow_issue_invoice__ship_parcel" sourceRef="Activity_issue_invoice" targetRef="Activity_ship_parcel" />
+    <bpmn:sequenceFlow id="Flow_ship_parcel__send_confirmation" sourceRef="Activity_ship_parcel" targetRef="Activity_send_confirmation" />
+    <bpmn:sequenceFlow id="Flow_send_confirmation__shipped" sourceRef="Activity_send_confirmation" targetRef="Event_shipped" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+      <bpmndi:BPMNShape id="Participant_customer_di" bpmnElement="Participant_customer" isHorizontal="true">
+        <dc:Bounds x="0" y="0" width="1848" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_company_di" bpmnElement="Participant_company" isHorizontal="true">
+        <dc:Bounds x="0" y="210" width="1848" height="480" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_bank_di" bpmnElement="Participant_bank" isHorizontal="true">
+        <dc:Bounds x="0" y="740" width="1848" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_sales_di" bpmnElement="Lane_sales" isHorizontal="true">
+        <dc:Bounds x="30" y="210" width="1818" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_warehouse_di" bpmnElement="Lane_warehouse" isHorizontal="true">
+        <dc:Bounds x="30" y="370" width="1818" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_finance_di" bpmnElement="Lane_finance" isHorizontal="true">
+        <dc:Bounds x="30" y="530" width="1818" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_need_product_di" bpmnElement="Event_need_product">
+        <dc:Bounds x="100" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="85" y="103" width="67" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_place_order_di" bpmnElement="Activity_place_order">
+        <dc:Bounds x="186" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_confirmation_di" bpmnElement="Activity_confirmation">
+        <dc:Bounds x="1622" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_done_di" bpmnElement="Event_done">
+        <dc:Bounds x="1772" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1777" y="103" width="27" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_receive_order_di" bpmnElement="Activity_receive_order">
+        <dc:Bounds x="336" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_check_credit_di" bpmnElement="Activity_check_credit">
+        <dc:Bounds x="486" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_credit_ok_di" bpmnElement="Gateway_credit_ok">
+        <dc:Bounds x="636" y="265" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="634" y="246" width="55" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_pick_items_di" bpmnElement="Activity_pick_items">
+        <dc:Bounds x="736" y="410" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_pack_parcel_di" bpmnElement="Activity_pack_parcel">
+        <dc:Bounds x="898" y="410" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_request_prepayment_di" bpmnElement="Activity_request_prepayment">
+        <dc:Bounds x="736" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_payment_received_di" bpmnElement="Activity_payment_received">
+        <dc:Bounds x="898" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_issue_invoice_di" bpmnElement="Activity_issue_invoice">
+        <dc:Bounds x="1160" y="570" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_join_after_issue_invoice_di" bpmnElement="Gateway_join_after_issue_invoice">
+        <dc:Bounds x="1060" y="585" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ship_parcel_di" bpmnElement="Activity_ship_parcel">
+        <dc:Bounds x="1322" y="410" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_send_confirmation_di" bpmnElement="Activity_send_confirmation">
+        <dc:Bounds x="1472" y="410" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_shipped_di" bpmnElement="Event_shipped">
+        <dc:Bounds x="1654" y="432" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1652" y="473" width="41" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_need_product__place_order_di" bpmnElement="Flow_need_product__place_order">
+        <di:waypoint x="136" y="80" />
+        <di:waypoint x="186" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_place_order__confirmation_di" bpmnElement="Flow_place_order__confirmation">
+        <di:waypoint x="286" y="80" />
+        <di:waypoint x="1622" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_confirmation__done_di" bpmnElement="Flow_confirmation__done">
+        <di:waypoint x="1722" y="80" />
+        <di:waypoint x="1772" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_receive_order__check_credit_di" bpmnElement="Flow_receive_order__check_credit">
+        <di:waypoint x="436" y="290" />
+        <di:waypoint x="486" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_check_credit__credit_ok_di" bpmnElement="Flow_check_credit__credit_ok">
+        <di:waypoint x="586" y="290" />
+        <di:waypoint x="636" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_credit_ok__pick_items_di" bpmnElement="Flow_credit_ok__pick_items">
+        <di:waypoint x="661" y="315" />
+        <di:waypoint x="661" y="450" />
+        <di:waypoint x="736" y="450" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="666" y="376" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_pick_items__pack_parcel_di" bpmnElement="Flow_pick_items__pack_parcel">
+        <di:waypoint x="836" y="450" />
+        <di:waypoint x="898" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_credit_ok__request_prepayment_di" bpmnElement="Flow_credit_ok__request_prepayment">
+        <di:waypoint x="686" y="290" />
+        <di:waypoint x="736" y="290" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="691" y="271" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_request_prepayment__payment_received_di" bpmnElement="Flow_request_prepayment__payment_received">
+        <di:waypoint x="836" y="290" />
+        <di:waypoint x="898" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_pack_parcel__join_after_issue_invoice_di" bpmnElement="Flow_pack_parcel__join_after_issue_invoice">
+        <di:waypoint x="998" y="450" />
+        <di:waypoint x="1085" y="450" />
+        <di:waypoint x="1085" y="585" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_payment_received__join_after_issue_invoice_di" bpmnElement="Flow_payment_received__join_after_issue_invoice">
+        <di:waypoint x="998" y="290" />
+        <di:waypoint x="1085" y="290" />
+        <di:waypoint x="1085" y="585" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_join_after_issue_invoice__issue_invoice_di" bpmnElement="Flow_join_after_issue_invoice__issue_invoice">
+        <di:waypoint x="1110" y="610" />
+        <di:waypoint x="1160" y="610" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_issue_invoice__ship_parcel_di" bpmnElement="Flow_issue_invoice__ship_parcel">
+        <di:waypoint x="1260" y="610" />
+        <di:waypoint x="1285" y="610" />
+        <di:waypoint x="1285" y="450" />
+        <di:waypoint x="1322" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ship_parcel__send_confirmation_di" bpmnElement="Flow_ship_parcel__send_confirmation">
+        <di:waypoint x="1422" y="450" />
+        <di:waypoint x="1472" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_send_confirmation__shipped_di" bpmnElement="Flow_send_confirmation__shipped">
+        <di:waypoint x="1572" y="450" />
+        <di:waypoint x="1654" y="450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_place_order__receive_order_di" bpmnElement="MessageFlow_place_order__receive_order">
+        <di:waypoint x="236" y="120" />
+        <di:waypoint x="236" y="177" />
+        <di:waypoint x="386" y="177" />
+        <di:waypoint x="386" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_request_prepayment__bank_di" bpmnElement="MessageFlow_request_prepayment__bank">
+        <di:waypoint x="786" y="330" />
+        <di:waypoint x="786" y="345" />
+        <di:waypoint x="861" y="345" />
+        <di:waypoint x="861" y="740" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="791" y="335" width="35" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_send_confirmation__confirmation_di" bpmnElement="MessageFlow_send_confirmation__confirmation">
+        <di:waypoint x="1522" y="410" />
+        <di:waypoint x="1522" y="193" />
+        <di:waypoint x="1672" y="193" />
+        <di:waypoint x="1672" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_bank__payment_received_di" bpmnElement="MessageFlow_bank__payment_received">
+        <di:waypoint x="1023" y="740" />
+        <di:waypoint x="1023" y="345" />
+        <di:waypoint x="948" y="345" />
+        <di:waypoint x="948" y="330" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1028" y="536" width="43" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
+

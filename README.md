@@ -33,9 +33,34 @@ pool Company
 You write the process in the order it happens. Sequence flows, join
 gateways, lane placement and the whole diagram layout are inferred.
 
-> **Status: design phase.** No code yet. The specification and plan are
-> below, and work is tracked in [issues](../../issues) and
-> [milestones](../../milestones).
+> **Status: in development.** The compiler library (`compile()`) produces
+> laid-out BPMN for the core notation: events, tasks, gateways, pools,
+> lanes and message flows. Subprocess bodies, data, annotations, groups and
+> colours are laid out in milestone M4; the CLI follows in M3. Work is
+> tracked in [issues](../../issues) and [milestones](../../milestones).
+
+## Usage
+
+```ts
+import { compile } from 'bpmn-text';
+
+const { xml, diagnostics, sourceMap } = await compile(source, {
+  layout: { nodeSpacing: 60 }, // space between columns, default 50
+  xorJoin: 'direct', // default for `option xor-join`
+});
+```
+
+| Function | Returns |
+|---|---|
+| `compile(source, options?)` | `{ xml, model, layout, diagnostics, sourceMap }`. Never rejects on errors in the source; `xml` then shows what could be built. |
+| `check(source, options?)` | `{ model, diagnostics }`, without layout. |
+| `parse(source)` | `{ ast, diagnostics }` |
+| `format(source)` | The source in canonical style. |
+
+`sourceMap` maps every BPMN element ID to the source range it was written
+at. The library has no Node-only dependencies, so it also runs in the
+browser; pass `layout: { elk: new ELK({ workerUrl }) }` to run elkjs in a
+Web Worker.
 
 ## Planned deliverables
 
@@ -96,6 +121,12 @@ Workspaces import each other through the `source` export condition, so
 type checking and tests run against TypeScript sources without a prior
 build. The allowed dependencies between workspaces (architecture §2) are
 defined in `eslint.config.js` and enforced by `npm run lint`.
+
+The examples `examples/01` to `04` have golden `.bpmn` files next to their
+source. After an intended change to the output, accept the new files with
+`npx vitest run test/golden.test.ts -u`. Layout quality metrics of every
+example are stored in `test/fixtures/layout/`; tests fail if a layout gets
+worse, and `npm run test:update-baselines` stores new baselines on purpose.
 
 `@bpmn-text/test-utils` (private) provides `expectSchemaValid`,
 `expectModdleImport` and `expectBpmnJsImport` for asserting that generated
