@@ -67,3 +67,15 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: ./scripts/update.ps1 -NoPull
+      - name: The one-liner, from outside a checkout (update.sh piped)
+        if: runner.os == 'Linux'
+        run: >
+          cat scripts/update.sh | bash -s -- --repo "$GITHUB_WORKSPACE"
+          --dir "$RUNNER_TEMP/bpmn-text" --no-pull --no-browser --no-link
+      - name: The one-liner, from outside a checkout (update.ps1 as a script block)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: >
+          & ([scriptblock]::Create((Get-Content scripts/update.ps1 -Raw)))
+          -Repo $env:GITHUB_WORKSPACE -Dir "$env:RUNNER_TEMP\bpmn-text"
+          -NoPull -NoBrowser -NoLink

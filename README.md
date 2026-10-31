@@ -41,6 +41,42 @@ gateways, lane placement and the whole diagram layout are inferred.
 
 ![The multi-phase example](docs/images/07-multi-phase.png)
 
+## Quick start
+
+One command installs everything into `~/bpmn-text` (Git and Node.js 22
+needed), puts `bpmn-text` on your PATH, and with `--serve` / `-Serve`
+starts the web editor at <http://localhost:8080>. Run the same command
+again to update.
+
+Linux and macOS:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/markbac/bpmn-text/main/scripts/update.sh | bash -s -- --serve
+```
+
+Windows (PowerShell):
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/markbac/bpmn-text/main/scripts/update.ps1))) -Serve
+```
+
+Leave out `--serve` / `-Serve` for just the command line. While the
+repository is private, the raw URL needs a login, so fetch the script with
+the GitHub CLI instead:
+
+```bash
+gh api repos/markbac/bpmn-text/contents/scripts/update.sh -H "Accept: application/vnd.github.raw" | bash -s -- --serve
+```
+
+```powershell
+& ([scriptblock]::Create((gh api repos/markbac/bpmn-text/contents/scripts/update.ps1 -H "Accept: application/vnd.github.raw" | Out-String))) -Serve
+```
+
+or clone it yourself: `git clone https://github.com/markbac/bpmn-text
+~/bpmn-text`, then `~/bpmn-text/scripts/update.sh --serve` (or
+`~\bpmn-text\scripts\update.ps1 -Serve`). [Deployment](docs/deployment.md)
+covers servers, Docker and proxies.
+
 ## Web editor
 
 ![The web editor](docs/images/editor.png)
@@ -53,12 +89,8 @@ with `scripts/update.sh` or `scripts/update.ps1`.
 
 ## Command line
 
-Install the CLI from a [release](../../releases): download
-`bpmn-text-<version>.tgz`, then
-
-```bash
-npm install -g ./bpmn-text-<version>.tgz
-```
+Install it with the [Quick start](#quick-start) command, or from a
+[release](../../releases): `npm install -g ./bpmn-text-<version>.tgz`.
 
 ```bash
 bpmn-text build order.bpmnt -o order.bpmn          # or to stdout without -o
@@ -149,6 +181,7 @@ CodeMirror 6 · vscode-languageserver · Vitest · Playwright
 
 ## Development
 
+For contributors. To use bpmn-text, see the [Quick start](#quick-start).
 Requires Node 20.19+ or 22.12+.
 
 ```bash

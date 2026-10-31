@@ -4,6 +4,11 @@
 # optionally, the Docker images, the tests and a running web editor.
 #
 # Run it after every pull, or when something misbehaves after a change.
+# Run from outside a checkout, for example piped from the repository, it
+# clones the repository first (to ~/bpmn-text, or --dir) and carries on
+# there, so one command goes from nothing to a working install:
+#
+#   curl -fsSL https://raw.githubusercontent.com/markbac/bpmn-text/main/scripts/update.sh | bash -s -- --serve
 # Each step says what it does, and the script stops at the first step that
 # fails, with what to do about it.
 #
@@ -31,13 +36,16 @@
 #   --no-browser       skip Chromium (no SVG or PNG output)
 #   --keep-old-images  keep the Docker images of earlier versions
 #   --ca-file PATH     a proxy's CA certificate, for npm and Docker builds
+#   --dir PATH         where to clone when not run from a checkout
+#                      (default ~/bpmn-text)
+#   --repo URL         what to clone (default the GitHub repository)
 #   -h, --help         this text
 set -uo pipefail
 
-root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-script="$root/scripts/update.sh"
+self="${BASH_SOURCE[0]:-}"
 args=("$@")
 pull=1 test=0 docker=0 serve=0 port=8080 link=1 browser=1 keep=0 ca=''
+dir="$HOME/bpmn-text" repo='https://github.com/markbac/bpmn-text.git'
 while [ $# -gt 0 ]; do
   case "$1" in
     --no-pull) pull=0 ;;
@@ -49,7 +57,15 @@ while [ $# -gt 0 ]; do
     --no-browser) browser=0 ;;
     --keep-old-images) keep=1 ;;
     --ca-file) ca="${2:?--ca-file needs a path}"; shift ;;
-    -h | --help) sed -n '2,/^set -uo/p' "$script" | sed '$d; s/^# \{0,1\}//'; exit 0 ;;
+    --dir) dir="${2:?--dir needs a path}"; shift ;;
+    --repo) repo="${2:?--repo needs a URL}"; shift ;;
+    -h | --help)
+      if [ -f "$self" ]; then
+        sed -n '2,/^set -uo/p' "$self" | sed '$d; s/^# \{0,1\}//'
+      else
+        echo "See scripts/update.sh --help in the checkout."
+      fi
+      exit 0 ;;
     *) echo "Unknown option $1 (see --help)" >&2; exit 2 ;;
   esac
   shift
@@ -85,6 +101,33 @@ quiet() {
   [ "$status" = 0 ] || { tail -n 40 "$log"; rm -f "$log"; fail "$what failed (exit status $status)" "$advice"; }
   rm -f "$log"
 }
+
+# 0. A checkout: this one, or one cloned now.
+root=''
+[ -f "$self" ] && root="$(cd "$(dirname "$self")/.." && pwd)"
+if [ -z "$root" ] || [ ! -f "$root/packages/cli/package.json" ]; then
+  step "Checkout"
+  command -v git >/dev/null ||
+    fail "git is not installed" "Install Git (your package manager, or https://git-scm.com)"
+  if [ -d "$dir/.git" ]; then
+    ok "using the checkout in $dir"
+  else
+    run "git clone" "Check that you can reach $repo (a private repository needs your Git credentials)" \
+      git clone --quiet "$repo" "$dir"
+    ok "cloned $repo to $dir"
+  fi
+  # The checkout's own script carries on, without the options that only
+  # matter here.
+  rest=()
+  for ((i = 0; i < ${#args[@]}; i++)); do
+    case "${args[i]}" in
+      --dir | --repo) i=$((i + 1)) ;;
+      *) rest+=("${args[i]}") ;;
+    esac
+  done
+  exec bash "$dir/scripts/update.sh" "${rest[@]}"
+fi
+script="$root/scripts/update.sh"
 
 cd "$root" || exit 1
 echo "bpmn-text update in $root"
@@ -239,3 +282,6 @@ if [ "$serve" = 1 ]; then
 fi
 
 printf '\n%sbpmn-text %s is up to date.%s\n' "$green" "$version" "$plain"
+echo "  Use it:        bpmn-text build diagram.bpmnt -f svg"
+echo "  Web editor:    $script --serve"
+echo "  Update later:  $script"
