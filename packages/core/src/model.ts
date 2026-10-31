@@ -150,6 +150,11 @@ export interface DataObject {
   id: string;
   /** The ID of its one data object reference, which is what is drawn. */
   reference: string;
+  /**
+   * The subprocess whose body holds the reference: where the object is
+   * first used. Absent for the process itself.
+   */
+  container?: string;
   name: string;
   collection: boolean;
   source: Range;
@@ -166,6 +171,8 @@ export interface DataStoreReference {
   id: string;
   /** The data store's ID. */
   store: string;
+  /** As for data objects: the subprocess where the store is first used. */
+  container?: string;
   source: Range;
 }
 

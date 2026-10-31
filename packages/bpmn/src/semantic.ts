@@ -45,6 +45,8 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
     return element;
   };
   const named = (name: string | undefined) => (name ? { name } : {});
+  /** The current process's data references, by subprocess ID. */
+  const dataRefs = new Map<string | undefined, ModdleElement[]>();
   const documented = (text: string | undefined) =>
     text
       ? {
@@ -87,7 +89,10 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
       );
     }
     if (n.kind === 'subProcess' && n.children) {
-      attrs.flowElements = container(n.children);
+      attrs.flowElements = [
+        ...container(n.children),
+        ...(dataRefs.get(n.id) ?? []),
+      ];
       attrs.artifacts = artifacts(n.children);
     }
     return create(typeOf(n.kind), attrs);
@@ -169,31 +174,42 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
 
   function process(pool: Pool): ModdleElement {
     const p = pool.process!;
-    const data = [
-      ...p.dataObjects.flatMap((o) => {
-        const object = create('bpmn:DataObject', {
-          id: o.id,
-          ...(o.collection ? { isCollection: true } : {}),
-        });
-        return [
-          object,
-          create('bpmn:DataObjectReference', {
-            id: o.reference,
-            name: o.name,
-            dataObjectRef: object,
-          }),
-        ];
-      }),
-      ...p.dataStoreReferences.map((r) => {
-        const store = elements.get(r.store)!;
-        return create('bpmn:DataStoreReference', {
+    // Data references go in the container where they are first used; the
+    // data objects themselves belong to the process.
+    dataRefs.clear();
+    const addRef = (container: string | undefined, ref: ModdleElement) =>
+      dataRefs.set(container, [...(dataRefs.get(container) ?? []), ref]);
+    const objects = p.dataObjects.map((o) => {
+      const object = create('bpmn:DataObject', {
+        id: o.id,
+        ...(o.collection ? { isCollection: true } : {}),
+      });
+      addRef(
+        o.container,
+        create('bpmn:DataObjectReference', {
+          id: o.reference,
+          name: o.name,
+          dataObjectRef: object,
+        }),
+      );
+      return object;
+    });
+    for (const r of p.dataStoreReferences) {
+      const store = elements.get(r.store)!;
+      addRef(
+        r.container,
+        create('bpmn:DataStoreReference', {
           id: r.id,
           name: store.name,
           dataStoreRef: store,
-        });
-      }),
+        }),
+      );
+    }
+    const flowElements = [
+      ...container(p),
+      ...objects,
+      ...(dataRefs.get(undefined) ?? []),
     ];
-    const flowElements = [...container(p), ...data];
     for (const n of p.nodes) associateData(n);
     const attrs: Record<string, unknown> = {
       id: p.id,

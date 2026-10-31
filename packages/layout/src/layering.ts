@@ -1,7 +1,7 @@
 import type { FlowNode, Pool } from '@bpmn-text/core';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import type { ElkNode } from 'elkjs/lib/elk-api.js';
-import { nodeSize } from './sizing.js';
+import type { Size } from './sizing.js';
 import type { Elk } from './types.js';
 
 // elkjs is CommonJS: Node's ESM loader exposes the class as `default` of
@@ -14,6 +14,9 @@ export interface LayerNode {
   pool: Pool;
   /** The lane ID, or the pool ID when the pool has no lanes. */
   band: string;
+  size: Size;
+  /** Group partition (FR-29): columns are never shared across partitions. */
+  partition?: number;
 }
 
 /** A sequence or message flow between layer nodes. */
@@ -97,6 +100,7 @@ export async function layer(
   pools: Pool[],
   elk: Elk = new ElkConstructor(),
 ): Promise<Layering> {
+  const partitioned = nodes.some((n) => n.partition !== undefined);
   const graph: ElkNode = {
     id: 'root',
     layoutOptions: {
@@ -106,10 +110,24 @@ export async function layer(
       'elk.layered.cycleBreaking.strategy': 'MODEL_ORDER',
       'elk.spacing.nodeNode': '30',
       'elk.layered.spacing.nodeNodeBetweenLayers': '50',
+      // Partitions order columns across disconnected chains too.
+      ...(partitioned
+        ? {
+            'elk.partitioning.activate': 'true',
+            'elk.separateConnectedComponents': 'false',
+          }
+        : {}),
     },
     children: storyOrder(nodes, edges, pools).map((n) => ({
       id: n.node.id,
-      ...nodeSize(n.node.kind),
+      ...n.size,
+      ...(partitioned
+        ? {
+            layoutOptions: {
+              'elk.partitioning.partition': String(n.partition ?? 0),
+            },
+          }
+        : {}),
     })),
     edges: edges.map((e) => ({
       id: e.id,

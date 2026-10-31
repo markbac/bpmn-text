@@ -1211,6 +1211,7 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
           },
           {
             "collection": false,
+            "container": "Activity_create_invoices",
             "id": "DataObject_invoice",
             "name": "Invoice",
             "reference": "DataObjectReference_invoice",

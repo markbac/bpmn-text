@@ -214,6 +214,12 @@ class Builder {
     Process,
     Map<DataStore, DataStoreReference>
   >();
+  /** Data references first used or declared inside a subprocess. */
+  private readonly dataContainer = new Map<
+    DataObject | DataStoreReference,
+    FlowNode | undefined
+  >();
+  private readonly usedData = new Set<DataObject | DataStoreReference>();
   /** Explicit `@id`s, with where each was first written. */
   private readonly explicitIds = new Map<string, Range>();
 
@@ -499,7 +505,13 @@ class Builder {
             const collection = s.attrs.some(
               (a) => a.key.value === 'collection',
             );
-            this.dataObject(ctx.process, s.name.value, s.range, collection);
+            const object = this.dataObject(
+              ctx.process,
+              s.name.value,
+              s.range,
+              collection,
+            );
+            this.placeData(object, ctx, false);
           }
           break;
         case 'pool':
@@ -583,7 +595,7 @@ class Builder {
         node.markers.push(key as Marker);
       else if (key === 'reads' || key === 'writes') {
         for (const v of a.values)
-          info[key].push(this.data(ctx.process, v.value, v.range));
+          info[key].push(this.data(ctx, v.value, v.range, true));
       } else if (key === 'collapsed' && kind === 'subProcess')
         node.collapsed = true;
       else if (key === 'non-interrupting' && kind === 'boundaryEvent')
@@ -918,20 +930,42 @@ class Builder {
    * data object, created on first use.
    */
   private data(
-    process: Process,
+    ctx: Ctx,
     name: string,
     source: Range,
+    use: boolean,
   ): DataObject | DataStoreReference {
+    const process = ctx.process;
     const store = this.stores.get(normalise(name));
-    if (!store) return this.dataObject(process, name, source);
-    const refs = this.storeRefs.get(process)!;
-    let ref = refs.get(store);
-    if (!ref) {
-      ref = { id: '', store: '', source };
-      refs.set(store, ref);
-      process.dataStoreReferences.push(ref);
+    let data: DataObject | DataStoreReference;
+    if (!store) data = this.dataObject(process, name, source);
+    else {
+      const refs = this.storeRefs.get(process)!;
+      let ref = refs.get(store);
+      if (!ref) {
+        ref = { id: '', store: '', source };
+        refs.set(store, ref);
+        process.dataStoreReferences.push(ref);
+      }
+      data = ref;
     }
-    return ref;
+    this.placeData(data, ctx, use);
+    return data;
+  }
+
+  /**
+   * Records the container of a data reference: where it is first used, or
+   * where it is declared if it is never used.
+   */
+  private placeData(
+    data: DataObject | DataStoreReference,
+    ctx: Ctx,
+    use: boolean,
+  ) {
+    if (this.usedData.has(data)) return;
+    if (use) this.usedData.add(data);
+    else if (this.dataContainer.has(data)) return;
+    this.dataContainer.set(data, ctx.sub);
   }
 
   // Flows and joins
@@ -1229,6 +1263,9 @@ class Builder {
     for (const [r, id] of qualify(storeRefs, poolSlug)) {
       r.id = take(id);
       r.store = storeOf.get(r)!.id;
+    }
+    for (const [data, sub] of this.dataContainer) {
+      if (sub) data.container = sub.id;
     }
     const drawn = (d: DataObject | DataStoreReference) =>
       'reference' in d ? d.reference : d.id;

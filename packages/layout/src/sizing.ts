@@ -12,6 +12,39 @@ export function nodeSize(kind: NodeKind): Size {
   return { width: 100, height: 80 };
 }
 
+/** Data object 36×50, data store 50×50. */
+export function dataSize(store: boolean): Size {
+  return store ? { width: 50, height: 50 } : { width: 36, height: 50 };
+}
+
+/** bpmn-js draws text annotations in 12px Arial with 5px padding. */
+export const ANNOTATION_FONT_SIZE = 12;
+export const ANNOTATION_LINE_HEIGHT = 15;
+const ANNOTATION_PADDING = 5;
+
+/** The size of a text annotation box `width` wide that fits `text`. */
+export function annotationSize(text: string, width: number): Size {
+  const lines = text
+    .split('\n')
+    .map(
+      (line) =>
+        labelSize(
+          line,
+          width - 2 * ANNOTATION_PADDING,
+          ANNOTATION_FONT_SIZE,
+          ANNOTATION_LINE_HEIGHT,
+        ).height / ANNOTATION_LINE_HEIGHT || 1,
+    )
+    .reduce((a, b) => a + b, 0);
+  return {
+    width,
+    height: Math.max(
+      30,
+      lines * ANNOTATION_LINE_HEIGHT + 2 * ANNOTATION_PADDING,
+    ),
+  };
+}
+
 // Advance widths of Arial (identical to Helvetica) in 1/1000 em, for the
 // printable ASCII characters from space (32) to tilde (126). bpmn-js draws
 // labels in Arial, and a table gives the same sizes in Node and browsers.
@@ -47,18 +80,26 @@ export function textWidth(text: string, fontSize = LABEL_FONT_SIZE): number {
  * `maxWidth`, rounded up to whole pixels. A word wider than `maxWidth`
  * gets a line of its own.
  */
-export function labelSize(text: string, maxWidth = LABEL_MAX_WIDTH): Size {
+export function labelSize(
+  text: string,
+  maxWidth = LABEL_MAX_WIDTH,
+  fontSize = LABEL_FONT_SIZE,
+  lineHeight = LABEL_LINE_HEIGHT,
+): Size {
   const lines: string[] = [];
   for (const word of text.split(/\s+/).filter(Boolean)) {
     const last = lines.at(-1);
-    if (last !== undefined && textWidth(`${last} ${word}`) <= maxWidth) {
+    if (
+      last !== undefined &&
+      textWidth(`${last} ${word}`, fontSize) <= maxWidth
+    ) {
       lines[lines.length - 1] = `${last} ${word}`;
     } else {
       lines.push(word);
     }
   }
   return {
-    width: Math.ceil(Math.max(0, ...lines.map((l) => textWidth(l)))),
-    height: lines.length * LABEL_LINE_HEIGHT,
+    width: Math.ceil(Math.max(0, ...lines.map((l) => textWidth(l, fontSize)))),
+    height: lines.length * lineHeight,
   };
 }

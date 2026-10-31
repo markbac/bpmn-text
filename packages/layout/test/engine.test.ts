@@ -2,7 +2,12 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { check, type Model } from '@bpmn-text/core';
 import { describe, expect, it } from 'vitest';
-import { checkLayout, layout, type LayoutResult } from '../src/index.js';
+import {
+  checkLayout,
+  layout,
+  type Bounds,
+  type LayoutResult,
+} from '../src/index.js';
 
 const root = join(import.meta.dirname, '../../..');
 const corpus = ['examples', 'test/fixtures/valid'].flatMap((dir) =>
@@ -134,5 +139,94 @@ describe('layout details', () => {
       elk: { layout: (g) => (calls.push(g.id), elk.layout(g)) },
     });
     expect(calls).toEqual(['root']);
+  });
+
+  const inside = (a: Bounds, b: Bounds) =>
+    a.x >= b.x &&
+    a.y >= b.y &&
+    a.x + a.width <= b.x + b.width &&
+    a.y + a.height <= b.y + b.height;
+
+  it('lays out an expanded subprocess body inside it (#33)', async () => {
+    const m = model('examples/06-subprocess-data.bpmnt');
+    const r = await layout(m);
+    const sub = r.shapes.get('Activity_create_invoices')!;
+    expect(sub.width).toBeGreaterThan(300);
+    for (const id of [
+      'Activity_calculate_totals',
+      'Activity_generate_pdf',
+      'DataObjectReference_invoice',
+    ]) {
+      expect(inside(r.shapes.get(id)!, sub), id).toBe(true);
+    }
+    // A collapsed subprocess keeps task size; its body is on its own plane.
+    const collapsed = r.shapes.get('Activity_send_invoices')!;
+    expect([collapsed.width, collapsed.height]).toEqual([100, 80]);
+    expect(r.shapes.has('Activity_email_invoice')).toBe(true);
+  });
+
+  it('puts data below and annotations above their element (#34, #35)', async () => {
+    const m = model('examples/06-subprocess-data.bpmnt');
+    const r = await layout(m);
+    const task = r.shapes.get('Activity_collect_billable_hours')!;
+    for (const id of [
+      'DataObjectReference_hours_report',
+      'DataStoreReference_accounting_db',
+    ]) {
+      expect(r.shapes.get(id)!.y, id).toBeGreaterThan(task.y + task.height);
+    }
+    const note = r.shapes.get('TextAnnotation_collect_billable_hours')!;
+    expect(note.y + note.height).toBeLessThan(task.y);
+    const association = r.edges.get('Association_collect_billable_hours')!;
+    expect(association.waypoints).toEqual([
+      { x: task.x + task.width / 2, y: task.y },
+      { x: task.x + task.width / 2, y: note.y + note.height },
+    ]);
+  });
+
+  it('draws group boxes side by side over their columns (#60)', async () => {
+    const m = model('test/fixtures/valid/groups.bpmnt');
+    const r = await layout(m);
+    const [ordering, delivery, after] = m.groups.map((g) =>
+      r.shapes.get(g.id)!,
+    );
+    expect(ordering!.x + ordering!.width).toBeLessThan(delivery!.x);
+    expect(delivery!.x + delivery!.width).toBeLessThan(after!.x);
+    // Full height of both pools by default; `[fit]` hugs its members.
+    const customer = r.shapes.get('Participant_customer')!;
+    const company = r.shapes.get('Participant_company')!;
+    expect(ordering!.y).toBeLessThan(customer.y + 10);
+    expect(ordering!.y + ordering!.height).toBeGreaterThan(
+      company.y + company.height - 10,
+    );
+    expect(after!.height).toBeLessThan(company.height / 2);
+    expect(r.shapes.get(m.groups[0]!.id)!.label).toBeDefined();
+  });
+
+  it('fans out from an activity without a gateway (#62)', async () => {
+    const m = model('test/fixtures/valid/fork.bpmnt');
+    const r = await layout(m);
+    const flows = m.pools[0]!.process!.flows.filter(
+      (f) => f.sourceRef === 'Activity_publish_order',
+    );
+    expect(flows.map((f) => f.targetRef)).toEqual([
+      'Activity_update_billing',
+      'Activity_update_crm',
+    ]);
+    const task = r.shapes.get('Activity_publish_order')!;
+    for (const f of flows) {
+      // Both leave from the bottom, towards the lanes below.
+      expect(r.edges.get(f.id)!.waypoints[0], f.id).toEqual({
+        x: task.x + task.width / 2,
+        y: task.y + task.height,
+      });
+    }
+  });
+
+  it('draws a body-less collapsed subprocess at task size (#64)', async () => {
+    const m = model('test/fixtures/valid/collapsed-placeholder.bpmnt');
+    const r = await layout(m);
+    const s = r.shapes.get('Activity_credit_check')!;
+    expect([s.width, s.height]).toEqual([100, 80]);
   });
 });

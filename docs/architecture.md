@@ -284,9 +284,8 @@ interface LayoutResult {
 
 The interface is asynchronous because elkjs runs in a worker in the browser.
 
-Until milestone M4, subprocesses are drawn at task size with their body
-left out of the diagram, boundary events are spread along their host's
-bottom border, and data, annotations and groups have no shapes.
+A message flow to or from an element inside an expanded subprocess is
+drawn to the subprocess's border.
 
 ### 6.2 Phases
 
@@ -299,7 +298,7 @@ bottom border, and data, annotations and groups have no shapes.
 | 4 | **Coordinates** | Column x positions are shared across all pools. Each gap between columns is widened to fit the number of edge tracks routed through it. Lane y positions are stacked within the pool, and pools are stacked with a fixed gap. Every lane is stretched to the pool width, and every pool to the widest pool (FR-21/22). |
 | 5 | **Sequence-flow routing** | Orthogonal routing through the **channels** between columns and the **gutters** between rows. Each edge segment in a channel gets its own track, so parallel segments do not overlap. BPMN conventions apply: gateways exit from their top or bottom side towards branches above or below, and back edges leave from the bottom and run along the lane gutter. Long edges that skip columns use virtual points through free row space. Each edge's shape is chosen by checking for obstacles: a gateway corner exit or join entry is used only when its vertical leg is clear, otherwise the edge turns in a channel, and a same-row edge with shapes in between detours through the gap between rows. Channel widths come from a first routing pass that only counts tracks; the second pass routes on the widened geometry. |
 | 6 | **Message flows** | Routed vertically between pools. If the endpoint x positions differ, an elbow is placed in the gap between the pools. Collapsed pools are thin bands, and their flows attach at the other endpoint's x position. A flow whose vertical would cut through shapes in other lanes leaves its shape with a short stub and turns into the column channel first. |
-| 7 | **Attachments** | Boundary events are spread evenly along the host's bottom border, and their chains run downwards into the reserved rows. Data objects and stores are placed in a reserved row next to their activity, and annotations above their element, each with an association line. |
+| 7 | **Attachments** | Boundary events are spread evenly along the host's bottom border, and their chains run downwards into the reserved rows; a boundary event's label goes to the right of its outgoing flow. A data object or store is drawn once, in the subprocess body (or process) where it is first used, in a strip reserved below its first user's row, clear of that user's boundary events. Annotations go in a strip above their element's row, as wide as its column. Association lines run from the data or annotation into the top or bottom of the element, around other shapes. |
 | 8 | **Labels** | External labels for events (below), gateways (above), and flows (next to the first segment, avoiding shapes). |
 | 9 | **Groups** | Each group box covers its column range (with padding into the column gaps). Vertically it spans the full height of every pool the group occurs in, or with `[fit]` the bounding box of its members. Group labels go at the top centre. Gaps between columns at group boundaries are widened so the dashed borders never touch shapes or labels. |
 

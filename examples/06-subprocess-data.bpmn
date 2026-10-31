@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" name="Invoice run" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-text">
+  <bpmn:dataStore id="DataStore_accounting_db" name="Accounting DB" />
+  <bpmn:process id="Process_invoice_run" name="Invoice run" isExecutable="false">
+    <bpmn:startEvent id="Event_last_working_day_of_month" name="Last working day of month">
+      <bpmn:outgoing>Flow_last_working_day_of_month__collect_billable_hours</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="Event_last_working_day_of_month_definition" />
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Activity_collect_billable_hours" name="Collect billable hours">
+      <bpmn:incoming>Flow_last_working_day_of_month__collect_billable_hours</bpmn:incoming>
+      <bpmn:outgoing>Flow_collect_billable_hours__create_invoices</bpmn:outgoing>
+      <bpmn:property id="Activity_collect_billable_hours_property" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="DataInputAssociation_collect_billable_hours__accounting_db">
+        <bpmn:sourceRef>DataStoreReference_accounting_db</bpmn:sourceRef>
+        <bpmn:targetRef>Activity_collect_billable_hours_property</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_collect_billable_hours__hours_report">
+        <bpmn:targetRef>DataObjectReference_hours_report</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:subProcess id="Activity_create_invoices" name="Create invoices">
+      <bpmn:incoming>Flow_collect_billable_hours__create_invoices</bpmn:incoming>
+      <bpmn:outgoing>Flow_create_invoices__send_invoices</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics />
+      <bpmn:startEvent id="Event_create_invoices_start_1">
+        <bpmn:outgoing>Flow_create_invoices_start_1__calculate_totals</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:task id="Activity_calculate_totals" name="Calculate totals">
+        <bpmn:incoming>Flow_create_invoices_start_1__calculate_totals</bpmn:incoming>
+        <bpmn:outgoing>Flow_calculate_totals__generate_pdf</bpmn:outgoing>
+        <bpmn:property id="Activity_calculate_totals_property" name="__targetRef_placeholder" />
+        <bpmn:dataInputAssociation id="DataInputAssociation_calculate_totals__hours_report">
+          <bpmn:sourceRef>DataObjectReference_hours_report</bpmn:sourceRef>
+          <bpmn:targetRef>Activity_calculate_totals_property</bpmn:targetRef>
+        </bpmn:dataInputAssociation>
+      </bpmn:task>
+      <bpmn:serviceTask id="Activity_generate_pdf" name="Generate PDF">
+        <bpmn:incoming>Flow_calculate_totals__generate_pdf</bpmn:incoming>
+        <bpmn:outgoing>Flow_generate_pdf__create_invoices_end_1</bpmn:outgoing>
+        <bpmn:dataOutputAssociation id="DataOutputAssociation_generate_pdf__invoice">
+          <bpmn:targetRef>DataObjectReference_invoice</bpmn:targetRef>
+        </bpmn:dataOutputAssociation>
+      </bpmn:serviceTask>
+      <bpmn:endEvent id="Event_create_invoices_end_1">
+        <bpmn:incoming>Flow_generate_pdf__create_invoices_end_1</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_create_invoices_start_1__calculate_totals" sourceRef="Event_create_invoices_start_1" targetRef="Activity_calculate_totals" />
+      <bpmn:sequenceFlow id="Flow_calculate_totals__generate_pdf" sourceRef="Activity_calculate_totals" targetRef="Activity_generate_pdf" />
+      <bpmn:sequenceFlow id="Flow_generate_pdf__create_invoices_end_1" sourceRef="Activity_generate_pdf" targetRef="Event_create_invoices_end_1" />
+      <bpmn:dataObjectReference id="DataObjectReference_invoice" name="Invoice" dataObjectRef="DataObject_invoice" />
+    </bpmn:subProcess>
+    <bpmn:boundaryEvent id="Event_missing_rate" name="Missing rate" attachedToRef="Activity_create_invoices">
+      <bpmn:outgoing>Flow_missing_rate__fix_rate_card</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="Event_missing_rate_definition" />
+    </bpmn:boundaryEvent>
+    <bpmn:userTask id="Activity_fix_rate_card" name="Fix rate card">
+      <bpmn:incoming>Flow_missing_rate__fix_rate_card</bpmn:incoming>
+      <bpmn:outgoing>Flow_fix_rate_card__invoice_skipped</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_invoice_skipped" name="Invoice skipped">
+      <bpmn:incoming>Flow_fix_rate_card__invoice_skipped</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:subProcess id="Activity_send_invoices" name="Send invoices">
+      <bpmn:incoming>Flow_create_invoices__send_invoices</bpmn:incoming>
+      <bpmn:outgoing>Flow_send_invoices__run_complete</bpmn:outgoing>
+      <bpmn:startEvent id="Event_send_invoices_start_1">
+        <bpmn:outgoing>Flow_send_invoices_start_1__email_invoice</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:serviceTask id="Activity_email_invoice" name="Email invoice">
+        <bpmn:incoming>Flow_send_invoices_start_1__email_invoice</bpmn:incoming>
+        <bpmn:outgoing>Flow_email_invoice__30_days</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:intermediateCatchEvent id="Event_30_days" name="30 days">
+        <bpmn:incoming>Flow_email_invoice__30_days</bpmn:incoming>
+        <bpmn:outgoing>Flow_30_days__check_payment</bpmn:outgoing>
+        <bpmn:timerEventDefinition id="Event_30_days_definition" />
+      </bpmn:intermediateCatchEvent>
+      <bpmn:serviceTask id="Activity_check_payment" name="Check payment">
+        <bpmn:incoming>Flow_30_days__check_payment</bpmn:incoming>
+        <bpmn:outgoing>Flow_check_payment__send_invoices_end_1</bpmn:outgoing>
+        <bpmn:standardLoopCharacteristics />
+      </bpmn:serviceTask>
+      <bpmn:endEvent id="Event_send_invoices_end_1">
+        <bpmn:incoming>Flow_check_payment__send_invoices_end_1</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_send_invoices_start_1__email_invoice" sourceRef="Event_send_invoices_start_1" targetRef="Activity_email_invoice" />
+      <bpmn:sequenceFlow id="Flow_email_invoice__30_days" sourceRef="Activity_email_invoice" targetRef="Event_30_days" />
+      <bpmn:sequenceFlow id="Flow_30_days__check_payment" sourceRef="Event_30_days" targetRef="Activity_check_payment" />
+      <bpmn:sequenceFlow id="Flow_check_payment__send_invoices_end_1" sourceRef="Activity_check_payment" targetRef="Event_send_invoices_end_1" />
+    </bpmn:subProcess>
+    <bpmn:endEvent id="Event_run_complete" name="Run complete">
+      <bpmn:incoming>Flow_send_invoices__run_complete</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_last_working_day_of_month__collect_billable_hours" sourceRef="Event_last_working_day_of_month" targetRef="Activity_collect_billable_hours" />
+    <bpmn:sequenceFlow id="Flow_collect_billable_hours__create_invoices" sourceRef="Activity_collect_billable_hours" targetRef="Activity_create_invoices" />
+    <bpmn:sequenceFlow id="Flow_missing_rate__fix_rate_card" sourceRef="Event_missing_rate" targetRef="Activity_fix_rate_card" />
+    <bpmn:sequenceFlow id="Flow_fix_rate_card__invoice_skipped" sourceRef="Activity_fix_rate_card" targetRef="Event_invoice_skipped" />
+    <bpmn:sequenceFlow id="Flow_create_invoices__send_invoices" sourceRef="Activity_create_invoices" targetRef="Activity_send_invoices" />
+    <bpmn:sequenceFlow id="Flow_send_invoices__run_complete" sourceRef="Activity_send_invoices" targetRef="Event_run_complete" />
+    <bpmn:dataObject id="DataObject_hours_report" />
+    <bpmn:dataObject id="DataObject_invoice" />
+    <bpmn:dataObjectReference id="DataObjectReference_hours_report" name="Hours report" dataObjectRef="DataObject_hours_report" />
+    <bpmn:dataStoreReference id="DataStoreReference_accounting_db" name="Accounting DB" dataStoreRef="DataStore_accounting_db" />
+    <bpmn:textAnnotation id="TextAnnotation_collect_billable_hours">
+      <bpmn:text>Includes contractors from the timesheet export</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_collect_billable_hours" sourceRef="Activity_collect_billable_hours" targetRef="TextAnnotation_collect_billable_hours" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_invoice_run">
+      <bpmndi:BPMNShape id="Event_last_working_day_of_month_di" bpmnElement="Event_last_working_day_of_month">
+        <dc:Bounds x="100" y="207" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="77" y="248" width="83" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_collect_billable_hours_di" bpmnElement="Activity_collect_billable_hours">
+        <dc:Bounds x="197" y="185" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_create_invoices_di" bpmnElement="Activity_create_invoices" isExpanded="true">
+        <dc:Bounds x="358" y="110" width="462" height="230" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_fix_rate_card_di" bpmnElement="Activity_fix_rate_card">
+        <dc:Bounds x="870" y="469" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_invoice_skipped_di" bpmnElement="Event_invoice_skipped">
+        <dc:Bounds x="1020" y="491" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1000" y="532" width="76" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_send_invoices_di" bpmnElement="Activity_send_invoices" isExpanded="false">
+        <dc:Bounds x="870" y="185" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_run_complete_di" bpmnElement="Event_run_complete">
+        <dc:Bounds x="1020" y="207" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1004" y="248" width="68" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_missing_rate_di" bpmnElement="Event_missing_rate">
+        <dc:Bounds x="571" y="322" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="594" y="363" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataObjectReference_hours_report_di" bpmnElement="DataObjectReference_hours_report">
+        <dc:Bounds x="271" y="370" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="258" y="425" width="62" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_accounting_db_di" bpmnElement="DataStoreReference_accounting_db">
+        <dc:Bounds x="186" y="370" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="175" y="425" width="73" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_collect_billable_hours_di" bpmnElement="TextAnnotation_collect_billable_hours">
+        <dc:Bounds x="186" y="25" width="122" height="55" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_create_invoices_start_1_di" bpmnElement="Event_create_invoices_start_1">
+        <dc:Bounds x="378" y="162" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_calculate_totals_di" bpmnElement="Activity_calculate_totals">
+        <dc:Bounds x="464" y="140" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_generate_pdf_di" bpmnElement="Activity_generate_pdf">
+        <dc:Bounds x="614" y="140" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_create_invoices_end_1_di" bpmnElement="Event_create_invoices_end_1">
+        <dc:Bounds x="764" y="162" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataObjectReference_invoice_di" bpmnElement="DataObjectReference_invoice">
+        <dc:Bounds x="646" y="250" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="647" y="305" width="35" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_last_working_day_of_month__collect_billable_hours_di" bpmnElement="Flow_last_working_day_of_month__collect_billable_hours">
+        <di:waypoint x="136" y="225" />
+        <di:waypoint x="197" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_collect_billable_hours__create_invoices_di" bpmnElement="Flow_collect_billable_hours__create_invoices">
+        <di:waypoint x="297" y="225" />
+        <di:waypoint x="358" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_missing_rate__fix_rate_card_di" bpmnElement="Flow_missing_rate__fix_rate_card">
+        <di:waypoint x="589" y="358" />
+        <di:waypoint x="589" y="509" />
+        <di:waypoint x="870" y="509" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_fix_rate_card__invoice_skipped_di" bpmnElement="Flow_fix_rate_card__invoice_skipped">
+        <di:waypoint x="970" y="509" />
+        <di:waypoint x="1020" y="509" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_create_invoices__send_invoices_di" bpmnElement="Flow_create_invoices__send_invoices">
+        <di:waypoint x="820" y="225" />
+        <di:waypoint x="870" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_send_invoices__run_complete_di" bpmnElement="Flow_send_invoices__run_complete">
+        <di:waypoint x="970" y="225" />
+        <di:waypoint x="1020" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_collect_billable_hours_di" bpmnElement="Association_collect_billable_hours">
+        <di:waypoint x="247" y="185" />
+        <di:waypoint x="247" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_collect_billable_hours__accounting_db_di" bpmnElement="DataInputAssociation_collect_billable_hours__accounting_db">
+        <di:waypoint x="211" y="370" />
+        <di:waypoint x="211" y="265" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_collect_billable_hours__hours_report_di" bpmnElement="DataOutputAssociation_collect_billable_hours__hours_report">
+        <di:waypoint x="289" y="265" />
+        <di:waypoint x="289" y="370" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_calculate_totals__hours_report_di" bpmnElement="DataInputAssociation_calculate_totals__hours_report">
+        <di:waypoint x="307" y="395" />
+        <di:waypoint x="514" y="395" />
+        <di:waypoint x="514" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_create_invoices_start_1__calculate_totals_di" bpmnElement="Flow_create_invoices_start_1__calculate_totals">
+        <di:waypoint x="414" y="180" />
+        <di:waypoint x="464" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_calculate_totals__generate_pdf_di" bpmnElement="Flow_calculate_totals__generate_pdf">
+        <di:waypoint x="564" y="180" />
+        <di:waypoint x="614" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_generate_pdf__create_invoices_end_1_di" bpmnElement="Flow_generate_pdf__create_invoices_end_1">
+        <di:waypoint x="714" y="180" />
+        <di:waypoint x="764" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_generate_pdf__invoice_di" bpmnElement="DataOutputAssociation_generate_pdf__invoice">
+        <di:waypoint x="664" y="220" />
+        <di:waypoint x="664" y="250" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="Activity_send_invoices_diagram">
+    <bpmndi:BPMNPlane id="Activity_send_invoices_plane" bpmnElement="Activity_send_invoices">
+      <bpmndi:BPMNShape id="Event_send_invoices_start_1_di" bpmnElement="Event_send_invoices_start_1">
+        <dc:Bounds x="100" y="62" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_email_invoice_di" bpmnElement="Activity_email_invoice">
+        <dc:Bounds x="186" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_30_days_di" bpmnElement="Event_30_days">
+        <dc:Bounds x="336" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="335" y="103" width="39" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_check_payment_di" bpmnElement="Activity_check_payment">
+        <dc:Bounds x="422" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_send_invoices_end_1_di" bpmnElement="Event_send_invoices_end_1">
+        <dc:Bounds x="572" y="62" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_send_invoices_start_1__email_invoice_di" bpmnElement="Flow_send_invoices_start_1__email_invoice">
+        <di:waypoint x="136" y="80" />
+        <di:waypoint x="186" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_email_invoice__30_days_di" bpmnElement="Flow_email_invoice__30_days">
+        <di:waypoint x="286" y="80" />
+        <di:waypoint x="336" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_30_days__check_payment_di" bpmnElement="Flow_30_days__check_payment">
+        <di:waypoint x="372" y="80" />
+        <di:waypoint x="422" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_check_payment__send_invoices_end_1_di" bpmnElement="Flow_check_payment__send_invoices_end_1">
+        <di:waypoint x="522" y="80" />
+        <di:waypoint x="572" y="80" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
+

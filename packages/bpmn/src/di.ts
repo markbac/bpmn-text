@@ -129,6 +129,32 @@ export function addDiagrams(
     });
   }
 
+  // Each element's plane: a collapsed subprocess's, or the main one.
+  const planeOf = new Map<string, string | undefined>();
+  const assign = (c: Container, plane: string | undefined) => {
+    for (const n of c.nodes) {
+      planeOf.set(n.id, plane);
+      for (const a of [...n.reads, ...n.writes]) planeOf.set(a.id, plane);
+      if (n.children) assign(n.children, n.collapsed ? n.id : plane);
+    }
+    for (const f of c.flows) planeOf.set(f.id, plane);
+    for (const a of c.annotations) {
+      planeOf.set(a.id, plane);
+      planeOf.set(a.association, plane);
+    }
+  };
+  for (const p of model.pools) if (p.process) assign(p.process, undefined);
+  for (const p of model.pools) {
+    for (const d of [
+      ...(p.process?.dataObjects ?? []).map((o) => [o.reference, o.container]),
+      ...(p.process?.dataStoreReferences ?? []).map((r) => [r.id, r.container]),
+    ] as [string, string | undefined][]) {
+      const [id, container] = d;
+      const sub = subprocesses.find(([s]) => s === container);
+      planeOf.set(id, sub ? container : container && planeOf.get(container));
+    }
+  }
+
   // Shapes before edges, so that bpmn-js draws edges on top.
   const ordered = (ids: Iterable<string>) => {
     const list = [...ids];
@@ -137,20 +163,17 @@ export function addDiagrams(
       ...list.filter((id) => layout.edges.has(id)),
     ];
   };
-  const nested = new Set(
-    subprocesses.flatMap(([, c]) => [
-      ...c.nodes.map((n) => n.id),
-      ...c.flows.map((f) => f.id),
-    ]),
-  );
-  const main = [...layout.shapes.keys(), ...layout.edges.keys()].filter(
-    (id) => !nested.has(id),
-  );
+  const all = [...layout.shapes.keys(), ...layout.edges.keys()];
   const diagrams = [
-    diagram('BPMNDiagram_1', 'BPMNPlane_1', root, ordered(main)),
+    diagram(
+      'BPMNDiagram_1',
+      'BPMNPlane_1',
+      root,
+      ordered(all.filter((id) => planeOf.get(id) === undefined)),
+    ),
   ];
-  for (const [id, c] of subprocesses) {
-    const ids = [...c.nodes.map((n) => n.id), ...c.flows.map((f) => f.id)];
+  for (const [id] of subprocesses) {
+    const ids = all.filter((i) => planeOf.get(i) === id);
     if (!ids.some((i) => layout.shapes.has(i))) continue;
     diagrams.push(
       diagram(`${id}_diagram`, `${id}_plane`, elements.get(id)!, ordered(ids)),
