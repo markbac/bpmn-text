@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "build/types"
+  },
+  "include": ["src", "test"],
+  "references": [
+    {
+      "path": "../../packages/language-server"
+    }
+  ]
+}

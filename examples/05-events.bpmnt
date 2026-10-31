@@ -1,4 +1,5 @@
 # Timers, boundary events (interrupting and not), event-based gateway.
+# covers: §6.1, §7.2, §10
 title "Support ticket"
 
 start message Ticket raised

@@ -1,0 +1,5 @@
+# BT104: A colour value that is neither hex nor a known name.
+# expect: BT104 @ 4:26
+start
+task Check order [color: #12345]
+end

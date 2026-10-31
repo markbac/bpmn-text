@@ -1,0 +1,7 @@
+# BT220: An event-based gateway branch that starts with a task.
+# expect: BT220 @ 6:5
+start
+event Wait for reply
+  - catch message Payment received
+  - task Send reminder
+end

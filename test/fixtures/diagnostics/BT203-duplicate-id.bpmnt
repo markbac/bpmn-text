@@ -1,0 +1,6 @@
+# BT203: The same @id on two elements.
+# expect: BT203 @ 5:17
+start
+task Check order @check
+task Ship order @check
+end

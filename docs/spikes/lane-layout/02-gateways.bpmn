@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+    xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+    xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+    xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+    id="Definitions_1" targetNamespace="http://bpmn-text.dev/spike">
+  <bpmn:process id="Process_article_publishing" isExecutable="false">
+    <bpmn:startEvent id="Event_draft_ready" name="Draft ready">
+      <bpmn:outgoing>Flow_Event_draft_ready__Activity_write_article</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_write_article" name="Write article">
+      <bpmn:incoming>Flow_Event_draft_ready__Activity_write_article</bpmn:incoming>
+      <bpmn:incoming>Flow_Activity_apply_feedback__Activity_write_article</bpmn:incoming>
+      <bpmn:outgoing>Flow_Activity_write_article__Activity_review_article</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:userTask id="Activity_review_article" name="Review article">
+      <bpmn:incoming>Flow_Activity_write_article__Activity_review_article</bpmn:incoming>
+      <bpmn:outgoing>Flow_Activity_review_article__Gateway_approved</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_approved" name="Approved?">
+      <bpmn:incoming>Flow_Activity_review_article__Gateway_approved</bpmn:incoming>
+      <bpmn:outgoing>Flow_Gateway_approved__Gateway_split</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Gateway_approved__Activity_apply_feedback</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Gateway_approved__Event_article_dropped</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_apply_feedback" name="Apply feedback">
+      <bpmn:incoming>Flow_Gateway_approved__Activity_apply_feedback</bpmn:incoming>
+      <bpmn:outgoing>Flow_Activity_apply_feedback__Activity_write_article</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="Event_article_dropped" name="Article dropped">
+      <bpmn:incoming>Flow_Gateway_approved__Event_article_dropped</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:parallelGateway id="Gateway_split">
+      <bpmn:incoming>Flow_Gateway_approved__Gateway_split</bpmn:incoming>
+      <bpmn:outgoing>Flow_Gateway_split__Activity_create_images</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Gateway_split__Activity_write_social_posts</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Gateway_split__Activity_translate_article</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:task id="Activity_create_images" name="Create images">
+      <bpmn:incoming>Flow_Gateway_split__Activity_create_images</bpmn:incoming>
+      <bpmn:outgoing>Flow_Activity_create_images__Gateway_join</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_write_social_posts" name="Write social posts">
+      <bpmn:incoming>Flow_Gateway_split__Activity_write_social_posts</bpmn:incoming>
+      <bpmn:outgoing>Flow_Activity_write_social_posts__Gateway_join</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Activity_translate_article" name="Translate article">
+      <bpmn:incoming>Flow_Gateway_split__Activity_translate_article</bpmn:incoming>
+      <bpmn:outgoing>Flow_Activity_translate_article__Gateway_join</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:parallelGateway id="Gateway_join">
+      <bpmn:incoming>Flow_Activity_create_images__Gateway_join</bpmn:incoming>
+      <bpmn:incoming>Flow_Activity_write_social_posts__Gateway_join</bpmn:incoming>
+      <bpmn:incoming>Flow_Activity_translate_article__Gateway_join</bpmn:incoming>
+      <bpmn:outgoing>Flow_Gateway_join__Gateway_extra_channels</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:inclusiveGateway id="Gateway_extra_channels" name="Extra channels?" default="Flow_Gateway_extra_channels__Gateway_or_join">
+      <bpmn:incoming>Flow_Gateway_join__Gateway_extra_channels</bpmn:incoming>
+      <bpmn:outgoing>Flow_Gateway_extra_channels__Activity_add_to_newsletter</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Gateway_extra_channels__Activity_record_audio_version</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Gateway_extra_channels__Gateway_or_join</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+    <bpmn:serviceTask id="Activity_add_to_newsletter" name="Add to newsletter">
+      <bpmn:incoming>Flow_Gateway_extra_channels__Activity_add_to_newsletter</bpmn:incoming>
+      <bpmn:outgoing>Flow_Activity_add_to_newsletter__Gateway_or_join</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:task id="Activity_record_audio_version" name="Record audio version">
+      <bpmn:incoming>Flow_Gateway_extra_channels__Activity_record_audio_version</bpmn:incoming>
+      <bpmn:outgoing>Flow_Activity_record_audio_version__Gateway_or_join</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:inclusiveGateway id="Gateway_or_join">
+      <bpmn:incoming>Flow_Gateway_extra_channels__Gateway_or_join</bpmn:incoming>
+      <bpmn:incoming>Flow_Activity_add_to_newsletter__Gateway_or_join</bpmn:incoming>
+      <bpmn:incoming>Flow_Activity_record_audio_version__Gateway_or_join</bpmn:incoming>
+      <bpmn:outgoing>Flow_Gateway_or_join__Activity_publish</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+    <bpmn:task id="Activity_publish" name="Publish">
+      <bpmn:incoming>Flow_Gateway_or_join__Activity_publish</bpmn:incoming>
+      <bpmn:outgoing>Flow_Activity_publish__Event_published</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="Event_published" name="Published">
+      <bpmn:incoming>Flow_Activity_publish__Event_published</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Event_draft_ready__Activity_write_article" sourceRef="Event_draft_ready" targetRef="Activity_write_article" />
+    <bpmn:sequenceFlow id="Flow_Activity_write_article__Activity_review_article" sourceRef="Activity_write_article" targetRef="Activity_review_article" />
+    <bpmn:sequenceFlow id="Flow_Activity_review_article__Gateway_approved" sourceRef="Activity_review_article" targetRef="Gateway_approved" />
+    <bpmn:sequenceFlow id="Flow_Gateway_approved__Gateway_split" name="yes" sourceRef="Gateway_approved" targetRef="Gateway_split" />
+    <bpmn:sequenceFlow id="Flow_Gateway_approved__Activity_apply_feedback" name="needs changes" sourceRef="Gateway_approved" targetRef="Activity_apply_feedback" />
+    <bpmn:sequenceFlow id="Flow_Activity_apply_feedback__Activity_write_article" sourceRef="Activity_apply_feedback" targetRef="Activity_write_article" />
+    <bpmn:sequenceFlow id="Flow_Gateway_approved__Event_article_dropped" name="rejected" sourceRef="Gateway_approved" targetRef="Event_article_dropped" />
+    <bpmn:sequenceFlow id="Flow_Gateway_split__Activity_create_images" sourceRef="Gateway_split" targetRef="Activity_create_images" />
+    <bpmn:sequenceFlow id="Flow_Gateway_split__Activity_write_social_posts" sourceRef="Gateway_split" targetRef="Activity_write_social_posts" />
+    <bpmn:sequenceFlow id="Flow_Gateway_split__Activity_translate_article" sourceRef="Gateway_split" targetRef="Activity_translate_article" />
+    <bpmn:sequenceFlow id="Flow_Activity_create_images__Gateway_join" sourceRef="Activity_create_images" targetRef="Gateway_join" />
+    <bpmn:sequenceFlow id="Flow_Activity_write_social_posts__Gateway_join" sourceRef="Activity_write_social_posts" targetRef="Gateway_join" />
+    <bpmn:sequenceFlow id="Flow_Activity_translate_article__Gateway_join" sourceRef="Activity_translate_article" targetRef="Gateway_join" />
+    <bpmn:sequenceFlow id="Flow_Gateway_join__Gateway_extra_channels" sourceRef="Gateway_join" targetRef="Gateway_extra_channels" />
+    <bpmn:sequenceFlow id="Flow_Gateway_extra_channels__Activity_add_to_newsletter" name="newsletter" sourceRef="Gateway_extra_channels" targetRef="Activity_add_to_newsletter" />
+    <bpmn:sequenceFlow id="Flow_Gateway_extra_channels__Activity_record_audio_version" name="podcast" sourceRef="Gateway_extra_channels" targetRef="Activity_record_audio_version" />
+    <bpmn:sequenceFlow id="Flow_Gateway_extra_channels__Gateway_or_join" name="else" sourceRef="Gateway_extra_channels" targetRef="Gateway_or_join" />
+    <bpmn:sequenceFlow id="Flow_Activity_add_to_newsletter__Gateway_or_join" sourceRef="Activity_add_to_newsletter" targetRef="Gateway_or_join" />
+    <bpmn:sequenceFlow id="Flow_Activity_record_audio_version__Gateway_or_join" sourceRef="Activity_record_audio_version" targetRef="Gateway_or_join" />
+    <bpmn:sequenceFlow id="Flow_Gateway_or_join__Activity_publish" sourceRef="Gateway_or_join" targetRef="Activity_publish" />
+    <bpmn:sequenceFlow id="Flow_Activity_publish__Event_published" sourceRef="Activity_publish" targetRef="Event_published" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_1">
+    <bpmndi:BPMNPlane id="Plane_1" bpmnElement="Process_article_publishing">
+      <bpmndi:BPMNShape id="Event_draft_ready_di" bpmnElement="Event_draft_ready"><dc:Bounds x="100" y="62" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_write_article_di" bpmnElement="Activity_write_article"><dc:Bounds x="186" y="40" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_review_article_di" bpmnElement="Activity_review_article"><dc:Bounds x="336" y="40" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_approved_di" bpmnElement="Gateway_approved"><dc:Bounds x="486" y="55" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_apply_feedback_di" bpmnElement="Activity_apply_feedback"><dc:Bounds x="586" y="260" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_article_dropped_di" bpmnElement="Event_article_dropped"><dc:Bounds x="618" y="172" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_split_di" bpmnElement="Gateway_split"><dc:Bounds x="611" y="55" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_create_images_di" bpmnElement="Activity_create_images"><dc:Bounds x="760" y="40" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_write_social_posts_di" bpmnElement="Activity_write_social_posts"><dc:Bounds x="760" y="150" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_translate_article_di" bpmnElement="Activity_translate_article"><dc:Bounds x="760" y="260" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_join_di" bpmnElement="Gateway_join"><dc:Bounds x="910" y="55" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_extra_channels_di" bpmnElement="Gateway_extra_channels"><dc:Bounds x="1010" y="55" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_add_to_newsletter_di" bpmnElement="Activity_add_to_newsletter"><dc:Bounds x="1110" y="40" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_record_audio_version_di" bpmnElement="Activity_record_audio_version"><dc:Bounds x="1110" y="150" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_or_join_di" bpmnElement="Gateway_or_join"><dc:Bounds x="1260" y="55" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_publish_di" bpmnElement="Activity_publish"><dc:Bounds x="1360" y="40" width="100" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_published_di" bpmnElement="Event_published"><dc:Bounds x="1510" y="62" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Event_draft_ready__Activity_write_article_di" bpmnElement="Flow_Event_draft_ready__Activity_write_article">
+        <di:waypoint x="136" y="80" />
+        <di:waypoint x="186" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Activity_write_article__Activity_review_article_di" bpmnElement="Flow_Activity_write_article__Activity_review_article">
+        <di:waypoint x="286" y="80" />
+        <di:waypoint x="336" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Activity_review_article__Gateway_approved_di" bpmnElement="Flow_Activity_review_article__Gateway_approved">
+        <di:waypoint x="436" y="80" />
+        <di:waypoint x="486" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gateway_approved__Gateway_split_di" bpmnElement="Flow_Gateway_approved__Gateway_split">
+        <di:waypoint x="536" y="80" />
+        <di:waypoint x="611" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gateway_approved__Activity_apply_feedback_di" bpmnElement="Flow_Gateway_approved__Activity_apply_feedback">
+        <di:waypoint x="511" y="105" />
+        <di:waypoint x="511" y="300" />
+        <di:waypoint x="586" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Activity_apply_feedback__Activity_write_article_di" bpmnElement="Flow_Activity_apply_feedback__Activity_write_article">
+        <di:waypoint x="636" y="340" />
+        <di:waypoint x="636" y="395" />
+        <di:waypoint x="236" y="395" />
+        <di:waypoint x="236" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gateway_approved__Event_article_dropped_di" bpmnElement="Flow_Gateway_approved__Event_article_dropped">
+        <di:waypoint x="511" y="105" />
+        <di:waypoint x="511" y="190" />
+        <di:waypoint x="618" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gateway_split__Activity_create_images_di" bpmnElement="Flow_Gateway_split__Activity_create_images">
+        <di:waypoint x="661" y="80" />
+        <di:waypoint x="760" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gateway_split__Activity_write_social_posts_di" bpmnElement="Flow_Gateway_split__Activity_write_social_posts">
+        <di:waypoint x="661" y="80" />
+        <di:waypoint x="711" y="80" />
+        <di:waypoint x="711" y="190" />
+        <di:waypoint x="760" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gateway_split__Activity_translate_article_di" bpmnElement="Flow_Gateway_split__Activity_translate_article">
+        <di:waypoint x="661" y="80" />
+        <di:waypoint x="723" y="80" />
+        <di:waypoint x="723" y="300" />
+        <di:waypoint x="760" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Activity_create_images__Gateway_join_di" bpmnElement="Flow_Activity_create_images__Gateway_join">
+        <di:waypoint x="860" y="80" />
+        <di:waypoint x="910" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Activity_write_social_posts__Gateway_join_di" bpmnElement="Flow_Activity_write_social_posts__Gateway_join">
+        <di:waypoint x="860" y="190" />
+        <di:waypoint x="935" y="190" />
+        <di:waypoint x="935" y="105" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Activity_translate_article__Gateway_join_di" bpmnElement="Flow_Activity_translate_article__Gateway_join">
+        <di:waypoint x="860" y="300" />
+        <di:waypoint x="935" y="300" />
+        <di:waypoint x="935" y="105" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gateway_join__Gateway_extra_channels_di" bpmnElement="Flow_Gateway_join__Gateway_extra_channels">
+        <di:waypoint x="960" y="80" />
+        <di:waypoint x="1010" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gateway_extra_channels__Activity_add_to_newsletter_di" bpmnElement="Flow_Gateway_extra_channels__Activity_add_to_newsletter">
+        <di:waypoint x="1060" y="80" />
+        <di:waypoint x="1110" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gateway_extra_channels__Activity_record_audio_version_di" bpmnElement="Flow_Gateway_extra_channels__Activity_record_audio_version">
+        <di:waypoint x="1035" y="105" />
+        <di:waypoint x="1035" y="190" />
+        <di:waypoint x="1110" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gateway_extra_channels__Gateway_or_join_di" bpmnElement="Flow_Gateway_extra_channels__Gateway_or_join">
+        <di:waypoint x="1035" y="105" />
+        <di:waypoint x="1035" y="135" />
+        <di:waypoint x="1285" y="135" />
+        <di:waypoint x="1285" y="105" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Activity_add_to_newsletter__Gateway_or_join_di" bpmnElement="Flow_Activity_add_to_newsletter__Gateway_or_join">
+        <di:waypoint x="1210" y="80" />
+        <di:waypoint x="1260" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Activity_record_audio_version__Gateway_or_join_di" bpmnElement="Flow_Activity_record_audio_version__Gateway_or_join">
+        <di:waypoint x="1210" y="190" />
+        <di:waypoint x="1285" y="190" />
+        <di:waypoint x="1285" y="105" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Gateway_or_join__Activity_publish_di" bpmnElement="Flow_Gateway_or_join__Activity_publish">
+        <di:waypoint x="1310" y="80" />
+        <di:waypoint x="1360" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Activity_publish__Event_published_di" bpmnElement="Flow_Activity_publish__Event_published">
+        <di:waypoint x="1460" y="80" />
+        <di:waypoint x="1510" y="80" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

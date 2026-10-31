@@ -1,0 +1,8 @@
+# BT250: A group inside another group.
+# expect: BT250 @ 6:5
+pool Company
+  group Fulfilment
+    start
+    group Packing
+      task Pack parcel
+    end

@@ -1,0 +1,21 @@
+# A merge that is not well structured: an explicit gateway with an @id,
+# reached by jumps from different nesting levels.
+# covers: §7.3
+title "Insurance claim"
+
+start Claim received
+xor Claim type?
+  simple:
+    task Auto-assess
+    -> @merge
+  complex:
+    task Assign assessor
+    xor Needs site visit?
+      yes:
+        task Visit site
+        -> @merge
+      no:
+        -> @merge
+xor Merge @merge
+task Pay claim
+end Paid

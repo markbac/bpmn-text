@@ -1,0 +1,5 @@
+# BT101: A misspelt keyword (did you mean `task`?).
+# expect: BT101 @ 4:1
+start
+taks Check order
+end

@@ -1,0 +1,16 @@
+# Fill and stroke colours on a pool, lanes and elements: hex, short hex,
+# bpmn-js palette names and CSS names; repeated lanes lines.
+# covers: §4.7, §9
+title "Colours"
+
+pool Company [color: #F0F4FF, stroke: #1F4E79]
+  lanes Sales [color: #1F4E79], Warehouse [color: green]
+  lanes Finance [color: #FEA]
+  lane Sales
+  start Order received [stroke: blue]
+  task Check order
+  lane Warehouse
+  task Escalate [color: #FFE0E0, stroke: red]
+  lane Finance
+  task Invoice [color: orange]
+  end Done [color: purple, stroke: rebeccapurple]

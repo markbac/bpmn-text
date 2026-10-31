@@ -1,0 +1,7 @@
+# BT302: A new start event leaves the previous chain open.
+# expect: BT302 @ 4:1
+start Order received
+task Check order
+start timer Nightly run
+task Archive orders
+end Archived

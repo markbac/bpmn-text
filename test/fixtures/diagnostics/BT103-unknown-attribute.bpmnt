@@ -1,0 +1,5 @@
+# BT103: An attribute the notation does not define.
+# expect: BT103 @ 4:19
+start
+task Check order [urgent]
+end

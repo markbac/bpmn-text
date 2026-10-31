@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "build/types"
+  },
+  "include": ["src", "test"],
+  "references": [
+    {
+      "path": "../../packages/core"
+    },
+    {
+      "path": "../../packages/layout"
+    },
+    {
+      "path": "../../packages/bpmn"
+    }
+  ]
+}

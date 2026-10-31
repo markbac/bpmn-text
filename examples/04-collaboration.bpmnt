@@ -1,4 +1,5 @@
 # Two expanded pools, one collapsed pool, message flows between them.
+# covers: §4.2, §6.4, §7.1, §9
 title "Order fulfilment"
 
 pool Customer

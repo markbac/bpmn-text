@@ -1,0 +1,6 @@
+# Labelled flows in chains that declare elements inline.
+# covers: §6.1, §6.3
+title "Printing"
+
+start Draft ready -(author done)-> task Review draft
+task Proofread -(after review)-> task Typeset -> end Printed

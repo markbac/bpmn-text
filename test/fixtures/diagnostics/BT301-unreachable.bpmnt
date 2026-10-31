@@ -1,0 +1,7 @@
+# BT301: An element after an end event, with no incoming flow.
+# expect: BT301 @ 6:1
+start
+task Check order
+end Done
+task Archive order
+end Archived

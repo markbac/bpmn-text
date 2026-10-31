@@ -1,0 +1,9 @@
+# BT201: Two elements share the name the jump refers to.
+# expect: BT201 @ 9:8
+start
+task Review
+task Review
+xor Approved?
+  yes: end Done
+  no:
+    -> Review

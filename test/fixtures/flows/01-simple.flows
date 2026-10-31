@@ -1,0 +1,12 @@
+pool Participant_expense_claim (implicit)
+  node Event_receipt_collected
+  node Activity_fill_in_claim_form
+  node Activity_submit_to_finance_system
+  node Event_5_days
+  node Activity_check_reimbursement
+  node Event_claim_complete
+  Event_receipt_collected -> Activity_fill_in_claim_form
+  Activity_fill_in_claim_form -> Activity_submit_to_finance_system
+  Activity_submit_to_finance_system -> Event_5_days
+  Event_5_days -> Activity_check_reimbursement
+  Activity_check_reimbursement -> Event_claim_complete

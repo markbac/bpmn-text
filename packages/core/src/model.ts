@@ -1,0 +1,166 @@
+import type { EventType } from './ast.js';
+import type { Range } from './diagnostics.js';
+
+/**
+ * The process model (IR): format-independent, close to the BPMN metamodel
+ * but simpler (architecture §4). Every element carries its final ID and
+ * the source range it came from.
+ */
+export interface Model {
+  title?: string;
+  documentation?: string;
+  /** How open XOR branches merge (notation §3, `option xor-join`). */
+  xorJoin: 'gateway' | 'direct';
+  /** Whether the output is a collaboration (participants) or a plain process. */
+  collaboration: boolean;
+  /** Always at least one: a document without `pool` has an implicit one. */
+  pools: Pool[];
+  messageFlows: MessageFlow[];
+  dataStores: DataStore[];
+  /** In document order, which is also their column order. */
+  groups: Group[];
+}
+
+export interface Pool {
+  id: string;
+  name: string;
+  collapsed: boolean;
+  implicit: boolean;
+  lanes: Lane[];
+  /** Absent for a collapsed pool. */
+  process?: Process;
+  documentation?: string;
+  extra: Record<string, string>;
+  source: Range;
+}
+
+export interface Lane {
+  id: string;
+  name: string;
+  documentation?: string;
+  extra: Record<string, string>;
+  source: Range;
+}
+
+/** A process or the body of a subprocess. */
+export interface Container {
+  nodes: FlowNode[];
+  flows: SequenceFlow[];
+  annotations: Annotation[];
+}
+
+export interface Process extends Container {
+  id: string;
+  dataObjects: DataObject[];
+}
+
+export type NodeKind =
+  | 'startEvent'
+  | 'endEvent'
+  | 'intermediateCatchEvent'
+  | 'intermediateThrowEvent'
+  | 'boundaryEvent'
+  | 'task'
+  | 'userTask'
+  | 'serviceTask'
+  | 'scriptTask'
+  | 'sendTask'
+  | 'receiveTask'
+  | 'manualTask'
+  | 'businessRuleTask'
+  | 'callActivity'
+  | 'subProcess'
+  | 'exclusiveGateway'
+  | 'parallelGateway'
+  | 'inclusiveGateway'
+  | 'eventBasedGateway';
+
+export type Marker = 'loop' | 'parallel' | 'sequential';
+
+export interface FlowNode {
+  id: string;
+  kind: NodeKind;
+  name?: string;
+  eventType?: EventType;
+  laneId?: string;
+  groupId?: string;
+  markers: Marker[];
+  /** Boundary events: the activity they are attached to. */
+  attachedTo?: string;
+  /** Boundary events: false for `[non-interrupting]`. */
+  interrupting?: boolean;
+  /** Activities: the IDs of their boundary events. */
+  boundaries: string[];
+  /** Subprocesses: the body. */
+  children?: Container;
+  collapsed?: boolean;
+  /** Data objects and stores read and written. */
+  reads: string[];
+  writes: string[];
+  /** Split gateways: how many branches were written. */
+  branches?: number;
+  /** Gateways: the ID of the default flow (`else:`). */
+  default?: string;
+  documentation?: string;
+  /** Set on join gateways the compiler inserted. */
+  generated?: 'join';
+  /**
+   * Set on the last element of a non-interrupting boundary chain that ends
+   * open: it was reported as BT241, so it is not also a dead end (BT302).
+   */
+  endsOpenBoundaryChain?: true;
+  /** Attributes the notation does not define, kept for extensions. */
+  extra: Record<string, string>;
+  /** Where each attribute was written, for diagnostics. */
+  attributeRanges: Record<string, Range>;
+  source: Range;
+}
+
+export interface SequenceFlow {
+  id: string;
+  sourceRef: string;
+  targetRef: string;
+  name?: string;
+  isDefault?: true;
+  source: Range;
+}
+
+export interface MessageFlow {
+  id: string;
+  /** A flow node or a pool. */
+  sourceRef: string;
+  targetRef: string;
+  name?: string;
+  source: Range;
+}
+
+export interface DataObject {
+  id: string;
+  name: string;
+  collection: boolean;
+  source: Range;
+}
+
+export interface DataStore {
+  id: string;
+  name: string;
+  source: Range;
+}
+
+export interface Annotation {
+  id: string;
+  text: string;
+  attachedTo: string;
+  source: Range;
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  fit: boolean;
+  documentation?: string;
+  /** Flow node IDs, across pools. */
+  members: string[];
+  extra: Record<string, string>;
+  source: Range;
+}

@@ -1,0 +1,7 @@
+# BT221: `else:` on a parallel gateway.
+# expect: BT221 @ 6:3
+start
+and
+  - task Pick items
+  else: task Print invoice
+end

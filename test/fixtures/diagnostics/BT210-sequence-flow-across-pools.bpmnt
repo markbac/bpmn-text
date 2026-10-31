@@ -1,0 +1,13 @@
+# BT210: A jump to an element in another pool.
+# expect: BT210 @ 7:10
+pool Customer
+  start Need product
+  xor Order online?
+    yes:
+      -> Receive order
+    no: end Gave up
+
+pool Company
+  start
+  task Receive order
+  end

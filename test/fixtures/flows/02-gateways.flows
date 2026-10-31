@@ -1,0 +1,39 @@
+pool Participant_article_publishing (implicit)
+  node Event_draft_ready
+  node write
+  node Activity_review_article
+  node Gateway_approved
+  node Activity_apply_feedback
+  node Event_article_dropped
+  node Gateway_and_1
+  node Activity_create_images
+  node Activity_write_social_posts
+  node Activity_translate_article
+  node Gateway_extra_channels
+  node Gateway_join_after_extra_channels
+  node Activity_add_to_newsletter
+  node Activity_record_audio_version
+  node Activity_publish
+  node Gateway_join_after_publish
+  node Event_published
+  Event_draft_ready -> write
+  write -> Activity_review_article
+  Activity_review_article -> Gateway_approved
+  Gateway_approved -> Activity_apply_feedback [needs changes]
+  Gateway_approved -> Event_article_dropped [rejected]
+  Gateway_approved -> Gateway_and_1 [yes]
+  Gateway_and_1 -> Activity_create_images
+  Gateway_and_1 -> Activity_write_social_posts
+  Gateway_and_1 -> Activity_translate_article
+  Activity_create_images -> Gateway_join_after_extra_channels
+  Activity_write_social_posts -> Gateway_join_after_extra_channels
+  Activity_translate_article -> Gateway_join_after_extra_channels
+  Gateway_join_after_extra_channels -> Gateway_extra_channels
+  Gateway_extra_channels -> Activity_add_to_newsletter [newsletter]
+  Gateway_extra_channels -> Activity_record_audio_version [podcast]
+  Activity_add_to_newsletter -> Gateway_join_after_publish
+  Activity_record_audio_version -> Gateway_join_after_publish
+  Gateway_extra_channels -> Gateway_join_after_publish (default)
+  Gateway_join_after_publish -> Activity_publish
+  Activity_publish -> Event_published
+  Activity_apply_feedback -> write

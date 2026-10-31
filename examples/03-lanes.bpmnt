@@ -1,4 +1,5 @@
 # One pool with lanes. Lane switches inside a branch are scoped to that branch.
+# covers: §9
 title "Leave request"
 
 pool HR department

@@ -1,0 +1,7 @@
+# BT211: A message flow between two elements of the same pool.
+# expect: BT211 @ 5:25
+pool Company
+  start
+  task Prepare order ~> Ship order
+  task Ship order
+  end

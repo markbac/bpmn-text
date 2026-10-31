@@ -1,0 +1,24 @@
+pool Participant_invoice_run (implicit)
+  node Event_last_working_day_of_month
+  node Activity_collect_billable_hours
+  node Activity_create_invoices
+  node Event_missing_rate on Activity_create_invoices
+  node Activity_fix_rate_card
+  node Event_invoice_skipped
+  node Activity_send_invoices
+  node Event_run_complete
+  Event_last_working_day_of_month -> Activity_collect_billable_hours
+  Activity_collect_billable_hours -> Activity_create_invoices
+  Event_missing_rate -> Activity_fix_rate_card
+  Activity_fix_rate_card -> Event_invoice_skipped
+  Activity_create_invoices -> Activity_send_invoices
+  Activity_send_invoices -> Event_run_complete
+  Activity_create_invoices:
+    Event_create_invoices_start_1 -> Activity_calculate_totals
+    Activity_calculate_totals -> Activity_generate_pdf
+    Activity_generate_pdf -> Event_create_invoices_end_1
+  Activity_send_invoices:
+    Event_send_invoices_start_1 -> Activity_email_invoice
+    Activity_email_invoice -> Event_30_days
+    Event_30_days -> Activity_check_payment
+    Activity_check_payment -> Event_send_invoices_end_1

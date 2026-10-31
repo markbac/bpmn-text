@@ -1,0 +1,8 @@
+# BT202: A jump to a name that does not exist (did you mean `Check order`?).
+# expect: BT202 @ 8:8
+start
+task Check order
+xor OK?
+  yes: end Done
+  no:
+    -> Chek order

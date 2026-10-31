@@ -1,0 +1,24 @@
+{
+  "name": "bpmn-text-vscode",
+  "version": "0.0.0",
+  "private": true,
+  "description": "VS Code extension for bpmn-text.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup --config ../../tsup.config.ts"
+  },
+  "dependencies": {
+    "@bpmn-text/language-server": "0.0.0"
+  }
+}

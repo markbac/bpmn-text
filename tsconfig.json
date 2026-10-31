@@ -1,0 +1,15 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/core" },
+    { "path": "packages/layout" },
+    { "path": "packages/bpmn" },
+    { "path": "packages/render" },
+    { "path": "packages/cli" },
+    { "path": "packages/language-server" },
+    { "path": "packages/test-utils" },
+    { "path": "apps/editor" },
+    { "path": "apps/vscode" },
+    { "path": "test" }
+  ]
+}

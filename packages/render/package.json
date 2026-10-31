@@ -1,0 +1,23 @@
+{
+  "name": "@bpmn-text/render",
+  "version": "0.0.0",
+  "description": "SVG and PNG rendering of BPMN through bpmn-js in headless Chromium.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup --config ../../tsup.config.ts"
+  },
+  "dependencies": {
+    "@bpmn-text/bpmn": "0.0.0"
+  }
+}

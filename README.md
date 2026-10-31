@@ -77,3 +77,47 @@ gateways, lane placement and the whole diagram layout are inferred.
 
 TypeScript monorepo (npm workspaces) · elkjs · bpmn-moddle · bpmn-js ·
 CodeMirror 6 · vscode-languageserver · Vitest · Playwright
+
+## Development
+
+Requires Node 20.19+ or 22.12+.
+
+```bash
+npm install
+npx playwright-core install chromium   # once; used by the bpmn-js import check
+npm run build      # tsup build of every workspace (ESM + .d.ts)
+npm test           # Vitest across all workspaces
+npm run test:coverage
+npm run typecheck  # tsc -b over the project references
+npm run lint       # ESLint (including dependency direction) and Prettier
+```
+
+Workspaces import each other through the `source` export condition, so
+type checking and tests run against TypeScript sources without a prior
+build. The allowed dependencies between workspaces (architecture §2) are
+defined in `eslint.config.js` and enforced by `npm run lint`.
+
+`@bpmn-text/test-utils` (private) provides `expectSchemaValid`,
+`expectModdleImport` and `expectBpmnJsImport` for asserting that generated
+BPMN XML is valid against the OMG BPMN 2.0 XSDs (vendored in
+`packages/test-utils/xsd`) and imports cleanly into bpmn-moddle and into
+bpmn-js running in headless Chromium.
+
+### Continuous integration
+
+`.github/workflows/ci.yml` runs lint, typecheck, tests with coverage and
+build on every push to `main` and every pull request, on Node 20 and 22
+under Ubuntu and Windows. The coverage summary appears on the run's summary
+page.
+
+Recommended branch protection for `main` (Settings → Branches):
+
+- Require a pull request before merging
+- Require status checks to pass, selecting all four `CI` matrix jobs
+- Require branches to be up to date before merging
+
+> **Note:** npm 10 crashes (`Cannot read properties of null (reading
+> 'edgesOut')`) when it has to resolve Vitest 4 without a lockfile.
+> Installing from the committed `package-lock.json` works with npm 10, but
+> regenerate the lockfile or add dependencies with npm 11
+> (`npx npm@11 install ...`).

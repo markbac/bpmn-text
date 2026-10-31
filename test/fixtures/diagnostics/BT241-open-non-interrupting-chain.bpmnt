@@ -1,0 +1,6 @@
+# BT241: A non-interrupting boundary chain that ends open (reported instead of BT302).
+# expect: BT241 @ 5:41
+start
+user Approve request
+  on timer 2 days [non-interrupting] -> task Send reminder
+end Approved

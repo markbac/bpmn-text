@@ -1,0 +1,28 @@
+# Phase groups shared across two pools, a coloured group and a [fit] group.
+# covers: §9.1
+title "Phased order process"
+
+pool Customer
+  group Ordering
+    start Need product
+    send Place order ~> Order arrives
+  group Delivery
+    receive Parcel arrives
+    end Done
+
+pool Company
+  lanes Sales, Warehouse
+  group Ordering
+    lane Sales
+    start message Order arrives
+    task Check order
+  group Delivery [color: #FFF5F5]
+    lane Warehouse
+    task Pick and pack
+    send Ship parcel ~> Parcel arrives
+    end Shipped
+  group After-sales [fit, stroke: #A33]
+    lane Sales
+    start timer One week later
+    user Send satisfaction survey
+    end Survey sent
