@@ -34,10 +34,12 @@ You write the process in the order it happens. Sequence flows, join
 gateways, lane placement and the whole diagram layout are inferred.
 
 > **Status: in development.** The CLI and the compiler library produce
-> laid-out BPMN for the core notation: events, tasks, gateways, pools,
-> lanes and message flows. Subprocess bodies, data, annotations, groups and
-> colours are laid out in milestone M4. Work is tracked in
+> laid-out BPMN for the whole notation: events, tasks, gateways, pools,
+> lanes, message flows, subprocesses, boundary events, data, annotations,
+> groups, colours and documentation. Work is tracked in
 > [issues](../../issues) and [milestones](../../milestones).
+
+![The multi-phase example](docs/images/07-multi-phase.png)
 
 ## Command line
 

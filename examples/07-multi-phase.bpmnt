@@ -1,0 +1,89 @@
+# A realistic two-phase process: eight lanes, phase groups, several start
+# chains, fork, collapsed subprocess placeholders, colours and documentation.
+# covers: §4.6, §4.7, §4.8, §5, §7.4, §9, §9.1
+title "Solar panel installation"
+doc From signed order to a working installation and the first service visit.
+
+pool Installer
+  doc A regional installer of rooftop solar panels.
+  lanes Sales [color: #E3F2FD], Credit control [color: #E3F2FD]
+  lanes Planning [color: #FFF8E1], Warehouse [color: #FFF8E1]
+  lanes Logistics [color: #FFF8E1], Field service [color: #E8F5E9]
+  lanes Billing [color: #F3E5F5], Customer care [color: #F3E5F5]
+
+  group Fulfilment
+    lane Sales
+    start message Order signed
+    doc The customer has signed the quote in the portal.
+    user Confirm order
+    doc Check the quote against the site survey and confirm the order.
+    lane Credit control
+    sub Credit check [collapsed]
+    doc Runs the standard credit check, documented in the credit manual.
+    xor Credit approved? [doc: The credit check decides whether the order goes ahead.]
+      yes:
+        lane Planning
+        user Plan installation
+        doc Pick an installation date and a crew.
+      no:
+        lane Sales
+        user Ask for deposit
+        doc Ask the customer for a 30% deposit instead.
+        catch message Deposit received
+        doc The deposit has arrived in the bank account.
+    lane Planning
+    service Publish plan
+    doc Publishes the plan to the warehouse and logistics systems.
+    fork
+      -
+        lane Warehouse
+        user Pick panels and inverter
+        doc Pick the kit from stock and stage it at the loading bay.
+      -
+        lane Logistics
+        user Book delivery van
+        doc Book a van for the day before installation.
+    lane Logistics
+    task Deliver kit [stroke: #1F4E79]
+    doc Deliver the kit to the customer's site.
+    lane Field service
+    sub Install panels [collapsed, color: #C8E6C9]
+    doc Mount, wire and commission the panels, as in the installation manual.
+    user Hand over installation
+    doc Show the customer the app and the isolation switch.
+    lane Billing
+    service Send final invoice
+    doc Invoice the remaining amount.
+    end Installation complete
+    doc The installation is live and invoiced.
+
+  group After-sales [color: #FFF5F5]
+    lane Customer care
+    start timer Six months after installation
+    doc Every installation gets a service visit after six months.
+    user Call customer
+    doc Agree a date for the service visit.
+    lane Field service
+    user Service visit [stroke: red]
+    doc Clean the panels and check the inverter logs.
+    xor Fault found? [doc: A fault is anything the inverter logs report.]
+      yes:
+        sub Repair [collapsed]
+        doc Repairs follow the warranty process.
+      no:
+        lane Customer care
+        manual File visit report
+        doc File the signed report in the customer folder.
+    lane Customer care
+    end Visit closed
+    doc The customer has a working installation.
+    start message Complaint received
+    doc A customer complains by phone or e-mail.
+    user Log complaint
+    doc Record the complaint and promise a call back within a day.
+    lane Field service
+    user Investigate complaint
+    doc Visit the site if needed.
+    lane Customer care
+    end Complaint closed
+    doc The customer has accepted the answer.

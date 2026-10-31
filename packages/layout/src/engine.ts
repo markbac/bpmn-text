@@ -1074,13 +1074,30 @@ async function layoutModel(
           { ...below, side: y + height },
         ];
         const free = options.find((o) => !used(o.side));
+        // Both sides taken: beside the top corner, left or right, where
+        // that clears the shapes.
+        const corners = [
+          {
+            x: Math.round(x - LABEL_GAP - size.width),
+            y: y - LABEL_GAP - size.height,
+          },
+          {
+            x: Math.round(x + width + LABEL_GAP),
+            y: y - LABEL_GAP - size.height,
+          },
+        ];
+        const clearOf = (p: Point) =>
+          obstacles.every(
+            (o) =>
+              p.x >= o.x + o.width ||
+              p.x + size.width <= o.x ||
+              p.y >= o.y + o.height ||
+              p.y + size.height <= o.y,
+          );
+        const corner = corners.find(clearOf) ?? corners[0]!;
         shape.label = free
           ? { x: free.x, y: free.y, ...size }
-          : {
-              x: Math.round(x - LABEL_GAP - size.width),
-              y: y - LABEL_GAP - size.height,
-              ...size,
-            };
+          : { ...corner, ...size };
       }
     }
     shapes.set(id, shape);

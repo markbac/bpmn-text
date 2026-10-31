@@ -712,3 +712,4 @@ See [`examples/`](../examples) for complete files covering every feature:
 | `04-collaboration.bpmnt` | Two pools, message flows, a collapsed pool |
 | `05-events.bpmnt` | Timers, boundary events, event-based gateway |
 | `06-subprocess-data.bpmnt` | Subprocesses, data objects/stores, notes, markers |
+| `07-multi-phase.bpmnt` | Eight lanes, phase groups, several start chains, `fork`, placeholders, colours, `doc` |
