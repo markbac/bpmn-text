@@ -7,6 +7,7 @@ import {
   layout,
   type Bounds,
   type LayoutResult,
+  type Point,
 } from '../src/index.js';
 
 const root = join(import.meta.dirname, '../../..');
@@ -228,5 +229,89 @@ describe('layout details', () => {
     const r = await layout(m);
     const s = r.shapes.get('Activity_credit_check')!;
     expect([s.width, s.height]).toEqual([100, 80]);
+  });
+
+  /** Pairs of flows to different targets that share a horizontal stretch. */
+  function sharedStretches(m: Model, r: LayoutResult, from: RegExp) {
+    const flows = m.pools.flatMap((p) => p.process?.flows ?? []);
+    const horizontal = (id: string) => {
+      const w = r.edges.get(id)?.waypoints ?? [];
+      return w
+        .slice(1)
+        .flatMap((b, i) =>
+          w[i]!.y === b.y ? [[w[i]!, b] as [Point, Point]] : [],
+        );
+    };
+    const shared: string[] = [];
+    for (const f of flows.filter((f) => from.test(f.sourceRef))) {
+      for (const g of flows) {
+        if (g === f || g.targetRef === f.targetRef) continue;
+        for (const [a, b] of horizontal(f.id)) {
+          for (const [c, d] of horizontal(g.id)) {
+            const lo = Math.max(Math.min(a.x, b.x), Math.min(c.x, d.x));
+            const hi = Math.min(Math.max(a.x, b.x), Math.max(c.x, d.x));
+            if (a.y === c.y && hi - lo > 1) shared.push(`${f.id} / ${g.id}`);
+          }
+        }
+      }
+    }
+    return shared;
+  }
+
+  it('gives detours through one row gap separate tracks', async () => {
+    const m = model('test/fixtures/regressions/shared-detours.bpmnt');
+    const r = await layout(m);
+    expect(
+      sharedStretches(m, r, /^Gateway_(credit_decision|approved_on_review)$/),
+    ).toEqual([]);
+    expect(checkLayout(m, r).problems).toEqual([]);
+  });
+
+  it.each(corpus)('keeps labels apart in %s', async (file) => {
+    const r = await layout(model(file));
+    const labels = [...r.shapes.values(), ...r.edges.values()].flatMap((s) =>
+      s.label ? [s.label] : [],
+    );
+    const overlapping = labels.flatMap((a, i) =>
+      labels
+        .slice(i + 1)
+        .filter(
+          (b) =>
+            a.x < b.x + b.width &&
+            b.x < a.x + a.width &&
+            a.y < b.y + b.height &&
+            b.y < a.y + a.height,
+        )
+        .map((b) => `${JSON.stringify(a)} ${JSON.stringify(b)}`),
+    );
+    expect(overlapping).toEqual([]);
+  });
+
+  it.each(corpus)('keeps flows out of gateway labels in %s', async (file) => {
+    const m = model(file);
+    const r = await layout(m);
+    const routes = [...r.edges.values()].map((e) => e.waypoints);
+    const crossed = m.pools
+      .flatMap((p) => p.process?.nodes ?? [])
+      .filter((n) => n.kind.endsWith('Gateway'))
+      .filter((n) => {
+        const l = r.shapes.get(n.id)?.label;
+        return (
+          l &&
+          routes.some((w) =>
+            w.slice(1).some((b, i) => {
+              const a = w[i]!;
+              return (
+                Math.min(a.x, b.x) < l.x + l.width &&
+                Math.max(a.x, b.x) > l.x &&
+                Math.min(a.y, b.y) < l.y + l.height &&
+                Math.max(a.y, b.y) > l.y
+              );
+            }),
+          )
+        );
+      })
+      .map((n) => n.id);
+    expect(crossed).toEqual([]);
   });
 });

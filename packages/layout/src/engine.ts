@@ -37,6 +37,8 @@ const TRACK = 12;
 const STUB = 15;
 /** Below the top of a row, clear of boundary events of the row above. */
 const ROW_GAP = 9;
+/** Height of one edge track in the gap at the top of a row. */
+const GAP_TRACK = 10;
 const POOL_GAP = 50;
 const COLLAPSED_H = 60;
 const LABEL_GAP = 5;
@@ -604,19 +606,30 @@ async function layoutModel(
       );
     }
   }
-  /** Top of each main row of a band, from the band's top; and its height. */
-  const rowTops = new Map<string, number[]>();
-  for (const [band, count] of bandRows) {
-    const tops: number[] = [];
-    let y = PAD_Y;
-    for (let r = 0; r <= count; r++) {
-      const k = rowKey(band, r);
-      y += above.get(k) ?? 0;
-      tops.push(y);
-      y += (rowHeight.get(k) ?? ROW_H) + (below.get(k) ?? 0);
+  /**
+   * Top of each main row of a band, from the band's top. Above a row, from
+   * the top: its annotations, then room for the edge tracks its gap needs
+   * beyond the first (`gapTracks`, by row key).
+   */
+  let rowTops = new Map<string, number[]>();
+  function stackRows(gapTracks: Map<string, number>) {
+    rowTops = new Map();
+    for (const [band, count] of bandRows) {
+      const tops: number[] = [];
+      let y = PAD_Y;
+      for (let r = 0; r <= count; r++) {
+        const k = rowKey(band, r);
+        y += (above.get(k) ?? 0) + extraGap(gapTracks, k);
+        tops.push(y);
+        y += (rowHeight.get(k) ?? ROW_H) + (below.get(k) ?? 0);
+      }
+      rowTops.set(band, tops);
     }
-    rowTops.set(band, tops);
   }
+  /** The gutter of a band, where back edges return, has tracks too. */
+  const gutterKey = (band: string) => `${band}\ngutter`;
+  const extraGap = (gapTracks: Map<string, number>, k: string) =>
+    Math.max(0, (gapTracks.get(k) ?? 0) - 1) * GAP_TRACK;
   const rowTop = (band: string, r: number) =>
     rowTops.get(band)?.[Math.min(r, bandRows.get(band) ?? 1)] ??
     PAD_Y + r * ROW_H;
@@ -658,7 +671,8 @@ async function layoutModel(
     const side = Math.max(overhang[c - 1] ?? 0, overhang[c] ?? 0);
     return Math.max(base, Math.ceil(2 * (side + GROUP_PAD) + 2 * GROUP_PAD));
   };
-  function place(tracks: number[]) {
+  function place(tracks: number[], gapTracks: Map<string, number>) {
+    stackRows(gapTracks);
     const channelX: number[] = [];
     const colX: number[] = [];
     let x = POOL_LABEL + LANE_LABEL;
@@ -685,7 +699,9 @@ async function layoutModel(
         const height =
           rowTop(band, bandRows.get(band) ?? 1) +
           PAD_Y +
-          (gutters.has(band) ? GUTTER : 0);
+          (gutters.has(band)
+            ? GUTTER + extraGap(gapTracks, gutterKey(band))
+            : 0);
         bands.set(band, {
           x: POOL_LABEL,
           y,
@@ -750,7 +766,7 @@ async function layoutModel(
             },
       );
     }
-    return { channelX, colX, shapes, attached, pools, bands };
+    return { channelX, colX, shapes, attached, pools, bands, gapTracks };
   }
 
   // Phases 5 and 6: routing. Which channels an edge uses depends only on
@@ -758,8 +774,10 @@ async function layoutModel(
   // its channel counts them, and routing again on the widened geometry
   // gives the final points.
   function route(geo: ReturnType<typeof place>, final: boolean) {
-    const { channelX, shapes, attached, pools, bands } = geo;
+    const { channelX, shapes, attached, pools, bands, gapTracks } = geo;
     const used = Array.from({ length: columns + 1 }, () => 0);
+    /** Edge tracks taken in the gap at the top of each row, by row key. */
+    const usedGap = new Map<string, number>();
     const track = (c: number) =>
       channelX[c]! + gapOf(c) / 2 + (final ? used[c]! * TRACK : 0);
     const edges = new Map<string, Point[]>();
@@ -777,23 +795,66 @@ async function layoutModel(
         }
         return true;
       });
-    /** The y just below the top of row `r` of `band`. */
-    const gapY = (band: string, r: number) =>
-      bands.get(band)!.y + rowTop(band, r) + ROW_GAP;
-
     /**
-     * Takes the first candidate route that passes no shape, or the last
-     * one. Candidates name the channels they use, so that only the chosen
-     * route takes up tracks.
+     * The y of the next free track in the gap at the top of row `r` of
+     * `band`: below the row's top, clear of boundary events of the row
+     * above, one track further down for each detour already there.
+     */
+    const gapY = (band: string, r: number) => {
+      const k = rowKey(band, Math.min(r, bandRows.get(band) ?? 1));
+      const index = final ? (usedGap.get(k) ?? 0) : 0;
+      return (
+        bands.get(band)!.y +
+        rowTop(band, r) -
+        extraGap(gapTracks, k) +
+        ROW_GAP +
+        index * GAP_TRACK
+      );
+    };
+    /** The gap a detour at `y` runs through, if any. */
+    const gapAt = new Map<number, string>();
+    const gap = (band: string, r: number) => {
+      const y = gapY(band, r);
+      gapAt.set(y, rowKey(band, Math.min(r, bandRows.get(band) ?? 1)));
+      return y;
+    };
+
+    /** Routes taken so far, by source and target, to keep repeats apart. */
+    const taken = new Map<string, string[]>();
+    /**
+     * Takes the first candidate route that passes no shape and is not
+     * another flow's route between the same two shapes, or failing that
+     * the first that passes no shape, or the last one. Candidates name the
+     * channels they use, and their row gaps are found from their points,
+     * so that only the chosen route takes up tracks.
      */
     function choose(
       candidates: [Point[], number[]][],
       ignore: string[],
+      source: string,
+      target: string,
     ): Point[] {
+      const pair = `${source}\n${target}`;
+      const repeats = taken.get(pair) ?? [];
       const [points, channels] =
-        candidates.find(([p]) => clear(p, ignore)) ?? candidates.at(-1)!;
+        candidates.find(
+          ([p]) =>
+            clear(p, ignore) && !repeats.includes(JSON.stringify(simplify(p))),
+        ) ??
+        candidates.find(([p]) => clear(p, ignore)) ??
+        candidates.at(-1)!;
       for (const c of new Set(channels)) used[c]!++;
-      return simplify(points);
+      const route = simplify(points);
+      // A horizontal segment on a gap track takes that track.
+      const gaps = new Set<string>();
+      for (const [i, b] of route.slice(1).entries()) {
+        const a = route[i]!;
+        const k = a.y === b.y ? gapAt.get(a.y) : undefined;
+        if (k) gaps.add(k);
+      }
+      for (const k of gaps) usedGap.set(k, (usedGap.get(k) ?? 0) + 1);
+      taken.set(pair, [...repeats, JSON.stringify(route)]);
+      return route;
     }
     /**
      * Whether a node may leave from its top or bottom towards a branch
@@ -814,11 +875,17 @@ async function layoutModel(
       const bottom = { x: cx(s), y: s.y + s.height };
       const candidates: [Point[], number[]][] = [];
       if (isBack(f)) {
-        // Back to an earlier column through the gutter of the source band.
+        // Back to an earlier column through the gutter of the source band,
+        // on the next free track.
+        const band = bandOf.get(f.from)!;
+        const k = gutterKey(band);
         const gy =
-          bands.get(bandOf.get(f.from)!)!.y +
-          bands.get(bandOf.get(f.from)!)!.height -
-          GUTTER / 2;
+          bands.get(band)!.y +
+          bands.get(band)!.height -
+          GUTTER / 2 -
+          extraGap(gapTracks, k) +
+          (final ? (usedGap.get(k) ?? 0) : 0) * GAP_TRACK;
+        gapAt.set(gy, k);
         const a = s.column + 1;
         const b = t.column;
         const exits: [Point[], number[]][] = [
@@ -849,7 +916,7 @@ async function layoutModel(
         if (left.y > bottom.y) {
           candidates.push([[bottom, { x: bottom.x, y: left.y }, left], []]);
         }
-        const gy = gapY(host.band, host.row + 1);
+        const gy = gap(host.band, host.row + 1);
         candidates.push([
           [
             bottom,
@@ -888,10 +955,10 @@ async function layoutModel(
         // from its top or bottom, entering one the same way, or turning in
         // the channels next to the shapes.
         const rows = [
-          gapY(s.band, s.row),
-          gapY(t.band, t.row + 1),
-          gapY(t.band, t.row),
-          gapY(s.band, s.row + 1),
+          gap(s.band, s.row),
+          gap(t.band, t.row + 1),
+          gap(t.band, t.row),
+          gap(s.band, s.row + 1),
         ];
         for (const gy of rows) {
           const heads: [Point[], number[]][] = [
@@ -918,7 +985,10 @@ async function layoutModel(
           }
         }
       }
-      edges.set(f.id, choose(candidates, [f.source, f.target]));
+      edges.set(
+        f.id,
+        choose(candidates, [f.source, f.target], f.source, f.target),
+      );
     }
 
     // Message flows: vertical between pools, with an elbow in the gap. A
@@ -975,17 +1045,29 @@ async function layoutModel(
         ),
       );
     });
-    return { edges, used };
+    return { edges, used, usedGap };
   }
 
   let tracks = Array.from({ length: columns + 1 }, () => 0);
-  tracks = route(place(tracks), false).used;
-  let geo = place(tracks);
+  let gapTracks = new Map<string, number>();
+  const first = route(place(tracks, gapTracks), false);
+  tracks = first.used;
+  gapTracks = first.usedGap;
+  let geo = place(tracks, gapTracks);
   let routed = route(geo, true);
   // If the widened geometry changed a choice, widen again.
-  for (let i = 0; i < 3 && routed.used.some((u, c) => u > tracks[c]!); i++) {
+  const wider = () =>
+    routed.used.some((u, c) => u > tracks[c]!) ||
+    [...routed.usedGap].some(([k, n]) => n > (gapTracks.get(k) ?? 0));
+  for (let i = 0; i < 3 && wider(); i++) {
     tracks = tracks.map((t, c) => Math.max(t, routed.used[c]!));
-    geo = place(tracks);
+    gapTracks = new Map(
+      [...new Set([...gapTracks.keys(), ...routed.usedGap.keys()])].map((k) => [
+        k,
+        Math.max(gapTracks.get(k) ?? 0, routed.usedGap.get(k) ?? 0),
+      ]),
+    );
+    geo = place(tracks, gapTracks);
     routed = route(geo, true);
   }
 
@@ -1051,6 +1133,20 @@ async function layoutModel(
     (points) => [points[0]!, points.at(-1)!],
   );
 
+  /** Whether a flow or association passes through `box`. */
+  const routes = [...routed.edges.values(), ...associationEdges.values()];
+  const crossed = (box: Bounds) =>
+    routes.some((points) =>
+      points.slice(1).some((b, i) => {
+        const a = points[i]!;
+        return (
+          Math.min(a.x, b.x) < box.x + box.width &&
+          Math.max(a.x, b.x) > box.x &&
+          Math.min(a.y, b.y) < box.y + box.height &&
+          Math.max(a.y, b.y) > box.y
+        );
+      }),
+    );
   for (const [id, n] of geo.shapes) {
     const node = nodeById.get(id)!;
     const { x, y, width, height } = n;
@@ -1095,9 +1191,26 @@ async function layoutModel(
               p.y + size.height <= o.y,
           );
         const corner = corners.find(clearOf) ?? corners[0]!;
-        shape.label = free
-          ? { x: free.x, y: free.y, ...size }
-          : { ...corner, ...size };
+        // The first place, in that order, that no flow passes through:
+        // above, below, beside each corner, then higher above, clear of
+        // the flows leaving the top.
+        const unused = options.filter((o) => !used(o.side));
+        const lowCorners = corners.map((c) => ({
+          x: c.x,
+          y: y + height + LABEL_GAP,
+        }));
+        const higher = [1, 2, 3, 4].map((k) => ({
+          x: centred,
+          y: y - LABEL_GAP - size.height - k * GAP_TRACK,
+        }));
+        const readable = [...unused, ...corners, ...lowCorners, ...higher].find(
+          (p) => clearOf(p) && !crossed({ ...p, ...size }),
+        );
+        shape.label = readable
+          ? { x: readable.x, y: readable.y, ...size }
+          : free
+            ? { x: free.x, y: free.y, ...size }
+            : { ...corner, ...size };
       }
     }
     shapes.set(id, shape);
@@ -1175,7 +1288,10 @@ async function layoutModel(
     ...flows.map((f) => [f.id, f.name] as const),
     ...model.messageFlows.map((f) => [f.id, f.name] as const),
   ]);
-  const labels: Bounds[] = [];
+  // Flow labels keep clear of each other and of event and gateway labels.
+  const labels: Bounds[] = [...shapes.values()].flatMap((s) =>
+    s.label ? [s.label] : [],
+  );
   for (const [id, waypoints] of routed.edges) {
     const edge: EdgeLayout = { waypoints };
     const name = names.get(id);
