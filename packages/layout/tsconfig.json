@@ -1,16 +1,12 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "build/types",
-    "allowImportingTsExtensions": true
+    "outDir": "build/types"
   },
-  "include": ["src", "test", "spike"],
+  "include": ["src", "test"],
   "references": [
     {
       "path": "../core"
-    },
-    {
-      "path": "../test-utils"
     }
   ]
 }

@@ -6,8 +6,9 @@ to the phases in architecture §6. ADR-004 is now *Accepted*.
 
 ## What was built
 
-The prototype is in [`packages/layout/spike/`](../../../packages/layout/spike).
-It is not exported and will be replaced by the real engine (#18 to #22).
+The prototype was in `packages/layout/spike/`. The real engine (#18 to #22)
+replaced it; it is kept in the history at commit
+[`f8524a5`](../../../../../tree/f8524a5/packages/layout/spike).
 
 | File | Contents |
 |---|---|
@@ -17,8 +18,8 @@ It is not exported and will be replaced by the real engine (#18 to #22).
 | `bpmn.ts` | BPMN XML with DI, from string templates |
 | `render.ts` | Writes the `.bpmn` files and PNGs in this directory (`node packages/layout/spike/render.ts`, Node 22.18+) |
 
-`packages/layout/test/spike.test.ts` checks the invariants below on every
-run, and validates the output with the #4 helpers (XSD, bpmn-moddle and
+`packages/layout/test/spike.test.ts` checked the invariants below on every
+run, and validated the output with the #4 helpers (XSD, bpmn-moddle and
 bpmn-js import).
 
 Example 02 was added to the two the issue names because it is the only one
