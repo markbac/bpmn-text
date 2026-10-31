@@ -19,3 +19,4 @@ export {
 } from './validator.js';
 export { check, type CheckOptions, type CheckResult } from './check.js';
 export { format } from './formatter.js';
+export { normaliseColour } from './colours.js';

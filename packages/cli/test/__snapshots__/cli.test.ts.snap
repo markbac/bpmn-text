@@ -81,7 +81,13 @@ test/fixtures/diagnostics/BT103-unknown-attribute.bpmnt: 1 warning
 `;
 
 exports[`bpmn-text check > prints code frames for BT104-invalid-colour.bpmnt 1`] = `
-"test/fixtures/diagnostics/BT104-invalid-colour.bpmnt: ok
+"error[BT104]: \`#12345\` is not a colour. Use #RRGGBB, #RGB, a palette name (blue, orange, green, red, purple) or a CSS colour name.
+ --> test/fixtures/diagnostics/BT104-invalid-colour.bpmnt:4:26
+  |
+4 | task Check order [color: #12345]
+  |                          ^^^^^^
+
+test/fixtures/diagnostics/BT104-invalid-colour.bpmnt: 1 error
 "
 `;
 
@@ -256,7 +262,13 @@ test/fixtures/diagnostics/BT250-nested-group.bpmnt: 1 error
 `;
 
 exports[`bpmn-text check > prints code frames for BT251-conflicting-lane-colour.bpmnt 1`] = `
-"test/fixtures/diagnostics/BT251-conflicting-lane-colour.bpmnt: ok
+"warning[BT251]: This lane already has \`color\` #C8E6C9; the last value, #FFCDD2, is used.
+ --> test/fixtures/diagnostics/BT251-conflicting-lane-colour.bpmnt:5:15
+  |
+5 |   lane Sales [color: red]
+  |               ^^^^^
+
+test/fixtures/diagnostics/BT251-conflicting-lane-colour.bpmnt: 1 warning
 "
 `;
 

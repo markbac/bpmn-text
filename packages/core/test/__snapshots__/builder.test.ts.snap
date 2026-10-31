@@ -1194,6 +1194,7 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
       "process": {
         "annotations": [
           {
+            "association": "Association_collect_billable_hours",
             "attachedTo": "Activity_collect_billable_hours",
             "id": "TextAnnotation_collect_billable_hours",
             "source": "9:1-9:52",
@@ -1205,13 +1206,22 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
             "collection": false,
             "id": "DataObject_hours_report",
             "name": "Hours report",
+            "reference": "DataObjectReference_hours_report",
             "source": "8:63-8:75",
           },
           {
             "collection": false,
             "id": "DataObject_invoice",
             "name": "Invoice",
+            "reference": "DataObjectReference_invoice",
             "source": "13:33-13:40",
+          },
+        ],
+        "dataStoreReferences": [
+          {
+            "id": "DataStoreReference_accounting_db",
+            "source": "8:40-8:53",
+            "store": "DataStore_accounting_db",
           },
         ],
         "flows": [
@@ -1273,11 +1283,17 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
             "kind": "serviceTask",
             "name": "Collect billable hours",
             "reads": [
-              "DataStore_accounting_db",
+              {
+                "dataRef": "DataStoreReference_accounting_db",
+                "id": "DataInputAssociation_collect_billable_hours__accounting_db",
+              },
             ],
             "source": "8:1-8:76",
             "writes": [
-              "DataObject_hours_report",
+              {
+                "dataRef": "DataObjectReference_hours_report",
+                "id": "DataOutputAssociation_collect_billable_hours__hours_report",
+              },
             ],
           },
           {
@@ -1325,7 +1341,10 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
                   "kind": "task",
                   "name": "Calculate totals",
                   "reads": [
-                    "DataObject_hours_report",
+                    {
+                      "dataRef": "DataObjectReference_hours_report",
+                      "id": "DataInputAssociation_calculate_totals__hours_report",
+                    },
                   ],
                   "source": "12:3-12:46",
                 },
@@ -1339,7 +1358,10 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
                   "name": "Generate PDF",
                   "source": "13:3-13:41",
                   "writes": [
-                    "DataObject_invoice",
+                    {
+                      "dataRef": "DataObjectReference_invoice",
+                      "id": "DataOutputAssociation_generate_pdf__invoice",
+                    },
                   ],
                 },
                 {

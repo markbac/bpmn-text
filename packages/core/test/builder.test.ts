@@ -87,6 +87,28 @@ describe('model builder: declare pass (#11)', () => {
     ]);
   });
 
+  it('normalises colours on pools, lanes, groups and elements (#61)', () => {
+    const m = model(read('test/fixtures/valid/colours.bpmnt'));
+    const pool = m.pools[0]!;
+    expect(pool.style).toEqual({ fill: '#F0F4FF', stroke: '#1F4E79' });
+    expect(pool.lanes.map((l) => l.style)).toEqual([
+      { fill: '#1F4E79' },
+      { fill: '#C8E6C9' },
+      { fill: '#FFEEAA' },
+    ]);
+    const style = (name: string) =>
+      pool.process!.nodes.find((n) => n.name === name)!.style;
+    expect(style('Order received')).toEqual({ stroke: '#0D4372' });
+    expect(style('Check order')).toBeUndefined();
+    expect(style('Done')).toEqual({ fill: '#E1BEE7', stroke: '#663399' });
+    const groups = model(read('test/fixtures/valid/groups.bpmnt')).groups;
+    expect(groups.map((g) => g.style)).toEqual([
+      undefined,
+      { fill: '#FFF5F5' },
+      { stroke: '#AA3333' },
+    ]);
+  });
+
   it('attaches documentation, notes and data', () => {
     const doc = model(read('test/fixtures/valid/documentation.bpmnt'));
     expect(doc.documentation).toBe(
@@ -117,9 +139,25 @@ describe('model builder: declare pass (#11)', () => {
     const collect = process.nodes.find(
       (n) => n.name === 'Collect billable hours',
     )!;
+    expect(process.dataStoreReferences).toMatchObject([
+      {
+        id: 'DataStoreReference_accounting_db',
+        store: 'DataStore_accounting_db',
+      },
+    ]);
     expect([collect.reads, collect.writes]).toEqual([
-      ['DataStore_accounting_db'],
-      ['DataObject_hours_report'],
+      [
+        {
+          id: 'DataInputAssociation_collect_billable_hours__accounting_db',
+          dataRef: 'DataStoreReference_accounting_db',
+        },
+      ],
+      [
+        {
+          id: 'DataOutputAssociation_collect_billable_hours__hours_report',
+          dataRef: 'DataObjectReference_hours_report',
+        },
+      ],
     ]);
     expect(process.annotations).toMatchObject([
       {
@@ -355,18 +393,13 @@ describe('validator (#14)', () => {
 });
 
 describe('check() on the corpus', () => {
-  // Colour checks (BT104, BT251) arrive with #61.
-  const deferred = /^BT(104|251)$/;
-
   it.each(files('test/fixtures/diagnostics/'))(
     '%s reports exactly its expected diagnostics',
     (file) => {
       const source = read(file);
       const expected = [
         ...source.matchAll(/^# expect: (BT\d{3}) @ (\d+):(\d+)$/gm),
-      ]
-        .filter((m) => !deferred.test(m[1]!))
-        .map((m) => `${m[1]} @ ${m[2]}:${m[3]}`);
+      ].map((m) => `${m[1]} @ ${m[2]}:${m[3]}`);
       expect(check(source).diagnostics.map(at).sort()).toEqual(expected.sort());
     },
   );

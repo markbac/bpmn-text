@@ -1,4 +1,4 @@
-import type { Container, Model } from '@bpmn-text/core';
+import type { Container, Model, Style } from '@bpmn-text/core';
 import type { Bounds, LayoutResult } from '@bpmn-text/layout';
 import type { BpmnModdle, ModdleElement } from 'bpmn-moddle';
 import type { Semantic } from './semantic.js';
@@ -35,6 +35,39 @@ export function addDiagrams(
   };
   for (const p of model.pools) if (p.process) walk(p.process);
 
+  // Colours (ADR-011): shapes by their own style, edges by the stroke of
+  // their source element.
+  const styles = new Map<string, Style>();
+  const edgeSource = new Map<string, string>();
+  const styled = (c: Container) => {
+    for (const n of c.nodes) {
+      if (n.style) styles.set(n.id, n.style);
+      if (n.children) styled(n.children);
+    }
+    for (const f of c.flows) edgeSource.set(f.id, f.sourceRef);
+  };
+  for (const p of model.pools) {
+    if (p.style) styles.set(p.id, p.style);
+    for (const l of p.lanes) if (l.style) styles.set(l.id, l.style);
+    if (p.process) styled(p.process);
+  }
+  for (const g of model.groups) if (g.style) styles.set(g.id, g.style);
+  for (const f of model.messageFlows) edgeSource.set(f.id, f.sourceRef);
+  const colours = (style: Style | undefined, edge: boolean) => {
+    const attrs: Record<string, string> = {};
+    if (style?.fill && !edge) {
+      attrs['bioc:fill'] = style.fill;
+      attrs['color:background-color'] = style.fill;
+    }
+    if (style?.stroke) {
+      attrs['bioc:stroke'] = style.stroke;
+      attrs['color:border-color'] = style.stroke;
+    }
+    return attrs;
+  };
+  const labelColour = (style: Style | undefined) =>
+    style?.stroke ? { 'color:color': style.stroke } : {};
+
   function diagram(
     id: string,
     planeId: string,
@@ -47,10 +80,12 @@ export function addDiagrams(
       const edge = layout.edges.get(id);
       const bpmnElement = elements.get(id)!;
       if (shape) {
+        const style = styles.get(id);
         const attrs: Record<string, unknown> = {
           id: `${id}_di`,
           bpmnElement,
           bounds: bounds(shape),
+          ...colours(style, false),
         };
         const type = bpmnElement.$type;
         if (type === 'bpmn:Participant' || type === 'bpmn:Lane') {
@@ -60,20 +95,25 @@ export function addDiagrams(
         if (shape.label) {
           attrs.label = moddle.create('bpmndi:BPMNLabel', {
             bounds: bounds(shape.label),
+            ...labelColour(style),
           });
         }
         planeElement.push(moddle.create('bpmndi:BPMNShape', attrs));
       } else if (edge) {
+        const source = edgeSource.get(id);
+        const style = source ? styles.get(source) : undefined;
         const attrs: Record<string, unknown> = {
           id: `${id}_di`,
           bpmnElement,
           waypoint: edge.waypoints.map((p) =>
             moddle.create('dc:Point', { x: p.x, y: p.y }),
           ),
+          ...colours(style, true),
         };
         if (edge.label) {
           attrs.label = moddle.create('bpmndi:BPMNLabel', {
             bounds: bounds(edge.label),
+            ...labelColour(style),
           });
         }
         planeElement.push(moddle.create('bpmndi:BPMNEdge', attrs));

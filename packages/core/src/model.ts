@@ -21,12 +21,19 @@ export interface Model {
   groups: Group[];
 }
 
+/** Colours from `[color:]` and `[stroke:]`, normalised to `#RRGGBB`. */
+export interface Style {
+  fill?: string;
+  stroke?: string;
+}
+
 export interface Pool {
   id: string;
   name: string;
   collapsed: boolean;
   implicit: boolean;
   lanes: Lane[];
+  style?: Style;
   /** Absent for a collapsed pool. */
   process?: Process;
   documentation?: string;
@@ -37,6 +44,7 @@ export interface Pool {
 export interface Lane {
   id: string;
   name: string;
+  style?: Style;
   documentation?: string;
   extra: Record<string, string>;
   source: Range;
@@ -52,6 +60,8 @@ export interface Container {
 export interface Process extends Container {
   id: string;
   dataObjects: DataObject[];
+  /** The data stores this process uses, one reference each. */
+  dataStoreReferences: DataStoreReference[];
 }
 
 export type NodeKind =
@@ -94,13 +104,15 @@ export interface FlowNode {
   /** Subprocesses: the body. */
   children?: Container;
   collapsed?: boolean;
-  /** Data objects and stores read and written. */
-  reads: string[];
-  writes: string[];
+  /** Data input associations: from the data object or store references read. */
+  reads: DataAssociation[];
+  /** Data output associations: to the references written. */
+  writes: DataAssociation[];
   /** Split gateways: how many branches were written. */
   branches?: number;
   /** Gateways: the ID of the default flow (`else:`). */
   default?: string;
+  style?: Style;
   documentation?: string;
   /** Set on join gateways the compiler inserted. */
   generated?: 'join';
@@ -136,6 +148,8 @@ export interface MessageFlow {
 
 export interface DataObject {
   id: string;
+  /** The ID of its one data object reference, which is what is drawn. */
+  reference: string;
   name: string;
   collection: boolean;
   source: Range;
@@ -147,10 +161,26 @@ export interface DataStore {
   source: Range;
 }
 
+/** A process's use of a data store, which is what is drawn. */
+export interface DataStoreReference {
+  id: string;
+  /** The data store's ID. */
+  store: string;
+  source: Range;
+}
+
+export interface DataAssociation {
+  id: string;
+  /** A data object reference or data store reference ID. */
+  dataRef: string;
+}
+
 export interface Annotation {
   id: string;
   text: string;
   attachedTo: string;
+  /** The ID of the association line to `attachedTo`. */
+  association: string;
   source: Range;
 }
 
@@ -158,6 +188,7 @@ export interface Group {
   id: string;
   name: string;
   fit: boolean;
+  style?: Style;
   documentation?: string;
   /** Flow node IDs, across pools. */
   members: string[];
