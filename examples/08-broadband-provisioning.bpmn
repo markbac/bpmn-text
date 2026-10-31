@@ -1,0 +1,2415 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" xmlns:color="http://www.omg.org/spec/BPMN/non-normative/color/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" name="Full-fibre broadband provisioning" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-text">
+  <bpmn:category id="Category_groups">
+    <bpmn:categoryValue id="CategoryValue_quote_and_order" value="Quote and order" />
+    <bpmn:categoryValue id="CategoryValue_build" value="Build" />
+    <bpmn:categoryValue id="CategoryValue_go_live" value="Go live" />
+    <bpmn:categoryValue id="CategoryValue_aftercare" value="Aftercare" />
+  </bpmn:category>
+  <bpmn:collaboration id="Collaboration_1">
+    <bpmn:documentation>From a customer's quote request to a working, billed full-fibre line on Openreach or CityFibre, and the first check-in afterwards.</bpmn:documentation>
+    <bpmn:participant id="Participant_customer" name="Customer" processRef="Process_customer">
+      <bpmn:documentation>A household getting full-fibre broadband, new or switching from another provider.</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="Participant_courier" name="Courier" />
+    <bpmn:participant id="Participant_cityfibre" name="CityFibre" processRef="Process_cityfibre">
+      <bpmn:documentation>An alternative wholesale full-fibre network in many towns and cities.</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="Participant_brightwave_broadband" name="Brightwave Broadband" processRef="Process_brightwave_broadband">
+      <bpmn:documentation>The retail provider: sells the service, builds it in its own systems and bills for it.</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="Participant_openreach" name="Openreach" processRef="Process_openreach">
+      <bpmn:documentation>The national wholesale network that builds and connects the fibre.</bpmn:documentation>
+    </bpmn:participant>
+    <bpmn:participant id="Participant_credit_agency" name="Credit agency" />
+    <bpmn:participant id="Participant_one_touch_switch_hub" name="One Touch Switch hub" />
+    <bpmn:messageFlow id="MessageFlow_request_a_quote__quote_requested" sourceRef="Activity_request_a_quote" targetRef="Event_quote_requested" />
+    <bpmn:messageFlow id="MessageFlow_place_order__customer_order_received" sourceRef="Activity_place_order" targetRef="Activity_customer_order_received" />
+    <bpmn:messageFlow id="MessageFlow_courier__router_arrives" sourceRef="Participant_courier" targetRef="Activity_router_arrives" />
+    <bpmn:messageFlow id="MessageFlow_courier__delivery_confirmed" sourceRef="Participant_courier" targetRef="Activity_delivery_confirmed" />
+    <bpmn:messageFlow id="MessageFlow_return_cityfibre_availability__cityfibre_availability" sourceRef="Activity_return_cityfibre_availability" targetRef="Activity_cityfibre_availability" />
+    <bpmn:messageFlow id="MessageFlow_reject_cityfibre_order__order_rejected" sourceRef="Activity_reject_cityfibre_order" targetRef="Activity_order_rejected" />
+    <bpmn:messageFlow id="MessageFlow_commit_cityfibre_date__committed_date_received" sourceRef="Activity_commit_cityfibre_date" targetRef="Activity_committed_date_received" />
+    <bpmn:messageFlow id="MessageFlow_send_cityfibre_completion__completion_notice" sourceRef="Activity_send_cityfibre_completion" targetRef="Activity_completion_notice" />
+    <bpmn:messageFlow id="MessageFlow_ask_openreach_for_availability__openreach_availability_request" sourceRef="Activity_ask_openreach_for_availability" targetRef="Event_openreach_availability_request" />
+    <bpmn:messageFlow id="MessageFlow_ask_cityfibre_for_availability__cityfibre_availability_request" sourceRef="Activity_ask_cityfibre_for_availability" targetRef="Event_cityfibre_availability_request" />
+    <bpmn:messageFlow id="MessageFlow_send_offer__offer_received" sourceRef="Activity_send_offer" targetRef="Activity_offer_received" />
+    <bpmn:messageFlow id="MessageFlow_request_switch_match__one_touch_switch_hub" name="name, address, current provider" sourceRef="Activity_request_switch_match" targetRef="Participant_one_touch_switch_hub" />
+    <bpmn:messageFlow id="MessageFlow_tell_customer_no_service__no_service_at_the_address" sourceRef="Activity_tell_customer_no_service" targetRef="Activity_no_service_at_the_address" />
+    <bpmn:messageFlow id="MessageFlow_run_credit_check__credit_agency" name="applicant details" sourceRef="Activity_run_credit_check" targetRef="Participant_credit_agency" />
+    <bpmn:messageFlow id="MessageFlow_decline_order__order_declined" sourceRef="Activity_decline_order" targetRef="Activity_order_declined" />
+    <bpmn:messageFlow id="MessageFlow_confirm_order__order_confirmed" sourceRef="Activity_confirm_order" targetRef="Activity_order_confirmed" />
+    <bpmn:messageFlow id="MessageFlow_order_from_openreach__openreach_order_received" sourceRef="Activity_order_from_openreach" targetRef="Event_openreach_order_received" />
+    <bpmn:messageFlow id="MessageFlow_order_from_cityfibre__cityfibre_order_received" sourceRef="Activity_order_from_cityfibre" targetRef="Event_cityfibre_order_received" />
+    <bpmn:messageFlow id="MessageFlow_tell_customer_the_date__installation_date" sourceRef="Activity_tell_customer_the_date" targetRef="Activity_installation_date" />
+    <bpmn:messageFlow id="MessageFlow_port_phone_number__one_touch_switch_hub" sourceRef="Activity_port_phone_number" targetRef="Participant_one_touch_switch_hub" />
+    <bpmn:messageFlow id="MessageFlow_dispatch_router__courier" name="shipping order" sourceRef="Activity_dispatch_router" targetRef="Participant_courier" />
+    <bpmn:messageFlow id="MessageFlow_confirm_installation__installation_done" sourceRef="Activity_confirm_installation" targetRef="Activity_installation_done" />
+    <bpmn:messageFlow id="MessageFlow_send_welcome_pack__welcome_pack" sourceRef="Activity_send_welcome_pack" targetRef="Activity_welcome_pack" />
+    <bpmn:messageFlow id="MessageFlow_return_openreach_availability__openreach_availability" sourceRef="Activity_return_openreach_availability" targetRef="Activity_openreach_availability" />
+    <bpmn:messageFlow id="MessageFlow_reject_openreach_order__order_rejected" sourceRef="Activity_reject_openreach_order" targetRef="Activity_order_rejected" />
+    <bpmn:messageFlow id="MessageFlow_commit_openreach_date__committed_date_received" sourceRef="Activity_commit_openreach_date" targetRef="Activity_committed_date_received" />
+    <bpmn:messageFlow id="MessageFlow_notify_delay__brightwave_broadband" sourceRef="Activity_notify_delay" targetRef="Participant_brightwave_broadband" />
+    <bpmn:messageFlow id="MessageFlow_commit_switch_date__committed_date_received" sourceRef="Activity_commit_switch_date" targetRef="Activity_committed_date_received" />
+    <bpmn:messageFlow id="MessageFlow_send_openreach_completion__completion_notice" sourceRef="Activity_send_openreach_completion" targetRef="Activity_completion_notice" />
+    <bpmn:messageFlow id="MessageFlow_credit_agency__credit_result" sourceRef="Participant_credit_agency" targetRef="Activity_credit_result" />
+    <bpmn:messageFlow id="MessageFlow_one_touch_switch_hub__switch_match_received" sourceRef="Participant_one_touch_switch_hub" targetRef="Activity_switch_match_received" />
+    <bpmn:group id="Group_quote_and_order" categoryValueRef="CategoryValue_quote_and_order" />
+    <bpmn:group id="Group_build" categoryValueRef="CategoryValue_build" />
+    <bpmn:group id="Group_go_live" categoryValueRef="CategoryValue_go_live" />
+    <bpmn:group id="Group_aftercare" categoryValueRef="CategoryValue_aftercare" />
+  </bpmn:collaboration>
+  <bpmn:dataStore id="DataStore_address_database" name="Address database" />
+  <bpmn:dataStore id="DataStore_product_catalogue" name="Product catalogue" />
+  <bpmn:dataStore id="DataStore_oss_inventory" name="OSS inventory" />
+  <bpmn:dataStore id="DataStore_billing_system" name="Billing system" />
+  <bpmn:process id="Process_customer" isExecutable="false">
+    <bpmn:startEvent id="Event_wants_faster_broadband" name="Wants faster broadband">
+      <bpmn:outgoing>Flow_wants_faster_broadband__request_a_quote</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sendTask id="Activity_request_a_quote" name="Request a quote">
+      <bpmn:incoming>Flow_wants_faster_broadband__request_a_quote</bpmn:incoming>
+      <bpmn:outgoing>Flow_request_a_quote__wait_for_the_quote</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:eventBasedGateway id="Gateway_wait_for_the_quote" name="Wait for the quote">
+      <bpmn:incoming>Flow_request_a_quote__wait_for_the_quote</bpmn:incoming>
+      <bpmn:outgoing>Flow_wait_for_the_quote__offer_received</bpmn:outgoing>
+      <bpmn:outgoing>Flow_wait_for_the_quote__no_service_at_the_address</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+    <bpmn:receiveTask id="Activity_offer_received" name="Offer received">
+      <bpmn:incoming>Flow_wait_for_the_quote__offer_received</bpmn:incoming>
+      <bpmn:outgoing>Flow_offer_received__choose_speed_and_extras</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:userTask id="Activity_choose_speed_and_extras" name="Choose speed and extras">
+      <bpmn:documentation>For example 500 Mbps with digital voice, keeping the current phone number.</bpmn:documentation>
+      <bpmn:incoming>Flow_offer_received__choose_speed_and_extras</bpmn:incoming>
+      <bpmn:outgoing>Flow_choose_speed_and_extras__place_order</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="Activity_place_order" name="Place order">
+      <bpmn:incoming>Flow_choose_speed_and_extras__place_order</bpmn:incoming>
+      <bpmn:outgoing>Flow_place_order__wait_for_the_provider</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:eventBasedGateway id="Gateway_wait_for_the_provider" name="Wait for the provider">
+      <bpmn:incoming>Flow_place_order__wait_for_the_provider</bpmn:incoming>
+      <bpmn:outgoing>Flow_wait_for_the_provider__order_confirmed</bpmn:outgoing>
+      <bpmn:outgoing>Flow_wait_for_the_provider__order_declined</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+    <bpmn:receiveTask id="Activity_order_confirmed" name="Order confirmed">
+      <bpmn:incoming>Flow_wait_for_the_provider__order_confirmed</bpmn:incoming>
+      <bpmn:outgoing>Flow_order_confirmed__installation_date</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:receiveTask id="Activity_order_declined" name="Order declined">
+      <bpmn:incoming>Flow_wait_for_the_provider__order_declined</bpmn:incoming>
+      <bpmn:outgoing>Flow_order_declined__order_not_accepted</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:endEvent id="Event_order_not_accepted" name="Order not accepted">
+      <bpmn:incoming>Flow_order_declined__order_not_accepted</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:receiveTask id="Activity_no_service_at_the_address" name="No service at the address">
+      <bpmn:incoming>Flow_wait_for_the_quote__no_service_at_the_address</bpmn:incoming>
+      <bpmn:outgoing>Flow_no_service_at_the_address__not_available</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:endEvent id="Event_not_available" name="Not available">
+      <bpmn:incoming>Flow_no_service_at_the_address__not_available</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:receiveTask id="Activity_installation_date" name="Installation date">
+      <bpmn:incoming>Flow_order_confirmed__installation_date</bpmn:incoming>
+      <bpmn:outgoing>Flow_installation_date__router_arrives</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:receiveTask id="Activity_router_arrives" name="Router arrives">
+      <bpmn:incoming>Flow_installation_date__router_arrives</bpmn:incoming>
+      <bpmn:outgoing>Flow_router_arrives__installation_done</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:receiveTask id="Activity_installation_done" name="Installation done">
+      <bpmn:incoming>Flow_router_arrives__installation_done</bpmn:incoming>
+      <bpmn:outgoing>Flow_installation_done__welcome_pack</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:receiveTask id="Activity_welcome_pack" name="Welcome pack">
+      <bpmn:incoming>Flow_installation_done__welcome_pack</bpmn:incoming>
+      <bpmn:outgoing>Flow_welcome_pack__online</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:endEvent id="Event_online" name="Online">
+      <bpmn:incoming>Flow_welcome_pack__online</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_wants_faster_broadband__request_a_quote" sourceRef="Event_wants_faster_broadband" targetRef="Activity_request_a_quote" />
+    <bpmn:sequenceFlow id="Flow_request_a_quote__wait_for_the_quote" sourceRef="Activity_request_a_quote" targetRef="Gateway_wait_for_the_quote" />
+    <bpmn:sequenceFlow id="Flow_wait_for_the_quote__offer_received" sourceRef="Gateway_wait_for_the_quote" targetRef="Activity_offer_received" />
+    <bpmn:sequenceFlow id="Flow_offer_received__choose_speed_and_extras" sourceRef="Activity_offer_received" targetRef="Activity_choose_speed_and_extras" />
+    <bpmn:sequenceFlow id="Flow_choose_speed_and_extras__place_order" sourceRef="Activity_choose_speed_and_extras" targetRef="Activity_place_order" />
+    <bpmn:sequenceFlow id="Flow_place_order__wait_for_the_provider" sourceRef="Activity_place_order" targetRef="Gateway_wait_for_the_provider" />
+    <bpmn:sequenceFlow id="Flow_wait_for_the_provider__order_confirmed" sourceRef="Gateway_wait_for_the_provider" targetRef="Activity_order_confirmed" />
+    <bpmn:sequenceFlow id="Flow_wait_for_the_provider__order_declined" sourceRef="Gateway_wait_for_the_provider" targetRef="Activity_order_declined" />
+    <bpmn:sequenceFlow id="Flow_order_declined__order_not_accepted" sourceRef="Activity_order_declined" targetRef="Event_order_not_accepted" />
+    <bpmn:sequenceFlow id="Flow_wait_for_the_quote__no_service_at_the_address" sourceRef="Gateway_wait_for_the_quote" targetRef="Activity_no_service_at_the_address" />
+    <bpmn:sequenceFlow id="Flow_no_service_at_the_address__not_available" sourceRef="Activity_no_service_at_the_address" targetRef="Event_not_available" />
+    <bpmn:sequenceFlow id="Flow_order_confirmed__installation_date" sourceRef="Activity_order_confirmed" targetRef="Activity_installation_date" />
+    <bpmn:sequenceFlow id="Flow_installation_date__router_arrives" sourceRef="Activity_installation_date" targetRef="Activity_router_arrives" />
+    <bpmn:sequenceFlow id="Flow_router_arrives__installation_done" sourceRef="Activity_router_arrives" targetRef="Activity_installation_done" />
+    <bpmn:sequenceFlow id="Flow_installation_done__welcome_pack" sourceRef="Activity_installation_done" targetRef="Activity_welcome_pack" />
+    <bpmn:sequenceFlow id="Flow_welcome_pack__online" sourceRef="Activity_welcome_pack" targetRef="Event_online" />
+  </bpmn:process>
+  <bpmn:process id="Process_cityfibre" isExecutable="false">
+    <bpmn:startEvent id="Event_cityfibre_availability_request" name="CityFibre availability request">
+      <bpmn:outgoing>Flow_cityfibre_availability_request__check_cityfibre_coverage</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Event_cityfibre_availability_request_definition" />
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Activity_check_cityfibre_coverage" name="Check CityFibre coverage">
+      <bpmn:incoming>Flow_cityfibre_availability_request__check_cityfibre_coverage</bpmn:incoming>
+      <bpmn:outgoing>Flow_check_cityfibre_coverage__return_cityfibre_availability</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sendTask id="Activity_return_cityfibre_availability" name="Return CityFibre availability">
+      <bpmn:incoming>Flow_check_cityfibre_coverage__return_cityfibre_availability</bpmn:incoming>
+      <bpmn:outgoing>Flow_return_cityfibre_availability__cityfibre_answered</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_cityfibre_answered" name="CityFibre answered">
+      <bpmn:incoming>Flow_return_cityfibre_availability__cityfibre_answered</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="Event_cityfibre_order_received" name="CityFibre order received">
+      <bpmn:outgoing>Flow_cityfibre_order_received__validate_cityfibre_order</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Event_cityfibre_order_received_definition" />
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Activity_validate_cityfibre_order" name="Validate CityFibre order">
+      <bpmn:incoming>Flow_cityfibre_order_received__validate_cityfibre_order</bpmn:incoming>
+      <bpmn:outgoing>Flow_validate_cityfibre_order__cityfibre_order_valid</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_cityfibre_order_valid" name="CityFibre order valid?">
+      <bpmn:incoming>Flow_validate_cityfibre_order__cityfibre_order_valid</bpmn:incoming>
+      <bpmn:outgoing>Flow_cityfibre_order_valid__reject_cityfibre_order</bpmn:outgoing>
+      <bpmn:outgoing>Flow_cityfibre_order_valid__book_installer</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="Activity_reject_cityfibre_order" name="Reject CityFibre order">
+      <bpmn:incoming>Flow_cityfibre_order_valid__reject_cityfibre_order</bpmn:incoming>
+      <bpmn:outgoing>Flow_reject_cityfibre_order__cityfibre_rejected</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_cityfibre_rejected" name="CityFibre rejected">
+      <bpmn:incoming>Flow_reject_cityfibre_order__cityfibre_rejected</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Activity_book_installer" name="Book installer">
+      <bpmn:incoming>Flow_cityfibre_order_valid__book_installer</bpmn:incoming>
+      <bpmn:outgoing>Flow_book_installer__commit_cityfibre_date</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="Activity_commit_cityfibre_date" name="Commit CityFibre date">
+      <bpmn:incoming>Flow_book_installer__commit_cityfibre_date</bpmn:incoming>
+      <bpmn:outgoing>Flow_commit_cityfibre_date__install_cityfibre_connection</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:userTask id="Activity_install_cityfibre_connection" name="Install CityFibre connection">
+      <bpmn:incoming>Flow_commit_cityfibre_date__install_cityfibre_connection</bpmn:incoming>
+      <bpmn:outgoing>Flow_install_cityfibre_connection__send_cityfibre_completion</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="Activity_send_cityfibre_completion" name="Send CityFibre completion">
+      <bpmn:incoming>Flow_install_cityfibre_connection__send_cityfibre_completion</bpmn:incoming>
+      <bpmn:outgoing>Flow_send_cityfibre_completion__cityfibre_order_complete</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_cityfibre_order_complete" name="CityFibre order complete">
+      <bpmn:incoming>Flow_send_cityfibre_completion__cityfibre_order_complete</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_cityfibre_availability_request__check_cityfibre_coverage" sourceRef="Event_cityfibre_availability_request" targetRef="Activity_check_cityfibre_coverage" />
+    <bpmn:sequenceFlow id="Flow_check_cityfibre_coverage__return_cityfibre_availability" sourceRef="Activity_check_cityfibre_coverage" targetRef="Activity_return_cityfibre_availability" />
+    <bpmn:sequenceFlow id="Flow_return_cityfibre_availability__cityfibre_answered" sourceRef="Activity_return_cityfibre_availability" targetRef="Event_cityfibre_answered" />
+    <bpmn:sequenceFlow id="Flow_cityfibre_order_received__validate_cityfibre_order" sourceRef="Event_cityfibre_order_received" targetRef="Activity_validate_cityfibre_order" />
+    <bpmn:sequenceFlow id="Flow_validate_cityfibre_order__cityfibre_order_valid" sourceRef="Activity_validate_cityfibre_order" targetRef="Gateway_cityfibre_order_valid" />
+    <bpmn:sequenceFlow id="Flow_cityfibre_order_valid__reject_cityfibre_order" name="no" sourceRef="Gateway_cityfibre_order_valid" targetRef="Activity_reject_cityfibre_order" />
+    <bpmn:sequenceFlow id="Flow_reject_cityfibre_order__cityfibre_rejected" sourceRef="Activity_reject_cityfibre_order" targetRef="Event_cityfibre_rejected" />
+    <bpmn:sequenceFlow id="Flow_cityfibre_order_valid__book_installer" name="yes" sourceRef="Gateway_cityfibre_order_valid" targetRef="Activity_book_installer" />
+    <bpmn:sequenceFlow id="Flow_book_installer__commit_cityfibre_date" sourceRef="Activity_book_installer" targetRef="Activity_commit_cityfibre_date" />
+    <bpmn:sequenceFlow id="Flow_commit_cityfibre_date__install_cityfibre_connection" sourceRef="Activity_commit_cityfibre_date" targetRef="Activity_install_cityfibre_connection" />
+    <bpmn:sequenceFlow id="Flow_install_cityfibre_connection__send_cityfibre_completion" sourceRef="Activity_install_cityfibre_connection" targetRef="Activity_send_cityfibre_completion" />
+    <bpmn:sequenceFlow id="Flow_send_cityfibre_completion__cityfibre_order_complete" sourceRef="Activity_send_cityfibre_completion" targetRef="Event_cityfibre_order_complete" />
+  </bpmn:process>
+  <bpmn:process id="Process_brightwave_broadband" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Process_brightwave_broadband">
+      <bpmn:lane id="Lane_sales" name="Sales">
+        <bpmn:flowNodeRef>Event_quote_requested</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_find_address_key</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_check_both_networks</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_ask_openreach_for_availability</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_openreach_availability</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_ask_cityfibre_for_availability</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_cityfibre_availability</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_any_full_fibre_available</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_join_after_any_full_fibre_available</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_build_offer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_send_offer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_customer_order_received</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_new_line_or_transfer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_request_switch_match</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_switch_match_received</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_tell_customer_no_service</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_no_service</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_confirm_order</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_credit_and_fraud" name="Credit and fraud">
+        <bpmn:flowNodeRef>Activity_run_credit_check</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_credit_result</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_credit_decision</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_review_application_manually</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_approved</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_join_after_approved</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_decline_order</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_declined</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_order_management" name="Order management">
+        <bpmn:flowNodeRef>Activity_place_wholesale_order</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_which_network</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_order_from_openreach</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_order_from_cityfibre</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_wait_for_the_network</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_join_after_wait_for_the_network</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_committed_date_received</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_order_rejected</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_correct_order_details</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_2_working_days</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_chase_the_network</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_tell_customer_the_date</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_completion_notice</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_join_after_completion_notice</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_join_after_join_after_completion_notice</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_join_after_join_after_join_after_completion_notice</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_confirm_installation</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_network_provisioning" name="Network provisioning">
+        <bpmn:flowNodeRef>Activity_reserve_ip_and_service_id</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_configure_radius_and_speed_profile</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_activate_service</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_activation_failed_2</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_voice" name="Voice">
+        <bpmn:flowNodeRef>Gateway_digital_voice_ordered</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_set_up_digital_voice_line</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_keep_current_number</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_port_phone_number</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_allocate_new_number</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_logistics" name="Logistics">
+        <bpmn:flowNodeRef>Activity_dispatch_router</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_delivery_confirmed</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_billing" name="Billing">
+        <bpmn:flowNodeRef>Activity_create_billing_account</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_start_billing</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_customer_care" name="Customer care">
+        <bpmn:flowNodeRef>Activity_troubleshoot_with_the_customer</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_send_welcome_pack</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_customer_live</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_14_days_after_go_live</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_satisfaction_call</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_customer_happy</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_case_closed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_raise_service_ticket</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_ticket_raised</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Event_quote_requested" name="Quote requested">
+      <bpmn:documentation>Quote requests arrive from the website with the address and, for a transfer, the current provider.</bpmn:documentation>
+      <bpmn:outgoing>Flow_quote_requested__find_address_key</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Event_quote_requested_definition" />
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Activity_find_address_key" name="Find address key">
+      <bpmn:documentation>Looks up the UPRN and each network's address key for it.</bpmn:documentation>
+      <bpmn:incoming>Flow_quote_requested__find_address_key</bpmn:incoming>
+      <bpmn:outgoing>Flow_find_address_key__check_both_networks</bpmn:outgoing>
+      <bpmn:property id="Activity_find_address_key_property" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="DataInputAssociation_find_address_key__address_database">
+        <bpmn:sourceRef>DataStoreReference_address_database</bpmn:sourceRef>
+        <bpmn:targetRef>Activity_find_address_key_property</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:parallelGateway id="Gateway_check_both_networks" name="Check both networks">
+      <bpmn:incoming>Flow_find_address_key__check_both_networks</bpmn:incoming>
+      <bpmn:outgoing>Flow_check_both_networks__ask_openreach_for_availability</bpmn:outgoing>
+      <bpmn:outgoing>Flow_check_both_networks__ask_cityfibre_for_availability</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sendTask id="Activity_ask_openreach_for_availability" name="Ask Openreach for availability">
+      <bpmn:incoming>Flow_check_both_networks__ask_openreach_for_availability</bpmn:incoming>
+      <bpmn:outgoing>Flow_ask_openreach_for_availability__openreach_availability</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:receiveTask id="Activity_openreach_availability" name="Openreach availability">
+      <bpmn:incoming>Flow_ask_openreach_for_availability__openreach_availability</bpmn:incoming>
+      <bpmn:outgoing>Flow_openreach_availability__join_after_any_full_fibre_available</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:sendTask id="Activity_ask_cityfibre_for_availability" name="Ask CityFibre for availability">
+      <bpmn:incoming>Flow_check_both_networks__ask_cityfibre_for_availability</bpmn:incoming>
+      <bpmn:outgoing>Flow_ask_cityfibre_for_availability__cityfibre_availability</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:receiveTask id="Activity_cityfibre_availability" name="CityFibre availability">
+      <bpmn:incoming>Flow_ask_cityfibre_for_availability__cityfibre_availability</bpmn:incoming>
+      <bpmn:outgoing>Flow_cityfibre_availability__join_after_any_full_fibre_available</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:exclusiveGateway id="Gateway_any_full_fibre_available" name="Any full fibre available?">
+      <bpmn:incoming>Flow_join_after_any_full_fibre_available__any_full_fibre_available</bpmn:incoming>
+      <bpmn:outgoing>Flow_any_full_fibre_available__build_offer</bpmn:outgoing>
+      <bpmn:outgoing>Flow_any_full_fibre_available__tell_customer_no_service</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:parallelGateway id="Gateway_join_after_any_full_fibre_available">
+      <bpmn:incoming>Flow_openreach_availability__join_after_any_full_fibre_available</bpmn:incoming>
+      <bpmn:incoming>Flow_cityfibre_availability__join_after_any_full_fibre_available</bpmn:incoming>
+      <bpmn:outgoing>Flow_join_after_any_full_fibre_available__any_full_fibre_available</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:serviceTask id="Activity_build_offer" name="Build offer">
+      <bpmn:documentation>Speed tiers per available network (for example 150, 500 and 900 Mbps, and 2 Gbps on CityFibre), with extras: digital voice, number porting, a mesh Wi-Fi booster.</bpmn:documentation>
+      <bpmn:incoming>Flow_any_full_fibre_available__build_offer</bpmn:incoming>
+      <bpmn:outgoing>Flow_build_offer__send_offer</bpmn:outgoing>
+      <bpmn:property id="Activity_build_offer_property" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="DataInputAssociation_build_offer__product_catalogue">
+        <bpmn:sourceRef>DataStoreReference_product_catalogue</bpmn:sourceRef>
+        <bpmn:targetRef>Activity_build_offer_property</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:sendTask id="Activity_send_offer" name="Send offer">
+      <bpmn:incoming>Flow_build_offer__send_offer</bpmn:incoming>
+      <bpmn:outgoing>Flow_send_offer__customer_order_received</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:receiveTask id="Activity_customer_order_received" name="Customer order received">
+      <bpmn:incoming>Flow_send_offer__customer_order_received</bpmn:incoming>
+      <bpmn:outgoing>Flow_customer_order_received__new_line_or_transfer</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:exclusiveGateway id="Gateway_new_line_or_transfer" name="New line or transfer?">
+      <bpmn:incoming>Flow_customer_order_received__new_line_or_transfer</bpmn:incoming>
+      <bpmn:outgoing>Flow_new_line_or_transfer__request_switch_match</bpmn:outgoing>
+      <bpmn:outgoing>Flow_new_line_or_transfer__run_credit_check</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Activity_request_switch_match" name="Request switch match">
+      <bpmn:incoming>Flow_new_line_or_transfer__request_switch_match</bpmn:incoming>
+      <bpmn:outgoing>Flow_request_switch_match__switch_match_received</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:receiveTask id="Activity_switch_match_received" name="Switch match received">
+      <bpmn:documentation>The hub returns a switch order reference and tells the current provider; their service ends on the switch date.</bpmn:documentation>
+      <bpmn:incoming>Flow_request_switch_match__switch_match_received</bpmn:incoming>
+      <bpmn:outgoing>Flow_switch_match_received__run_credit_check</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:sendTask id="Activity_tell_customer_no_service" name="Tell customer no service">
+      <bpmn:incoming>Flow_any_full_fibre_available__tell_customer_no_service</bpmn:incoming>
+      <bpmn:outgoing>Flow_tell_customer_no_service__no_service</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_no_service" name="No service">
+      <bpmn:incoming>Flow_tell_customer_no_service__no_service</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Activity_run_credit_check" name="Run credit check">
+      <bpmn:incoming>Flow_new_line_or_transfer__run_credit_check</bpmn:incoming>
+      <bpmn:incoming>Flow_switch_match_received__run_credit_check</bpmn:incoming>
+      <bpmn:outgoing>Flow_run_credit_check__credit_result</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:receiveTask id="Activity_credit_result" name="Credit result">
+      <bpmn:incoming>Flow_run_credit_check__credit_result</bpmn:incoming>
+      <bpmn:outgoing>Flow_credit_result__credit_decision</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:exclusiveGateway id="Gateway_credit_decision" name="Credit decision?">
+      <bpmn:incoming>Flow_credit_result__credit_decision</bpmn:incoming>
+      <bpmn:outgoing>Flow_credit_decision__review_application_manually</bpmn:outgoing>
+      <bpmn:outgoing>Flow_credit_decision__join_after_approved</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Activity_review_application_manually" name="Review application manually">
+      <bpmn:documentation>Fraud analysts check identity documents within one working day and record approve or decline.</bpmn:documentation>
+      <bpmn:incoming>Flow_credit_decision__review_application_manually</bpmn:incoming>
+      <bpmn:outgoing>Flow_review_application_manually__join_after_approved</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_approved" name="Approved?">
+      <bpmn:incoming>Flow_join_after_approved__approved</bpmn:incoming>
+      <bpmn:outgoing>Flow_approved__decline_order</bpmn:outgoing>
+      <bpmn:outgoing>Flow_approved__confirm_order</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_join_after_approved">
+      <bpmn:incoming>Flow_review_application_manually__join_after_approved</bpmn:incoming>
+      <bpmn:incoming>Flow_credit_decision__join_after_approved</bpmn:incoming>
+      <bpmn:outgoing>Flow_join_after_approved__approved</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="Activity_decline_order" name="Decline order">
+      <bpmn:incoming>Flow_approved__decline_order</bpmn:incoming>
+      <bpmn:outgoing>Flow_decline_order__declined</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_declined" name="Declined">
+      <bpmn:incoming>Flow_decline_order__declined</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sendTask id="Activity_confirm_order" name="Confirm order">
+      <bpmn:incoming>Flow_approved__confirm_order</bpmn:incoming>
+      <bpmn:outgoing>Flow_confirm_order__place_wholesale_order</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:serviceTask id="Activity_place_wholesale_order" name="Place wholesale order">
+      <bpmn:documentation>A new-provide or a transfer order, with the address key, the speed tier and the appointment preference.</bpmn:documentation>
+      <bpmn:incoming>Flow_confirm_order__place_wholesale_order</bpmn:incoming>
+      <bpmn:incoming>Flow_correct_order_details__place_wholesale_order</bpmn:incoming>
+      <bpmn:outgoing>Flow_place_wholesale_order__which_network</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_place_wholesale_order__wholesale_order">
+        <bpmn:targetRef>DataObjectReference_wholesale_order</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_which_network" name="Which network?">
+      <bpmn:incoming>Flow_place_wholesale_order__which_network</bpmn:incoming>
+      <bpmn:outgoing>Flow_which_network__order_from_openreach</bpmn:outgoing>
+      <bpmn:outgoing>Flow_which_network__order_from_cityfibre</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="Activity_order_from_openreach" name="Order from Openreach">
+      <bpmn:incoming>Flow_which_network__order_from_openreach</bpmn:incoming>
+      <bpmn:outgoing>Flow_order_from_openreach__join_after_wait_for_the_network</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sendTask id="Activity_order_from_cityfibre" name="Order from CityFibre">
+      <bpmn:incoming>Flow_which_network__order_from_cityfibre</bpmn:incoming>
+      <bpmn:outgoing>Flow_order_from_cityfibre__join_after_wait_for_the_network</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:eventBasedGateway id="Gateway_wait_for_the_network" name="Wait for the network">
+      <bpmn:incoming>Flow_join_after_wait_for_the_network__wait_for_the_network</bpmn:incoming>
+      <bpmn:incoming>Flow_chase_the_network__wait_for_the_network</bpmn:incoming>
+      <bpmn:outgoing>Flow_wait_for_the_network__committed_date_received</bpmn:outgoing>
+      <bpmn:outgoing>Flow_wait_for_the_network__order_rejected</bpmn:outgoing>
+      <bpmn:outgoing>Flow_wait_for_the_network__2_working_days</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+    <bpmn:exclusiveGateway id="Gateway_join_after_wait_for_the_network">
+      <bpmn:incoming>Flow_order_from_openreach__join_after_wait_for_the_network</bpmn:incoming>
+      <bpmn:incoming>Flow_order_from_cityfibre__join_after_wait_for_the_network</bpmn:incoming>
+      <bpmn:outgoing>Flow_join_after_wait_for_the_network__wait_for_the_network</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:receiveTask id="Activity_committed_date_received" name="Committed date received">
+      <bpmn:incoming>Flow_wait_for_the_network__committed_date_received</bpmn:incoming>
+      <bpmn:outgoing>Flow_committed_date_received__tell_customer_the_date</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:receiveTask id="Activity_order_rejected" name="Order rejected">
+      <bpmn:incoming>Flow_wait_for_the_network__order_rejected</bpmn:incoming>
+      <bpmn:outgoing>Flow_order_rejected__correct_order_details</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:userTask id="Activity_correct_order_details" name="Correct order details">
+      <bpmn:documentation>Typical rejections: wrong address key, a tier the line cannot carry, missing access details.</bpmn:documentation>
+      <bpmn:incoming>Flow_order_rejected__correct_order_details</bpmn:incoming>
+      <bpmn:outgoing>Flow_correct_order_details__place_wholesale_order</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:intermediateCatchEvent id="Event_2_working_days" name="2 working days">
+      <bpmn:incoming>Flow_wait_for_the_network__2_working_days</bpmn:incoming>
+      <bpmn:outgoing>Flow_2_working_days__chase_the_network</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="Event_2_working_days_definition" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:userTask id="Activity_chase_the_network" name="Chase the network">
+      <bpmn:incoming>Flow_2_working_days__chase_the_network</bpmn:incoming>
+      <bpmn:outgoing>Flow_chase_the_network__wait_for_the_network</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="Activity_tell_customer_the_date" name="Tell customer the date">
+      <bpmn:incoming>Flow_committed_date_received__tell_customer_the_date</bpmn:incoming>
+      <bpmn:outgoing>Flow_tell_customer_the_date__reserve_ip_and_service_id</bpmn:outgoing>
+      <bpmn:outgoing>Flow_tell_customer_the_date__digital_voice_ordered</bpmn:outgoing>
+      <bpmn:outgoing>Flow_tell_customer_the_date__dispatch_router</bpmn:outgoing>
+      <bpmn:outgoing>Flow_tell_customer_the_date__create_billing_account</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:serviceTask id="Activity_reserve_ip_and_service_id" name="Reserve IP and service ID">
+      <bpmn:incoming>Flow_tell_customer_the_date__reserve_ip_and_service_id</bpmn:incoming>
+      <bpmn:outgoing>Flow_reserve_ip_and_service_id__configure_radius_and_speed_profile</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_reserve_ip_and_service_id__oss_inventory">
+        <bpmn:targetRef>DataStoreReference_oss_inventory</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_configure_radius_and_speed_profile" name="Configure RADIUS and speed profile">
+      <bpmn:incoming>Flow_reserve_ip_and_service_id__configure_radius_and_speed_profile</bpmn:incoming>
+      <bpmn:outgoing>Flow_configure_radius_and_speed_profile__join_after_completion_notice</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_digital_voice_ordered" name="Digital voice ordered?">
+      <bpmn:incoming>Flow_tell_customer_the_date__digital_voice_ordered</bpmn:incoming>
+      <bpmn:outgoing>Flow_digital_voice_ordered__set_up_digital_voice_line</bpmn:outgoing>
+      <bpmn:outgoing>Flow_digital_voice_ordered__join_after_join_after_completion_notice</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Activity_set_up_digital_voice_line" name="Set up digital voice line">
+      <bpmn:incoming>Flow_digital_voice_ordered__set_up_digital_voice_line</bpmn:incoming>
+      <bpmn:outgoing>Flow_set_up_digital_voice_line__keep_current_number</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_keep_current_number" name="Keep current number?">
+      <bpmn:incoming>Flow_set_up_digital_voice_line__keep_current_number</bpmn:incoming>
+      <bpmn:outgoing>Flow_keep_current_number__port_phone_number</bpmn:outgoing>
+      <bpmn:outgoing>Flow_keep_current_number__allocate_new_number</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Activity_port_phone_number" name="Port phone number">
+      <bpmn:incoming>Flow_keep_current_number__port_phone_number</bpmn:incoming>
+      <bpmn:outgoing>Flow_port_phone_number__join_after_join_after_join_after_completion_notice</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_allocate_new_number" name="Allocate new number">
+      <bpmn:incoming>Flow_keep_current_number__allocate_new_number</bpmn:incoming>
+      <bpmn:outgoing>Flow_allocate_new_number__join_after_join_after_join_after_completion_notice</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_dispatch_router" name="Dispatch router">
+      <bpmn:incoming>Flow_tell_customer_the_date__dispatch_router</bpmn:incoming>
+      <bpmn:outgoing>Flow_dispatch_router__delivery_confirmed</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:receiveTask id="Activity_delivery_confirmed" name="Delivery confirmed">
+      <bpmn:incoming>Flow_dispatch_router__delivery_confirmed</bpmn:incoming>
+      <bpmn:outgoing>Flow_delivery_confirmed__join_after_completion_notice</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:serviceTask id="Activity_create_billing_account" name="Create billing account">
+      <bpmn:documentation>The account is created now but stays inactive until the line is live.</bpmn:documentation>
+      <bpmn:incoming>Flow_tell_customer_the_date__create_billing_account</bpmn:incoming>
+      <bpmn:outgoing>Flow_create_billing_account__join_after_completion_notice</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_create_billing_account__billing_system">
+        <bpmn:targetRef>DataStoreReference_billing_system</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:receiveTask id="Activity_completion_notice" name="Completion notice">
+      <bpmn:incoming>Flow_join_after_completion_notice__completion_notice</bpmn:incoming>
+      <bpmn:outgoing>Flow_completion_notice__confirm_installation</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:parallelGateway id="Gateway_join_after_completion_notice">
+      <bpmn:incoming>Flow_configure_radius_and_speed_profile__join_after_completion_notice</bpmn:incoming>
+      <bpmn:incoming>Flow_join_after_join_after_completion_notice__join_after_completion_notice</bpmn:incoming>
+      <bpmn:incoming>Flow_delivery_confirmed__join_after_completion_notice</bpmn:incoming>
+      <bpmn:incoming>Flow_create_billing_account__join_after_completion_notice</bpmn:incoming>
+      <bpmn:outgoing>Flow_join_after_completion_notice__completion_notice</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:exclusiveGateway id="Gateway_join_after_join_after_completion_notice">
+      <bpmn:incoming>Flow_join_after_join_after_join_after_completion_notice__join_after_join_after_completion_notice</bpmn:incoming>
+      <bpmn:incoming>Flow_digital_voice_ordered__join_after_join_after_completion_notice</bpmn:incoming>
+      <bpmn:outgoing>Flow_join_after_join_after_completion_notice__join_after_completion_notice</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_join_after_join_after_join_after_completion_notice">
+      <bpmn:incoming>Flow_port_phone_number__join_after_join_after_join_after_completion_notice</bpmn:incoming>
+      <bpmn:incoming>Flow_allocate_new_number__join_after_join_after_join_after_completion_notice</bpmn:incoming>
+      <bpmn:outgoing>Flow_join_after_join_after_join_after_completion_notice__join_after_join_after_completion_notice</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="Activity_confirm_installation" name="Confirm installation">
+      <bpmn:incoming>Flow_completion_notice__confirm_installation</bpmn:incoming>
+      <bpmn:outgoing>Flow_confirm_installation__activate_service</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:subProcess id="Activity_activate_service" name="Activate service">
+      <bpmn:incoming>Flow_confirm_installation__activate_service</bpmn:incoming>
+      <bpmn:incoming>Flow_troubleshoot_with_the_customer__activate_service</bpmn:incoming>
+      <bpmn:outgoing>Flow_activate_service__start_billing</bpmn:outgoing>
+      <bpmn:startEvent id="Event_activate_service_start_1">
+        <bpmn:outgoing>Flow_activate_service_start_1__bind_service_id_to_the_ont</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:serviceTask id="Activity_bind_service_id_to_the_ont" name="Bind service ID to the ONT">
+        <bpmn:incoming>Flow_activate_service_start_1__bind_service_id_to_the_ont</bpmn:incoming>
+        <bpmn:outgoing>Flow_bind_service_id_to_the_ont__push_configuration</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:serviceTask id="Activity_push_configuration" name="Push configuration">
+        <bpmn:incoming>Flow_bind_service_id_to_the_ont__push_configuration</bpmn:incoming>
+        <bpmn:outgoing>Flow_push_configuration__run_line_tests</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:serviceTask id="Activity_run_line_tests" name="Run line tests">
+        <bpmn:incoming>Flow_push_configuration__run_line_tests</bpmn:incoming>
+        <bpmn:outgoing>Flow_run_line_tests__tests_pass</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:exclusiveGateway id="Gateway_tests_pass" name="Tests pass?">
+        <bpmn:incoming>Flow_run_line_tests__tests_pass</bpmn:incoming>
+        <bpmn:outgoing>Flow_tests_pass__service_active</bpmn:outgoing>
+        <bpmn:outgoing>Flow_tests_pass__activation_failed</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:endEvent id="Event_service_active" name="Service active">
+        <bpmn:incoming>Flow_tests_pass__service_active</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:endEvent id="Event_activation_failed" name="Activation failed">
+        <bpmn:incoming>Flow_tests_pass__activation_failed</bpmn:incoming>
+        <bpmn:errorEventDefinition id="Event_activation_failed_definition" />
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_activate_service_start_1__bind_service_id_to_the_ont" sourceRef="Event_activate_service_start_1" targetRef="Activity_bind_service_id_to_the_ont" />
+      <bpmn:sequenceFlow id="Flow_bind_service_id_to_the_ont__push_configuration" sourceRef="Activity_bind_service_id_to_the_ont" targetRef="Activity_push_configuration" />
+      <bpmn:sequenceFlow id="Flow_push_configuration__run_line_tests" sourceRef="Activity_push_configuration" targetRef="Activity_run_line_tests" />
+      <bpmn:sequenceFlow id="Flow_run_line_tests__tests_pass" sourceRef="Activity_run_line_tests" targetRef="Gateway_tests_pass" />
+      <bpmn:sequenceFlow id="Flow_tests_pass__service_active" name="yes" sourceRef="Gateway_tests_pass" targetRef="Event_service_active" />
+      <bpmn:sequenceFlow id="Flow_tests_pass__activation_failed" name="no" sourceRef="Gateway_tests_pass" targetRef="Event_activation_failed" />
+    </bpmn:subProcess>
+    <bpmn:boundaryEvent id="Event_activation_failed_2" name="Activation failed" attachedToRef="Activity_activate_service">
+      <bpmn:outgoing>Flow_activation_failed_2__troubleshoot_with_the_customer</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="Event_activation_failed_2_definition" />
+    </bpmn:boundaryEvent>
+    <bpmn:userTask id="Activity_troubleshoot_with_the_customer" name="Troubleshoot with the customer">
+      <bpmn:documentation>Remote checks first; a second network visit is booked only if the fault is on the network side.</bpmn:documentation>
+      <bpmn:incoming>Flow_activation_failed_2__troubleshoot_with_the_customer</bpmn:incoming>
+      <bpmn:outgoing>Flow_troubleshoot_with_the_customer__activate_service</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Activity_start_billing" name="Start billing">
+      <bpmn:incoming>Flow_activate_service__start_billing</bpmn:incoming>
+      <bpmn:outgoing>Flow_start_billing__send_welcome_pack</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_start_billing__billing_system">
+        <bpmn:targetRef>DataStoreReference_billing_system</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:sendTask id="Activity_send_welcome_pack" name="Send welcome pack">
+      <bpmn:incoming>Flow_start_billing__send_welcome_pack</bpmn:incoming>
+      <bpmn:outgoing>Flow_send_welcome_pack__customer_live</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_customer_live" name="Customer live">
+      <bpmn:incoming>Flow_send_welcome_pack__customer_live</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="Event_14_days_after_go_live" name="14 days after go-live">
+      <bpmn:outgoing>Flow_14_days_after_go_live__satisfaction_call</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="Event_14_days_after_go_live_definition" />
+    </bpmn:startEvent>
+    <bpmn:userTask id="Activity_satisfaction_call" name="Satisfaction call">
+      <bpmn:incoming>Flow_14_days_after_go_live__satisfaction_call</bpmn:incoming>
+      <bpmn:outgoing>Flow_satisfaction_call__customer_happy</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_customer_happy" name="Customer happy?">
+      <bpmn:incoming>Flow_satisfaction_call__customer_happy</bpmn:incoming>
+      <bpmn:outgoing>Flow_customer_happy__case_closed</bpmn:outgoing>
+      <bpmn:outgoing>Flow_customer_happy__raise_service_ticket</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="Event_case_closed" name="Case closed">
+      <bpmn:incoming>Flow_customer_happy__case_closed</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Activity_raise_service_ticket" name="Raise service ticket">
+      <bpmn:incoming>Flow_customer_happy__raise_service_ticket</bpmn:incoming>
+      <bpmn:outgoing>Flow_raise_service_ticket__ticket_raised</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_ticket_raised" name="Ticket raised">
+      <bpmn:incoming>Flow_raise_service_ticket__ticket_raised</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_quote_requested__find_address_key" sourceRef="Event_quote_requested" targetRef="Activity_find_address_key" />
+    <bpmn:sequenceFlow id="Flow_find_address_key__check_both_networks" sourceRef="Activity_find_address_key" targetRef="Gateway_check_both_networks" />
+    <bpmn:sequenceFlow id="Flow_check_both_networks__ask_openreach_for_availability" sourceRef="Gateway_check_both_networks" targetRef="Activity_ask_openreach_for_availability" />
+    <bpmn:sequenceFlow id="Flow_ask_openreach_for_availability__openreach_availability" sourceRef="Activity_ask_openreach_for_availability" targetRef="Activity_openreach_availability" />
+    <bpmn:sequenceFlow id="Flow_check_both_networks__ask_cityfibre_for_availability" sourceRef="Gateway_check_both_networks" targetRef="Activity_ask_cityfibre_for_availability" />
+    <bpmn:sequenceFlow id="Flow_ask_cityfibre_for_availability__cityfibre_availability" sourceRef="Activity_ask_cityfibre_for_availability" targetRef="Activity_cityfibre_availability" />
+    <bpmn:sequenceFlow id="Flow_openreach_availability__join_after_any_full_fibre_available" sourceRef="Activity_openreach_availability" targetRef="Gateway_join_after_any_full_fibre_available" />
+    <bpmn:sequenceFlow id="Flow_cityfibre_availability__join_after_any_full_fibre_available" sourceRef="Activity_cityfibre_availability" targetRef="Gateway_join_after_any_full_fibre_available" />
+    <bpmn:sequenceFlow id="Flow_join_after_any_full_fibre_available__any_full_fibre_available" sourceRef="Gateway_join_after_any_full_fibre_available" targetRef="Gateway_any_full_fibre_available" />
+    <bpmn:sequenceFlow id="Flow_any_full_fibre_available__build_offer" name="yes" sourceRef="Gateway_any_full_fibre_available" targetRef="Activity_build_offer" />
+    <bpmn:sequenceFlow id="Flow_build_offer__send_offer" sourceRef="Activity_build_offer" targetRef="Activity_send_offer" />
+    <bpmn:sequenceFlow id="Flow_send_offer__customer_order_received" sourceRef="Activity_send_offer" targetRef="Activity_customer_order_received" />
+    <bpmn:sequenceFlow id="Flow_customer_order_received__new_line_or_transfer" sourceRef="Activity_customer_order_received" targetRef="Gateway_new_line_or_transfer" />
+    <bpmn:sequenceFlow id="Flow_new_line_or_transfer__request_switch_match" name="transfer" sourceRef="Gateway_new_line_or_transfer" targetRef="Activity_request_switch_match" />
+    <bpmn:sequenceFlow id="Flow_request_switch_match__switch_match_received" sourceRef="Activity_request_switch_match" targetRef="Activity_switch_match_received" />
+    <bpmn:sequenceFlow id="Flow_any_full_fibre_available__tell_customer_no_service" name="no" sourceRef="Gateway_any_full_fibre_available" targetRef="Activity_tell_customer_no_service" />
+    <bpmn:sequenceFlow id="Flow_tell_customer_no_service__no_service" sourceRef="Activity_tell_customer_no_service" targetRef="Event_no_service" />
+    <bpmn:sequenceFlow id="Flow_run_credit_check__credit_result" sourceRef="Activity_run_credit_check" targetRef="Activity_credit_result" />
+    <bpmn:sequenceFlow id="Flow_credit_result__credit_decision" sourceRef="Activity_credit_result" targetRef="Gateway_credit_decision" />
+    <bpmn:sequenceFlow id="Flow_credit_decision__review_application_manually" name="refer" sourceRef="Gateway_credit_decision" targetRef="Activity_review_application_manually" />
+    <bpmn:sequenceFlow id="Flow_review_application_manually__join_after_approved" sourceRef="Activity_review_application_manually" targetRef="Gateway_join_after_approved" />
+    <bpmn:sequenceFlow id="Flow_credit_decision__join_after_approved" name="pass or fail" sourceRef="Gateway_credit_decision" targetRef="Gateway_join_after_approved" />
+    <bpmn:sequenceFlow id="Flow_join_after_approved__approved" sourceRef="Gateway_join_after_approved" targetRef="Gateway_approved" />
+    <bpmn:sequenceFlow id="Flow_approved__decline_order" name="no" sourceRef="Gateway_approved" targetRef="Activity_decline_order" />
+    <bpmn:sequenceFlow id="Flow_decline_order__declined" sourceRef="Activity_decline_order" targetRef="Event_declined" />
+    <bpmn:sequenceFlow id="Flow_approved__confirm_order" name="yes" sourceRef="Gateway_approved" targetRef="Activity_confirm_order" />
+    <bpmn:sequenceFlow id="Flow_confirm_order__place_wholesale_order" sourceRef="Activity_confirm_order" targetRef="Activity_place_wholesale_order" />
+    <bpmn:sequenceFlow id="Flow_place_wholesale_order__which_network" sourceRef="Activity_place_wholesale_order" targetRef="Gateway_which_network" />
+    <bpmn:sequenceFlow id="Flow_which_network__order_from_openreach" name="openreach" sourceRef="Gateway_which_network" targetRef="Activity_order_from_openreach" />
+    <bpmn:sequenceFlow id="Flow_which_network__order_from_cityfibre" name="cityfibre" sourceRef="Gateway_which_network" targetRef="Activity_order_from_cityfibre" />
+    <bpmn:sequenceFlow id="Flow_order_from_openreach__join_after_wait_for_the_network" sourceRef="Activity_order_from_openreach" targetRef="Gateway_join_after_wait_for_the_network" />
+    <bpmn:sequenceFlow id="Flow_order_from_cityfibre__join_after_wait_for_the_network" sourceRef="Activity_order_from_cityfibre" targetRef="Gateway_join_after_wait_for_the_network" />
+    <bpmn:sequenceFlow id="Flow_join_after_wait_for_the_network__wait_for_the_network" sourceRef="Gateway_join_after_wait_for_the_network" targetRef="Gateway_wait_for_the_network" />
+    <bpmn:sequenceFlow id="Flow_wait_for_the_network__committed_date_received" sourceRef="Gateway_wait_for_the_network" targetRef="Activity_committed_date_received" />
+    <bpmn:sequenceFlow id="Flow_wait_for_the_network__order_rejected" sourceRef="Gateway_wait_for_the_network" targetRef="Activity_order_rejected" />
+    <bpmn:sequenceFlow id="Flow_order_rejected__correct_order_details" sourceRef="Activity_order_rejected" targetRef="Activity_correct_order_details" />
+    <bpmn:sequenceFlow id="Flow_wait_for_the_network__2_working_days" sourceRef="Gateway_wait_for_the_network" targetRef="Event_2_working_days" />
+    <bpmn:sequenceFlow id="Flow_2_working_days__chase_the_network" sourceRef="Event_2_working_days" targetRef="Activity_chase_the_network" />
+    <bpmn:sequenceFlow id="Flow_committed_date_received__tell_customer_the_date" sourceRef="Activity_committed_date_received" targetRef="Activity_tell_customer_the_date" />
+    <bpmn:sequenceFlow id="Flow_tell_customer_the_date__reserve_ip_and_service_id" sourceRef="Activity_tell_customer_the_date" targetRef="Activity_reserve_ip_and_service_id" />
+    <bpmn:sequenceFlow id="Flow_reserve_ip_and_service_id__configure_radius_and_speed_profile" sourceRef="Activity_reserve_ip_and_service_id" targetRef="Activity_configure_radius_and_speed_profile" />
+    <bpmn:sequenceFlow id="Flow_tell_customer_the_date__digital_voice_ordered" sourceRef="Activity_tell_customer_the_date" targetRef="Gateway_digital_voice_ordered" />
+    <bpmn:sequenceFlow id="Flow_digital_voice_ordered__set_up_digital_voice_line" name="yes" sourceRef="Gateway_digital_voice_ordered" targetRef="Activity_set_up_digital_voice_line" />
+    <bpmn:sequenceFlow id="Flow_set_up_digital_voice_line__keep_current_number" sourceRef="Activity_set_up_digital_voice_line" targetRef="Gateway_keep_current_number" />
+    <bpmn:sequenceFlow id="Flow_keep_current_number__port_phone_number" name="yes" sourceRef="Gateway_keep_current_number" targetRef="Activity_port_phone_number" />
+    <bpmn:sequenceFlow id="Flow_keep_current_number__allocate_new_number" name="no" sourceRef="Gateway_keep_current_number" targetRef="Activity_allocate_new_number" />
+    <bpmn:sequenceFlow id="Flow_tell_customer_the_date__dispatch_router" sourceRef="Activity_tell_customer_the_date" targetRef="Activity_dispatch_router" />
+    <bpmn:sequenceFlow id="Flow_dispatch_router__delivery_confirmed" sourceRef="Activity_dispatch_router" targetRef="Activity_delivery_confirmed" />
+    <bpmn:sequenceFlow id="Flow_tell_customer_the_date__create_billing_account" sourceRef="Activity_tell_customer_the_date" targetRef="Activity_create_billing_account" />
+    <bpmn:sequenceFlow id="Flow_configure_radius_and_speed_profile__join_after_completion_notice" sourceRef="Activity_configure_radius_and_speed_profile" targetRef="Gateway_join_after_completion_notice" />
+    <bpmn:sequenceFlow id="Flow_port_phone_number__join_after_join_after_join_after_completion_notice" sourceRef="Activity_port_phone_number" targetRef="Gateway_join_after_join_after_join_after_completion_notice" />
+    <bpmn:sequenceFlow id="Flow_allocate_new_number__join_after_join_after_join_after_completion_notice" sourceRef="Activity_allocate_new_number" targetRef="Gateway_join_after_join_after_join_after_completion_notice" />
+    <bpmn:sequenceFlow id="Flow_join_after_join_after_join_after_completion_notice__join_after_join_after_completion_notice" sourceRef="Gateway_join_after_join_after_join_after_completion_notice" targetRef="Gateway_join_after_join_after_completion_notice" />
+    <bpmn:sequenceFlow id="Flow_digital_voice_ordered__join_after_join_after_completion_notice" name="no" sourceRef="Gateway_digital_voice_ordered" targetRef="Gateway_join_after_join_after_completion_notice" />
+    <bpmn:sequenceFlow id="Flow_join_after_join_after_completion_notice__join_after_completion_notice" sourceRef="Gateway_join_after_join_after_completion_notice" targetRef="Gateway_join_after_completion_notice" />
+    <bpmn:sequenceFlow id="Flow_delivery_confirmed__join_after_completion_notice" sourceRef="Activity_delivery_confirmed" targetRef="Gateway_join_after_completion_notice" />
+    <bpmn:sequenceFlow id="Flow_create_billing_account__join_after_completion_notice" sourceRef="Activity_create_billing_account" targetRef="Gateway_join_after_completion_notice" />
+    <bpmn:sequenceFlow id="Flow_join_after_completion_notice__completion_notice" sourceRef="Gateway_join_after_completion_notice" targetRef="Activity_completion_notice" />
+    <bpmn:sequenceFlow id="Flow_completion_notice__confirm_installation" sourceRef="Activity_completion_notice" targetRef="Activity_confirm_installation" />
+    <bpmn:sequenceFlow id="Flow_confirm_installation__activate_service" sourceRef="Activity_confirm_installation" targetRef="Activity_activate_service" />
+    <bpmn:sequenceFlow id="Flow_activation_failed_2__troubleshoot_with_the_customer" sourceRef="Event_activation_failed_2" targetRef="Activity_troubleshoot_with_the_customer" />
+    <bpmn:sequenceFlow id="Flow_activate_service__start_billing" sourceRef="Activity_activate_service" targetRef="Activity_start_billing" />
+    <bpmn:sequenceFlow id="Flow_start_billing__send_welcome_pack" sourceRef="Activity_start_billing" targetRef="Activity_send_welcome_pack" />
+    <bpmn:sequenceFlow id="Flow_send_welcome_pack__customer_live" sourceRef="Activity_send_welcome_pack" targetRef="Event_customer_live" />
+    <bpmn:sequenceFlow id="Flow_14_days_after_go_live__satisfaction_call" sourceRef="Event_14_days_after_go_live" targetRef="Activity_satisfaction_call" />
+    <bpmn:sequenceFlow id="Flow_satisfaction_call__customer_happy" sourceRef="Activity_satisfaction_call" targetRef="Gateway_customer_happy" />
+    <bpmn:sequenceFlow id="Flow_customer_happy__case_closed" name="yes" sourceRef="Gateway_customer_happy" targetRef="Event_case_closed" />
+    <bpmn:sequenceFlow id="Flow_customer_happy__raise_service_ticket" name="no" sourceRef="Gateway_customer_happy" targetRef="Activity_raise_service_ticket" />
+    <bpmn:sequenceFlow id="Flow_raise_service_ticket__ticket_raised" sourceRef="Activity_raise_service_ticket" targetRef="Event_ticket_raised" />
+    <bpmn:sequenceFlow id="Flow_new_line_or_transfer__run_credit_check" name="new line" sourceRef="Gateway_new_line_or_transfer" targetRef="Activity_run_credit_check" />
+    <bpmn:sequenceFlow id="Flow_switch_match_received__run_credit_check" sourceRef="Activity_switch_match_received" targetRef="Activity_run_credit_check" />
+    <bpmn:sequenceFlow id="Flow_correct_order_details__place_wholesale_order" sourceRef="Activity_correct_order_details" targetRef="Activity_place_wholesale_order" />
+    <bpmn:sequenceFlow id="Flow_chase_the_network__wait_for_the_network" sourceRef="Activity_chase_the_network" targetRef="Gateway_wait_for_the_network" />
+    <bpmn:sequenceFlow id="Flow_troubleshoot_with_the_customer__activate_service" sourceRef="Activity_troubleshoot_with_the_customer" targetRef="Activity_activate_service" />
+    <bpmn:dataObject id="DataObject_wholesale_order" />
+    <bpmn:dataObjectReference id="DataObjectReference_wholesale_order" name="Wholesale order" dataObjectRef="DataObject_wholesale_order" />
+    <bpmn:dataStoreReference id="DataStoreReference_address_database" name="Address database" dataStoreRef="DataStore_address_database" />
+    <bpmn:dataStoreReference id="DataStoreReference_product_catalogue" name="Product catalogue" dataStoreRef="DataStore_product_catalogue" />
+    <bpmn:dataStoreReference id="DataStoreReference_oss_inventory" name="OSS inventory" dataStoreRef="DataStore_oss_inventory" />
+    <bpmn:dataStoreReference id="DataStoreReference_billing_system" name="Billing system" dataStoreRef="DataStore_billing_system" />
+    <bpmn:textAnnotation id="TextAnnotation_confirm_order">
+      <bpmn:text>Confirmation includes the earliest installation window</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_confirm_order" sourceRef="Activity_confirm_order" targetRef="TextAnnotation_confirm_order" />
+  </bpmn:process>
+  <bpmn:process id="Process_openreach" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Process_openreach">
+      <bpmn:lane id="Lane_order_handling" name="Order handling">
+        <bpmn:flowNodeRef>Event_openreach_availability_request</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_check_openreach_line_plant</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_return_openreach_availability</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_openreach_answered</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_openreach_order_received</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_validate_openreach_order</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_openreach_order_valid</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_reject_openreach_order</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_openreach_rejected</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_order_type</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_schedule_remote_switch_over</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_commit_switch_date</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_switch_over_remotely</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_close_openreach_work_order</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_join_after_close_openreach_work_order</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_send_openreach_completion</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_openreach_order_complete</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_planning" name="Planning">
+        <bpmn:flowNodeRef>Activity_survey_and_plan_route</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_book_engineer_appointment</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_commit_openreach_date</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_field_engineering" name="Field engineering">
+        <bpmn:flowNodeRef>Activity_install_fibre_and_ont</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_appointment_missed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_notify_delay</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_delay_notified</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Event_openreach_availability_request" name="Openreach availability request">
+      <bpmn:outgoing>Flow_openreach_availability_request__check_openreach_line_plant</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Event_openreach_availability_request_definition" />
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Activity_check_openreach_line_plant" name="Check Openreach line plant">
+      <bpmn:incoming>Flow_openreach_availability_request__check_openreach_line_plant</bpmn:incoming>
+      <bpmn:outgoing>Flow_check_openreach_line_plant__return_openreach_availability</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sendTask id="Activity_return_openreach_availability" name="Return Openreach availability">
+      <bpmn:incoming>Flow_check_openreach_line_plant__return_openreach_availability</bpmn:incoming>
+      <bpmn:outgoing>Flow_return_openreach_availability__openreach_answered</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_openreach_answered" name="Openreach answered">
+      <bpmn:incoming>Flow_return_openreach_availability__openreach_answered</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="Event_openreach_order_received" name="Openreach order received">
+      <bpmn:outgoing>Flow_openreach_order_received__validate_openreach_order</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Event_openreach_order_received_definition" />
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Activity_validate_openreach_order" name="Validate Openreach order">
+      <bpmn:incoming>Flow_openreach_order_received__validate_openreach_order</bpmn:incoming>
+      <bpmn:outgoing>Flow_validate_openreach_order__openreach_order_valid</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_openreach_order_valid" name="Openreach order valid?">
+      <bpmn:incoming>Flow_validate_openreach_order__openreach_order_valid</bpmn:incoming>
+      <bpmn:outgoing>Flow_openreach_order_valid__reject_openreach_order</bpmn:outgoing>
+      <bpmn:outgoing>Flow_openreach_order_valid__order_type</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="Activity_reject_openreach_order" name="Reject Openreach order">
+      <bpmn:incoming>Flow_openreach_order_valid__reject_openreach_order</bpmn:incoming>
+      <bpmn:outgoing>Flow_reject_openreach_order__openreach_rejected</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_openreach_rejected" name="Openreach rejected">
+      <bpmn:incoming>Flow_reject_openreach_order__openreach_rejected</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="Gateway_order_type" name="Order type?">
+      <bpmn:incoming>Flow_openreach_order_valid__order_type</bpmn:incoming>
+      <bpmn:outgoing>Flow_order_type__survey_and_plan_route</bpmn:outgoing>
+      <bpmn:outgoing>Flow_order_type__schedule_remote_switch_over</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:subProcess id="Activity_survey_and_plan_route" name="Survey and plan route">
+      <bpmn:documentation>Desk survey of ducts and poles; a site survey when the route is unclear.</bpmn:documentation>
+      <bpmn:incoming>Flow_order_type__survey_and_plan_route</bpmn:incoming>
+      <bpmn:outgoing>Flow_survey_and_plan_route__book_engineer_appointment</bpmn:outgoing>
+    </bpmn:subProcess>
+    <bpmn:userTask id="Activity_book_engineer_appointment" name="Book engineer appointment">
+      <bpmn:incoming>Flow_survey_and_plan_route__book_engineer_appointment</bpmn:incoming>
+      <bpmn:outgoing>Flow_book_engineer_appointment__commit_openreach_date</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="Activity_commit_openreach_date" name="Commit Openreach date">
+      <bpmn:incoming>Flow_book_engineer_appointment__commit_openreach_date</bpmn:incoming>
+      <bpmn:outgoing>Flow_commit_openreach_date__install_fibre_and_ont</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:userTask id="Activity_install_fibre_and_ont" name="Install fibre and ONT">
+      <bpmn:incoming>Flow_commit_openreach_date__install_fibre_and_ont</bpmn:incoming>
+      <bpmn:outgoing>Flow_install_fibre_and_ont__join_after_close_openreach_work_order</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="Event_appointment_missed" name="Appointment missed" cancelActivity="false" attachedToRef="Activity_install_fibre_and_ont">
+      <bpmn:outgoing>Flow_appointment_missed__notify_delay</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="Event_appointment_missed_definition" />
+    </bpmn:boundaryEvent>
+    <bpmn:sendTask id="Activity_notify_delay" name="Notify delay">
+      <bpmn:incoming>Flow_appointment_missed__notify_delay</bpmn:incoming>
+      <bpmn:outgoing>Flow_notify_delay__delay_notified</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_delay_notified" name="Delay notified">
+      <bpmn:incoming>Flow_notify_delay__delay_notified</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Activity_schedule_remote_switch_over" name="Schedule remote switch-over">
+      <bpmn:documentation>The existing fibre and ONT stay; the line moves to the new provider on the switch date.</bpmn:documentation>
+      <bpmn:incoming>Flow_order_type__schedule_remote_switch_over</bpmn:incoming>
+      <bpmn:outgoing>Flow_schedule_remote_switch_over__commit_switch_date</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sendTask id="Activity_commit_switch_date" name="Commit switch date">
+      <bpmn:incoming>Flow_schedule_remote_switch_over__commit_switch_date</bpmn:incoming>
+      <bpmn:outgoing>Flow_commit_switch_date__switch_over_remotely</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:serviceTask id="Activity_switch_over_remotely" name="Switch over remotely">
+      <bpmn:incoming>Flow_commit_switch_date__switch_over_remotely</bpmn:incoming>
+      <bpmn:outgoing>Flow_switch_over_remotely__join_after_close_openreach_work_order</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_close_openreach_work_order" name="Close Openreach work order">
+      <bpmn:incoming>Flow_join_after_close_openreach_work_order__close_openreach_work_order</bpmn:incoming>
+      <bpmn:outgoing>Flow_close_openreach_work_order__send_openreach_completion</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_join_after_close_openreach_work_order">
+      <bpmn:incoming>Flow_install_fibre_and_ont__join_after_close_openreach_work_order</bpmn:incoming>
+      <bpmn:incoming>Flow_switch_over_remotely__join_after_close_openreach_work_order</bpmn:incoming>
+      <bpmn:outgoing>Flow_join_after_close_openreach_work_order__close_openreach_work_order</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="Activity_send_openreach_completion" name="Send Openreach completion">
+      <bpmn:incoming>Flow_close_openreach_work_order__send_openreach_completion</bpmn:incoming>
+      <bpmn:outgoing>Flow_send_openreach_completion__openreach_order_complete</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_openreach_order_complete" name="Openreach order complete">
+      <bpmn:incoming>Flow_send_openreach_completion__openreach_order_complete</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_openreach_availability_request__check_openreach_line_plant" sourceRef="Event_openreach_availability_request" targetRef="Activity_check_openreach_line_plant" />
+    <bpmn:sequenceFlow id="Flow_check_openreach_line_plant__return_openreach_availability" sourceRef="Activity_check_openreach_line_plant" targetRef="Activity_return_openreach_availability" />
+    <bpmn:sequenceFlow id="Flow_return_openreach_availability__openreach_answered" sourceRef="Activity_return_openreach_availability" targetRef="Event_openreach_answered" />
+    <bpmn:sequenceFlow id="Flow_openreach_order_received__validate_openreach_order" sourceRef="Event_openreach_order_received" targetRef="Activity_validate_openreach_order" />
+    <bpmn:sequenceFlow id="Flow_validate_openreach_order__openreach_order_valid" sourceRef="Activity_validate_openreach_order" targetRef="Gateway_openreach_order_valid" />
+    <bpmn:sequenceFlow id="Flow_openreach_order_valid__reject_openreach_order" name="no" sourceRef="Gateway_openreach_order_valid" targetRef="Activity_reject_openreach_order" />
+    <bpmn:sequenceFlow id="Flow_reject_openreach_order__openreach_rejected" sourceRef="Activity_reject_openreach_order" targetRef="Event_openreach_rejected" />
+    <bpmn:sequenceFlow id="Flow_openreach_order_valid__order_type" name="yes" sourceRef="Gateway_openreach_order_valid" targetRef="Gateway_order_type" />
+    <bpmn:sequenceFlow id="Flow_order_type__survey_and_plan_route" name="new provide" sourceRef="Gateway_order_type" targetRef="Activity_survey_and_plan_route" />
+    <bpmn:sequenceFlow id="Flow_survey_and_plan_route__book_engineer_appointment" sourceRef="Activity_survey_and_plan_route" targetRef="Activity_book_engineer_appointment" />
+    <bpmn:sequenceFlow id="Flow_book_engineer_appointment__commit_openreach_date" sourceRef="Activity_book_engineer_appointment" targetRef="Activity_commit_openreach_date" />
+    <bpmn:sequenceFlow id="Flow_commit_openreach_date__install_fibre_and_ont" sourceRef="Activity_commit_openreach_date" targetRef="Activity_install_fibre_and_ont" />
+    <bpmn:sequenceFlow id="Flow_appointment_missed__notify_delay" sourceRef="Event_appointment_missed" targetRef="Activity_notify_delay" />
+    <bpmn:sequenceFlow id="Flow_notify_delay__delay_notified" sourceRef="Activity_notify_delay" targetRef="Event_delay_notified" />
+    <bpmn:sequenceFlow id="Flow_order_type__schedule_remote_switch_over" name="transfer" sourceRef="Gateway_order_type" targetRef="Activity_schedule_remote_switch_over" />
+    <bpmn:sequenceFlow id="Flow_schedule_remote_switch_over__commit_switch_date" sourceRef="Activity_schedule_remote_switch_over" targetRef="Activity_commit_switch_date" />
+    <bpmn:sequenceFlow id="Flow_commit_switch_date__switch_over_remotely" sourceRef="Activity_commit_switch_date" targetRef="Activity_switch_over_remotely" />
+    <bpmn:sequenceFlow id="Flow_install_fibre_and_ont__join_after_close_openreach_work_order" sourceRef="Activity_install_fibre_and_ont" targetRef="Gateway_join_after_close_openreach_work_order" />
+    <bpmn:sequenceFlow id="Flow_switch_over_remotely__join_after_close_openreach_work_order" sourceRef="Activity_switch_over_remotely" targetRef="Gateway_join_after_close_openreach_work_order" />
+    <bpmn:sequenceFlow id="Flow_join_after_close_openreach_work_order__close_openreach_work_order" sourceRef="Gateway_join_after_close_openreach_work_order" targetRef="Activity_close_openreach_work_order" />
+    <bpmn:sequenceFlow id="Flow_close_openreach_work_order__send_openreach_completion" sourceRef="Activity_close_openreach_work_order" targetRef="Activity_send_openreach_completion" />
+    <bpmn:sequenceFlow id="Flow_send_openreach_completion__openreach_order_complete" sourceRef="Activity_send_openreach_completion" targetRef="Event_openreach_order_complete" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+      <bpmndi:BPMNShape id="Participant_customer_di" bpmnElement="Participant_customer" isHorizontal="true">
+        <dc:Bounds x="0" y="0" width="9369" height="380" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_courier_di" bpmnElement="Participant_courier" isHorizontal="true">
+        <dc:Bounds x="0" y="430" width="9369" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_cityfibre_di" bpmnElement="Participant_cityfibre" isHorizontal="true">
+        <dc:Bounds x="0" y="540" width="9369" height="270" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_brightwave_broadband_di" bpmnElement="Participant_brightwave_broadband" isHorizontal="true">
+        <dc:Bounds x="0" y="860" width="9369" height="2478" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_openreach_di" bpmnElement="Participant_openreach" isHorizontal="true">
+        <dc:Bounds x="0" y="3388" width="9369" height="700" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_credit_agency_di" bpmnElement="Participant_credit_agency" isHorizontal="true">
+        <dc:Bounds x="0" y="4138" width="9369" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_one_touch_switch_hub_di" bpmnElement="Participant_one_touch_switch_hub" isHorizontal="true">
+        <dc:Bounds x="0" y="4248" width="9369" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_sales_di" bpmnElement="Lane_sales" isHorizontal="true" bioc:fill="#E3F2FD" color:background-color="#E3F2FD">
+        <dc:Bounds x="30" y="860" width="9339" height="479" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_credit_and_fraud_di" bpmnElement="Lane_credit_and_fraud" isHorizontal="true" bioc:fill="#E3F2FD" color:background-color="#E3F2FD">
+        <dc:Bounds x="30" y="1339" width="9339" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_order_management_di" bpmnElement="Lane_order_management" isHorizontal="true" bioc:fill="#FFF8E1" color:background-color="#FFF8E1">
+        <dc:Bounds x="30" y="1509" width="9339" height="419" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_network_provisioning_di" bpmnElement="Lane_network_provisioning" isHorizontal="true" bioc:fill="#E8F5E9" color:background-color="#E8F5E9">
+        <dc:Bounds x="30" y="1928" width="9339" height="421" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_voice_di" bpmnElement="Lane_voice" isHorizontal="true" bioc:fill="#E8F5E9" color:background-color="#E8F5E9">
+        <dc:Bounds x="30" y="2349" width="9339" height="270" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_logistics_di" bpmnElement="Lane_logistics" isHorizontal="true" bioc:fill="#E8F5E9" color:background-color="#E8F5E9">
+        <dc:Bounds x="30" y="2619" width="9339" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_billing_di" bpmnElement="Lane_billing" isHorizontal="true" bioc:fill="#F3E5F5" color:background-color="#F3E5F5">
+        <dc:Bounds x="30" y="2779" width="9339" height="259" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_customer_care_di" bpmnElement="Lane_customer_care" isHorizontal="true" bioc:fill="#F3E5F5" color:background-color="#F3E5F5">
+        <dc:Bounds x="30" y="3038" width="9339" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_order_handling_di" bpmnElement="Lane_order_handling" isHorizontal="true" bioc:fill="#FFF3E0" color:background-color="#FFF3E0">
+        <dc:Bounds x="30" y="3388" width="9339" height="270" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_planning_di" bpmnElement="Lane_planning" isHorizontal="true" bioc:fill="#FFF3E0" color:background-color="#FFF3E0">
+        <dc:Bounds x="30" y="3658" width="9339" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_field_engineering_di" bpmnElement="Lane_field_engineering" isHorizontal="true" bioc:fill="#FFE0B2" color:background-color="#FFE0B2">
+        <dc:Bounds x="30" y="3818" width="9339" height="270" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_wants_faster_broadband_di" bpmnElement="Event_wants_faster_broadband">
+        <dc:Bounds x="126" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="113" y="103" width="62" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_request_a_quote_di" bpmnElement="Activity_request_a_quote">
+        <dc:Bounds x="212" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_wait_for_the_quote_di" bpmnElement="Gateway_wait_for_the_quote">
+        <dc:Bounds x="1807" y="55" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1789" y="36" width="87" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_offer_received_di" bpmnElement="Activity_offer_received">
+        <dc:Bounds x="1932" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_choose_speed_and_extras_di" bpmnElement="Activity_choose_speed_and_extras">
+        <dc:Bounds x="2082" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_place_order_di" bpmnElement="Activity_place_order">
+        <dc:Bounds x="2232" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_wait_for_the_provider_di" bpmnElement="Gateway_wait_for_the_provider">
+        <dc:Bounds x="3731" y="55" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3728" y="110" width="57" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_order_confirmed_di" bpmnElement="Activity_order_confirmed">
+        <dc:Bounds x="4126" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_order_declined_di" bpmnElement="Activity_order_declined">
+        <dc:Bounds x="3892" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_order_not_accepted_di" bpmnElement="Event_order_not_accepted">
+        <dc:Bounds x="4158" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4153" y="213" width="47" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_no_service_at_the_address_di" bpmnElement="Activity_no_service_at_the_address">
+        <dc:Bounds x="3892" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_not_available_di" bpmnElement="Event_not_available">
+        <dc:Bounds x="4158" y="282" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4144" y="323" width="64" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_installation_date_di" bpmnElement="Activity_installation_date">
+        <dc:Bounds x="6058" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_router_arrives_di" bpmnElement="Activity_router_arrives">
+        <dc:Bounds x="6220" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_installation_done_di" bpmnElement="Activity_installation_done">
+        <dc:Bounds x="7735" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_welcome_pack_di" bpmnElement="Activity_welcome_pack">
+        <dc:Bounds x="8526" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_online_di" bpmnElement="Event_online">
+        <dc:Bounds x="8676" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="8678" y="103" width="32" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_cityfibre_availability_request_di" bpmnElement="Event_cityfibre_availability_request">
+        <dc:Bounds x="872" y="602" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="865" y="643" width="51" height="42" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_check_cityfibre_coverage_di" bpmnElement="Activity_check_cityfibre_coverage">
+        <dc:Bounds x="958" y="580" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_return_cityfibre_availability_di" bpmnElement="Activity_return_cityfibre_availability">
+        <dc:Bounds x="1108" y="580" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_cityfibre_answered_di" bpmnElement="Event_cityfibre_answered">
+        <dc:Bounds x="4158" y="602" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4152" y="643" width="48" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_cityfibre_order_received_di" bpmnElement="Event_cityfibre_order_received">
+        <dc:Bounds x="4731" y="602" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4713" y="643" width="73" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_validate_cityfibre_order_di" bpmnElement="Activity_validate_cityfibre_order">
+        <dc:Bounds x="4824" y="580" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_cityfibre_order_valid_di" bpmnElement="Gateway_cityfibre_order_valid">
+        <dc:Bounds x="4974" y="595" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4963" y="562" width="73" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_reject_cityfibre_order_di" bpmnElement="Activity_reject_cityfibre_order">
+        <dc:Bounds x="5074" y="690" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_cityfibre_rejected_di" bpmnElement="Event_cityfibre_rejected">
+        <dc:Bounds x="5292" y="712" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5267" y="753" width="87" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_book_installer_di" bpmnElement="Activity_book_installer">
+        <dc:Bounds x="5074" y="580" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_commit_cityfibre_date_di" bpmnElement="Activity_commit_cityfibre_date">
+        <dc:Bounds x="5260" y="580" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_install_cityfibre_connection_di" bpmnElement="Activity_install_cityfibre_connection">
+        <dc:Bounds x="6644" y="580" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_send_cityfibre_completion_di" bpmnElement="Activity_send_cityfibre_completion">
+        <dc:Bounds x="6794" y="580" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_cityfibre_order_complete_di" bpmnElement="Event_cityfibre_order_complete">
+        <dc:Bounds x="6976" y="602" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="6958" y="643" width="73" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_quote_requested_di" bpmnElement="Event_quote_requested">
+        <dc:Bounds x="362" y="1032" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="339" y="1073" width="82" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_find_address_key_di" bpmnElement="Activity_find_address_key">
+        <dc:Bounds x="448" y="1010" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_check_both_networks_di" bpmnElement="Gateway_check_both_networks">
+        <dc:Bounds x="598" y="1025" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="595" y="992" width="56" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ask_openreach_for_availability_di" bpmnElement="Activity_ask_openreach_for_availability">
+        <dc:Bounds x="698" y="1010" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_openreach_availability_di" bpmnElement="Activity_openreach_availability">
+        <dc:Bounds x="1258" y="1010" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ask_cityfibre_for_availability_di" bpmnElement="Activity_ask_cityfibre_for_availability">
+        <dc:Bounds x="698" y="1219" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_cityfibre_availability_di" bpmnElement="Activity_cityfibre_availability">
+        <dc:Bounds x="1258" y="1219" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_any_full_fibre_available_di" bpmnElement="Gateway_any_full_fibre_available">
+        <dc:Bounds x="1532" y="1025" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1527" y="1080" width="61" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_join_after_any_full_fibre_available_di" bpmnElement="Gateway_join_after_any_full_fibre_available">
+        <dc:Bounds x="1432" y="1025" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_build_offer_di" bpmnElement="Activity_build_offer">
+        <dc:Bounds x="1632" y="1010" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_send_offer_di" bpmnElement="Activity_send_offer">
+        <dc:Bounds x="1782" y="1010" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_customer_order_received_di" bpmnElement="Activity_customer_order_received">
+        <dc:Bounds x="2382" y="1010" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_new_line_or_transfer_di" bpmnElement="Gateway_new_line_or_transfer">
+        <dc:Bounds x="2532" y="1025" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2529" y="962" width="56" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_request_switch_match_di" bpmnElement="Activity_request_switch_match">
+        <dc:Bounds x="2632" y="1010" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_switch_match_received_di" bpmnElement="Activity_switch_match_received">
+        <dc:Bounds x="2782" y="1010" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_tell_customer_no_service_di" bpmnElement="Activity_tell_customer_no_service">
+        <dc:Bounds x="3706" y="1010" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_no_service_di" bpmnElement="Event_no_service">
+        <dc:Bounds x="4158" y="1032" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4150" y="1073" width="52" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_run_credit_check_di" bpmnElement="Activity_run_credit_check">
+        <dc:Bounds x="2944" y="1389" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_credit_result_di" bpmnElement="Activity_credit_result">
+        <dc:Bounds x="3094" y="1389" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_credit_decision_di" bpmnElement="Gateway_credit_decision">
+        <dc:Bounds x="3244" y="1404" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3230" y="1459" width="79" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_review_application_manually_di" bpmnElement="Activity_review_application_manually">
+        <dc:Bounds x="3344" y="1389" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_approved_di" bpmnElement="Gateway_approved">
+        <dc:Bounds x="3594" y="1404" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3592" y="1459" width="54" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_join_after_approved_di" bpmnElement="Gateway_join_after_approved">
+        <dc:Bounds x="3494" y="1404" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_decline_order_di" bpmnElement="Activity_decline_order">
+        <dc:Bounds x="3706" y="1389" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_declined_di" bpmnElement="Event_declined">
+        <dc:Bounds x="4158" y="1411" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4155" y="1452" width="43" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_confirm_order_di" bpmnElement="Activity_confirm_order">
+        <dc:Bounds x="3892" y="1010" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_place_wholesale_order_di" bpmnElement="Activity_place_wholesale_order">
+        <dc:Bounds x="4300" y="1559" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_which_network_di" bpmnElement="Gateway_which_network">
+        <dc:Bounds x="4450" y="1574" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4436" y="1555" width="79" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_order_from_openreach_di" bpmnElement="Activity_order_from_openreach">
+        <dc:Bounds x="4550" y="1559" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_order_from_cityfibre_di" bpmnElement="Activity_order_from_cityfibre">
+        <dc:Bounds x="4550" y="1768" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_wait_for_the_network_di" bpmnElement="Gateway_wait_for_the_network">
+        <dc:Bounds x="4849" y="1574" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4787" y="1541" width="57" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_join_after_wait_for_the_network_di" bpmnElement="Gateway_join_after_wait_for_the_network">
+        <dc:Bounds x="4724" y="1574" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_committed_date_received_di" bpmnElement="Activity_committed_date_received">
+        <dc:Bounds x="5758" y="1559" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_order_rejected_di" bpmnElement="Activity_order_rejected">
+        <dc:Bounds x="5260" y="1559" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_correct_order_details_di" bpmnElement="Activity_correct_order_details">
+        <dc:Bounds x="5422" y="1559" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_2_working_days_di" bpmnElement="Event_2_working_days">
+        <dc:Bounds x="4981" y="1581" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4962" y="1622" width="74" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_chase_the_network_di" bpmnElement="Activity_chase_the_network">
+        <dc:Bounds x="5074" y="1559" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_tell_customer_the_date_di" bpmnElement="Activity_tell_customer_the_date">
+        <dc:Bounds x="5908" y="1559" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_reserve_ip_and_service_id_di" bpmnElement="Activity_reserve_ip_and_service_id">
+        <dc:Bounds x="6058" y="2049" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_configure_radius_and_speed_profile_di" bpmnElement="Activity_configure_radius_and_speed_profile">
+        <dc:Bounds x="6220" y="2049" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_digital_voice_ordered_di" bpmnElement="Gateway_digital_voice_ordered">
+        <dc:Bounds x="6083" y="2404" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="6078" y="2459" width="60" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_set_up_digital_voice_line_di" bpmnElement="Activity_set_up_digital_voice_line">
+        <dc:Bounds x="6220" y="2389" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_keep_current_number_di" bpmnElement="Gateway_keep_current_number">
+        <dc:Bounds x="6382" y="2404" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="6376" y="2351" width="63" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_port_phone_number_di" bpmnElement="Activity_port_phone_number">
+        <dc:Bounds x="6482" y="2389" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_allocate_new_number_di" bpmnElement="Activity_allocate_new_number">
+        <dc:Bounds x="6482" y="2499" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_dispatch_router_di" bpmnElement="Activity_dispatch_router">
+        <dc:Bounds x="6058" y="2659" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_delivery_confirmed_di" bpmnElement="Activity_delivery_confirmed">
+        <dc:Bounds x="6220" y="2659" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_create_billing_account_di" bpmnElement="Activity_create_billing_account">
+        <dc:Bounds x="6058" y="2819" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_completion_notice_di" bpmnElement="Activity_completion_notice">
+        <dc:Bounds x="7094" y="1559" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_join_after_completion_notice_di" bpmnElement="Gateway_join_after_completion_notice">
+        <dc:Bounds x="6969" y="1574" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_join_after_join_after_completion_notice_di" bpmnElement="Gateway_join_after_join_after_completion_notice">
+        <dc:Bounds x="6819" y="1574" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_join_after_join_after_join_after_completion_notice_di" bpmnElement="Gateway_join_after_join_after_join_after_completion_notice">
+        <dc:Bounds x="6669" y="1574" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_confirm_installation_di" bpmnElement="Activity_confirm_installation">
+        <dc:Bounds x="7244" y="1559" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_activate_service_di" bpmnElement="Activity_activate_service" isExpanded="true">
+        <dc:Bounds x="7418" y="1968" width="734" height="242" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_troubleshoot_with_the_customer_di" bpmnElement="Activity_troubleshoot_with_the_customer">
+        <dc:Bounds x="8214" y="3188" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_start_billing_di" bpmnElement="Activity_start_billing">
+        <dc:Bounds x="8214" y="2819" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_send_welcome_pack_di" bpmnElement="Activity_send_welcome_pack">
+        <dc:Bounds x="8376" y="3078" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_customer_live_di" bpmnElement="Event_customer_live">
+        <dc:Bounds x="8558" y="3100" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="8542" y="3141" width="68" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_14_days_after_go_live_di" bpmnElement="Event_14_days_after_go_live">
+        <dc:Bounds x="8780" y="3100" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="8766" y="3141" width="64" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_satisfaction_call_di" bpmnElement="Activity_satisfaction_call">
+        <dc:Bounds x="8866" y="3078" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_customer_happy_di" bpmnElement="Gateway_customer_happy">
+        <dc:Bounds x="9016" y="3093" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="8998" y="3074" width="87" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_case_closed_di" bpmnElement="Event_case_closed">
+        <dc:Bounds x="9148" y="3210" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="9136" y="3251" width="61" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_raise_service_ticket_di" bpmnElement="Activity_raise_service_ticket">
+        <dc:Bounds x="9116" y="3078" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_ticket_raised_di" bpmnElement="Event_ticket_raised">
+        <dc:Bounds x="9266" y="3100" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="9253" y="3141" width="63" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_openreach_availability_request_di" bpmnElement="Event_openreach_availability_request">
+        <dc:Bounds x="872" y="3450" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="863" y="3491" width="55" height="42" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_check_openreach_line_plant_di" bpmnElement="Activity_check_openreach_line_plant">
+        <dc:Bounds x="958" y="3428" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_return_openreach_availability_di" bpmnElement="Activity_return_openreach_availability">
+        <dc:Bounds x="1108" y="3428" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_openreach_answered_di" bpmnElement="Event_openreach_answered">
+        <dc:Bounds x="4158" y="3450" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4149" y="3491" width="55" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_openreach_order_received_di" bpmnElement="Event_openreach_order_received">
+        <dc:Bounds x="4731" y="3450" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4707" y="3491" width="84" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_validate_openreach_order_di" bpmnElement="Activity_validate_openreach_order">
+        <dc:Bounds x="4824" y="3428" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_openreach_order_valid_di" bpmnElement="Gateway_openreach_order_valid">
+        <dc:Bounds x="4974" y="3443" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4957" y="3410" width="84" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_reject_openreach_order_di" bpmnElement="Activity_reject_openreach_order">
+        <dc:Bounds x="5074" y="3538" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_openreach_rejected_di" bpmnElement="Event_openreach_rejected">
+        <dc:Bounds x="5292" y="3560" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5283" y="3601" width="55" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_order_type_di" bpmnElement="Gateway_order_type">
+        <dc:Bounds x="5099" y="3443" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5095" y="3424" width="59" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_survey_and_plan_route_di" bpmnElement="Activity_survey_and_plan_route" isExpanded="false">
+        <dc:Bounds x="5260" y="3698" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_book_engineer_appointment_di" bpmnElement="Activity_book_engineer_appointment">
+        <dc:Bounds x="5422" y="3698" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_commit_openreach_date_di" bpmnElement="Activity_commit_openreach_date">
+        <dc:Bounds x="5572" y="3698" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_install_fibre_and_ont_di" bpmnElement="Activity_install_fibre_and_ont" bioc:stroke="#E65100" color:border-color="#E65100">
+        <dc:Bounds x="5758" y="3858" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_notify_delay_di" bpmnElement="Activity_notify_delay">
+        <dc:Bounds x="5908" y="3968" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_delay_notified_di" bpmnElement="Event_delay_notified">
+        <dc:Bounds x="6090" y="3990" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="6075" y="4031" width="67" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_schedule_remote_switch_over_di" bpmnElement="Activity_schedule_remote_switch_over">
+        <dc:Bounds x="5260" y="3428" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_commit_switch_date_di" bpmnElement="Activity_commit_switch_date">
+        <dc:Bounds x="5422" y="3428" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_switch_over_remotely_di" bpmnElement="Activity_switch_over_remotely">
+        <dc:Bounds x="5572" y="3428" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_close_openreach_work_order_di" bpmnElement="Activity_close_openreach_work_order">
+        <dc:Bounds x="6794" y="3428" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_join_after_close_openreach_work_order_di" bpmnElement="Gateway_join_after_close_openreach_work_order">
+        <dc:Bounds x="6669" y="3443" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_send_openreach_completion_di" bpmnElement="Activity_send_openreach_completion">
+        <dc:Bounds x="6944" y="3428" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_openreach_order_complete_di" bpmnElement="Event_openreach_order_complete">
+        <dc:Bounds x="7126" y="3450" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="7102" y="3491" width="84" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_activation_failed_2_di" bpmnElement="Event_activation_failed_2">
+        <dc:Bounds x="7767" y="2192" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="7790" y="2233" width="78" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_appointment_missed_di" bpmnElement="Event_appointment_missed">
+        <dc:Bounds x="5790" y="3920" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5813" y="3961" width="62" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataObjectReference_wholesale_order_di" bpmnElement="DataObjectReference_wholesale_order">
+        <dc:Bounds x="4332" y="1669" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4310" y="1724" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_address_database_di" bpmnElement="DataStoreReference_address_database">
+        <dc:Bounds x="473" y="1120" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="454" y="1175" width="89" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_product_catalogue_di" bpmnElement="DataStoreReference_product_catalogue">
+        <dc:Bounds x="1657" y="1120" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1638" y="1175" width="89" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_oss_inventory_di" bpmnElement="DataStoreReference_oss_inventory">
+        <dc:Bounds x="6083" y="2240" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="6073" y="2295" width="71" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataStoreReference_billing_system_di" bpmnElement="DataStoreReference_billing_system">
+        <dc:Bounds x="6083" y="2929" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="6074" y="2984" width="68" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_confirm_order_di" bpmnElement="TextAnnotation_confirm_order">
+        <dc:Bounds x="3892" y="895" width="100" height="85" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Group_quote_and_order_di" bpmnElement="Group_quote_and_order">
+        <dc:Bounds x="103" y="5" width="4133" height="4078" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2129" y="10" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Group_build_di" bpmnElement="Group_build">
+        <dc:Bounds x="4290" y="5" width="2302" height="4078" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5429" y="10" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Group_go_live_di" bpmnElement="Group_go_live">
+        <dc:Bounds x="6634" y="5" width="2088" height="4078" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="7661" y="10" width="35" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Group_aftercare_di" bpmnElement="Group_aftercare">
+        <dc:Bounds x="8756" y="865" width="570" height="2468" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="9019" y="870" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_activate_service_start_1_di" bpmnElement="Event_activate_service_start_1">
+        <dc:Bounds x="7438.5" y="2024" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_bind_service_id_to_the_ont_di" bpmnElement="Activity_bind_service_id_to_the_ont">
+        <dc:Bounds x="7524.5" y="2002" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_push_configuration_di" bpmnElement="Activity_push_configuration">
+        <dc:Bounds x="7674.5" y="2002" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_run_line_tests_di" bpmnElement="Activity_run_line_tests">
+        <dc:Bounds x="7824.5" y="2002" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_tests_pass_di" bpmnElement="Gateway_tests_pass">
+        <dc:Bounds x="7974.5" y="2017" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="7969.5" y="1998" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_service_active_di" bpmnElement="Event_service_active">
+        <dc:Bounds x="8074.5" y="2024" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="8058.5" y="2065" width="69" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_activation_failed_di" bpmnElement="Event_activation_failed">
+        <dc:Bounds x="8074.5" y="2134" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="8053.5" y="2175" width="78" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_wants_faster_broadband__request_a_quote_di" bpmnElement="Flow_wants_faster_broadband__request_a_quote">
+        <di:waypoint x="162" y="80" />
+        <di:waypoint x="212" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_request_a_quote__wait_for_the_quote_di" bpmnElement="Flow_request_a_quote__wait_for_the_quote">
+        <di:waypoint x="312" y="80" />
+        <di:waypoint x="1807" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_wait_for_the_quote__offer_received_di" bpmnElement="Flow_wait_for_the_quote__offer_received">
+        <di:waypoint x="1857" y="80" />
+        <di:waypoint x="1932" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_offer_received__choose_speed_and_extras_di" bpmnElement="Flow_offer_received__choose_speed_and_extras">
+        <di:waypoint x="2032" y="80" />
+        <di:waypoint x="2082" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_choose_speed_and_extras__place_order_di" bpmnElement="Flow_choose_speed_and_extras__place_order">
+        <di:waypoint x="2182" y="80" />
+        <di:waypoint x="2232" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_place_order__wait_for_the_provider_di" bpmnElement="Flow_place_order__wait_for_the_provider">
+        <di:waypoint x="2332" y="80" />
+        <di:waypoint x="3731" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_wait_for_the_provider__order_confirmed_di" bpmnElement="Flow_wait_for_the_provider__order_confirmed">
+        <di:waypoint x="3756" y="55" />
+        <di:waypoint x="3756" y="34" />
+        <di:waypoint x="4017" y="34" />
+        <di:waypoint x="4017" y="80" />
+        <di:waypoint x="4126" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_wait_for_the_provider__order_declined_di" bpmnElement="Flow_wait_for_the_provider__order_declined">
+        <di:waypoint x="3781" y="80" />
+        <di:waypoint x="3892" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_order_declined__order_not_accepted_di" bpmnElement="Flow_order_declined__order_not_accepted">
+        <di:waypoint x="3992" y="80" />
+        <di:waypoint x="4029" y="80" />
+        <di:waypoint x="4029" y="190" />
+        <di:waypoint x="4158" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_wait_for_the_quote__no_service_at_the_address_di" bpmnElement="Flow_wait_for_the_quote__no_service_at_the_address">
+        <di:waypoint x="1832" y="105" />
+        <di:waypoint x="1832" y="190" />
+        <di:waypoint x="3892" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_no_service_at_the_address__not_available_di" bpmnElement="Flow_no_service_at_the_address__not_available">
+        <di:waypoint x="3992" y="190" />
+        <di:waypoint x="4041" y="190" />
+        <di:waypoint x="4041" y="300" />
+        <di:waypoint x="4158" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_order_confirmed__installation_date_di" bpmnElement="Flow_order_confirmed__installation_date">
+        <di:waypoint x="4226" y="80" />
+        <di:waypoint x="6058" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_installation_date__router_arrives_di" bpmnElement="Flow_installation_date__router_arrives">
+        <di:waypoint x="6158" y="80" />
+        <di:waypoint x="6220" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_router_arrives__installation_done_di" bpmnElement="Flow_router_arrives__installation_done">
+        <di:waypoint x="6320" y="80" />
+        <di:waypoint x="7735" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_installation_done__welcome_pack_di" bpmnElement="Flow_installation_done__welcome_pack">
+        <di:waypoint x="7835" y="80" />
+        <di:waypoint x="8526" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_welcome_pack__online_di" bpmnElement="Flow_welcome_pack__online">
+        <di:waypoint x="8626" y="80" />
+        <di:waypoint x="8676" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_cityfibre_availability_request__check_cityfibre_coverage_di" bpmnElement="Flow_cityfibre_availability_request__check_cityfibre_coverage">
+        <di:waypoint x="908" y="620" />
+        <di:waypoint x="958" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_check_cityfibre_coverage__return_cityfibre_availability_di" bpmnElement="Flow_check_cityfibre_coverage__return_cityfibre_availability">
+        <di:waypoint x="1058" y="620" />
+        <di:waypoint x="1108" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_return_cityfibre_availability__cityfibre_answered_di" bpmnElement="Flow_return_cityfibre_availability__cityfibre_answered">
+        <di:waypoint x="1208" y="620" />
+        <di:waypoint x="4158" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_cityfibre_order_received__validate_cityfibre_order_di" bpmnElement="Flow_cityfibre_order_received__validate_cityfibre_order">
+        <di:waypoint x="4767" y="620" />
+        <di:waypoint x="4824" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_validate_cityfibre_order__cityfibre_order_valid_di" bpmnElement="Flow_validate_cityfibre_order__cityfibre_order_valid">
+        <di:waypoint x="4924" y="620" />
+        <di:waypoint x="4974" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_cityfibre_order_valid__reject_cityfibre_order_di" bpmnElement="Flow_cityfibre_order_valid__reject_cityfibre_order">
+        <di:waypoint x="4999" y="645" />
+        <di:waypoint x="4999" y="730" />
+        <di:waypoint x="5074" y="730" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5004" y="681" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_reject_cityfibre_order__cityfibre_rejected_di" bpmnElement="Flow_reject_cityfibre_order__cityfibre_rejected">
+        <di:waypoint x="5174" y="730" />
+        <di:waypoint x="5292" y="730" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_cityfibre_order_valid__book_installer_di" bpmnElement="Flow_cityfibre_order_valid__book_installer">
+        <di:waypoint x="5024" y="620" />
+        <di:waypoint x="5074" y="620" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5029" y="601" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_book_installer__commit_cityfibre_date_di" bpmnElement="Flow_book_installer__commit_cityfibre_date">
+        <di:waypoint x="5174" y="620" />
+        <di:waypoint x="5260" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_commit_cityfibre_date__install_cityfibre_connection_di" bpmnElement="Flow_commit_cityfibre_date__install_cityfibre_connection">
+        <di:waypoint x="5360" y="620" />
+        <di:waypoint x="6644" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_install_cityfibre_connection__send_cityfibre_completion_di" bpmnElement="Flow_install_cityfibre_connection__send_cityfibre_completion">
+        <di:waypoint x="6744" y="620" />
+        <di:waypoint x="6794" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_send_cityfibre_completion__cityfibre_order_complete_di" bpmnElement="Flow_send_cityfibre_completion__cityfibre_order_complete">
+        <di:waypoint x="6894" y="620" />
+        <di:waypoint x="6976" y="620" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_quote_requested__find_address_key_di" bpmnElement="Flow_quote_requested__find_address_key">
+        <di:waypoint x="398" y="1050" />
+        <di:waypoint x="448" y="1050" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_find_address_key__check_both_networks_di" bpmnElement="Flow_find_address_key__check_both_networks">
+        <di:waypoint x="548" y="1050" />
+        <di:waypoint x="598" y="1050" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_check_both_networks__ask_openreach_for_availability_di" bpmnElement="Flow_check_both_networks__ask_openreach_for_availability">
+        <di:waypoint x="648" y="1050" />
+        <di:waypoint x="698" y="1050" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ask_openreach_for_availability__openreach_availability_di" bpmnElement="Flow_ask_openreach_for_availability__openreach_availability">
+        <di:waypoint x="798" y="1050" />
+        <di:waypoint x="1258" y="1050" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_check_both_networks__ask_cityfibre_for_availability_di" bpmnElement="Flow_check_both_networks__ask_cityfibre_for_availability">
+        <di:waypoint x="623" y="1075" />
+        <di:waypoint x="623" y="1259" />
+        <di:waypoint x="698" y="1259" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ask_cityfibre_for_availability__cityfibre_availability_di" bpmnElement="Flow_ask_cityfibre_for_availability__cityfibre_availability">
+        <di:waypoint x="798" y="1259" />
+        <di:waypoint x="1258" y="1259" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_openreach_availability__join_after_any_full_fibre_available_di" bpmnElement="Flow_openreach_availability__join_after_any_full_fibre_available">
+        <di:waypoint x="1358" y="1050" />
+        <di:waypoint x="1432" y="1050" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_cityfibre_availability__join_after_any_full_fibre_available_di" bpmnElement="Flow_cityfibre_availability__join_after_any_full_fibre_available">
+        <di:waypoint x="1358" y="1259" />
+        <di:waypoint x="1457" y="1259" />
+        <di:waypoint x="1457" y="1075" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_join_after_any_full_fibre_available__any_full_fibre_available_di" bpmnElement="Flow_join_after_any_full_fibre_available__any_full_fibre_available">
+        <di:waypoint x="1482" y="1050" />
+        <di:waypoint x="1532" y="1050" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_any_full_fibre_available__build_offer_di" bpmnElement="Flow_any_full_fibre_available__build_offer">
+        <di:waypoint x="1582" y="1050" />
+        <di:waypoint x="1632" y="1050" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1587" y="1031" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_build_offer__send_offer_di" bpmnElement="Flow_build_offer__send_offer">
+        <di:waypoint x="1732" y="1050" />
+        <di:waypoint x="1782" y="1050" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_send_offer__customer_order_received_di" bpmnElement="Flow_send_offer__customer_order_received">
+        <di:waypoint x="1882" y="1050" />
+        <di:waypoint x="2382" y="1050" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_customer_order_received__new_line_or_transfer_di" bpmnElement="Flow_customer_order_received__new_line_or_transfer">
+        <di:waypoint x="2482" y="1050" />
+        <di:waypoint x="2532" y="1050" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_new_line_or_transfer__request_switch_match_di" bpmnElement="Flow_new_line_or_transfer__request_switch_match">
+        <di:waypoint x="2582" y="1050" />
+        <di:waypoint x="2632" y="1050" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2587" y="1031" width="38" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_request_switch_match__switch_match_received_di" bpmnElement="Flow_request_switch_match__switch_match_received">
+        <di:waypoint x="2732" y="1050" />
+        <di:waypoint x="2782" y="1050" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_any_full_fibre_available__tell_customer_no_service_di" bpmnElement="Flow_any_full_fibre_available__tell_customer_no_service">
+        <di:waypoint x="1557" y="1025" />
+        <di:waypoint x="1557" y="994" />
+        <di:waypoint x="3669" y="994" />
+        <di:waypoint x="3669" y="1050" />
+        <di:waypoint x="3706" y="1050" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1562" y="999" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_tell_customer_no_service__no_service_di" bpmnElement="Flow_tell_customer_no_service__no_service">
+        <di:waypoint x="3806" y="1050" />
+        <di:waypoint x="3831" y="1050" />
+        <di:waypoint x="3831" y="1004" />
+        <di:waypoint x="4053" y="1004" />
+        <di:waypoint x="4053" y="1050" />
+        <di:waypoint x="4158" y="1050" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_run_credit_check__credit_result_di" bpmnElement="Flow_run_credit_check__credit_result">
+        <di:waypoint x="3044" y="1429" />
+        <di:waypoint x="3094" y="1429" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_credit_result__credit_decision_di" bpmnElement="Flow_credit_result__credit_decision">
+        <di:waypoint x="3194" y="1429" />
+        <di:waypoint x="3244" y="1429" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_credit_decision__review_application_manually_di" bpmnElement="Flow_credit_decision__review_application_manually">
+        <di:waypoint x="3294" y="1429" />
+        <di:waypoint x="3344" y="1429" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3299" y="1410" width="23" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_review_application_manually__join_after_approved_di" bpmnElement="Flow_review_application_manually__join_after_approved">
+        <di:waypoint x="3444" y="1429" />
+        <di:waypoint x="3494" y="1429" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_credit_decision__join_after_approved_di" bpmnElement="Flow_credit_decision__join_after_approved">
+        <di:waypoint x="3269" y="1404" />
+        <di:waypoint x="3269" y="1373" />
+        <di:waypoint x="3519" y="1373" />
+        <di:waypoint x="3519" y="1404" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3274" y="1378" width="54" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_join_after_approved__approved_di" bpmnElement="Flow_join_after_approved__approved">
+        <di:waypoint x="3544" y="1429" />
+        <di:waypoint x="3594" y="1429" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_approved__decline_order_di" bpmnElement="Flow_approved__decline_order">
+        <di:waypoint x="3644" y="1429" />
+        <di:waypoint x="3706" y="1429" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3649" y="1410" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_decline_order__declined_di" bpmnElement="Flow_decline_order__declined">
+        <di:waypoint x="3806" y="1429" />
+        <di:waypoint x="4158" y="1429" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_approved__confirm_order_di" bpmnElement="Flow_approved__confirm_order">
+        <di:waypoint x="3619" y="1404" />
+        <di:waypoint x="3619" y="1383" />
+        <di:waypoint x="3843" y="1383" />
+        <di:waypoint x="3843" y="1050" />
+        <di:waypoint x="3892" y="1050" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3624" y="1388" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_confirm_order__place_wholesale_order_di" bpmnElement="Flow_confirm_order__place_wholesale_order">
+        <di:waypoint x="3992" y="1050" />
+        <di:waypoint x="4065" y="1050" />
+        <di:waypoint x="4065" y="1599" />
+        <di:waypoint x="4300" y="1599" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_place_wholesale_order__which_network_di" bpmnElement="Flow_place_wholesale_order__which_network">
+        <di:waypoint x="4400" y="1599" />
+        <di:waypoint x="4450" y="1599" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_which_network__order_from_openreach_di" bpmnElement="Flow_which_network__order_from_openreach">
+        <di:waypoint x="4500" y="1599" />
+        <di:waypoint x="4550" y="1599" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4505" y="1580" width="52" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_which_network__order_from_cityfibre_di" bpmnElement="Flow_which_network__order_from_cityfibre">
+        <di:waypoint x="4475" y="1624" />
+        <di:waypoint x="4475" y="1808" />
+        <di:waypoint x="4550" y="1808" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4480" y="1709" width="38" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_order_from_openreach__join_after_wait_for_the_network_di" bpmnElement="Flow_order_from_openreach__join_after_wait_for_the_network">
+        <di:waypoint x="4650" y="1599" />
+        <di:waypoint x="4724" y="1599" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_order_from_cityfibre__join_after_wait_for_the_network_di" bpmnElement="Flow_order_from_cityfibre__join_after_wait_for_the_network">
+        <di:waypoint x="4650" y="1808" />
+        <di:waypoint x="4749" y="1808" />
+        <di:waypoint x="4749" y="1624" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_join_after_wait_for_the_network__wait_for_the_network_di" bpmnElement="Flow_join_after_wait_for_the_network__wait_for_the_network">
+        <di:waypoint x="4774" y="1599" />
+        <di:waypoint x="4849" y="1599" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_wait_for_the_network__committed_date_received_di" bpmnElement="Flow_wait_for_the_network__committed_date_received">
+        <di:waypoint x="4874" y="1574" />
+        <di:waypoint x="4874" y="1543" />
+        <di:waypoint x="5697" y="1543" />
+        <di:waypoint x="5697" y="1599" />
+        <di:waypoint x="5758" y="1599" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_wait_for_the_network__order_rejected_di" bpmnElement="Flow_wait_for_the_network__order_rejected">
+        <di:waypoint x="4874" y="1574" />
+        <di:waypoint x="4874" y="1553" />
+        <di:waypoint x="5199" y="1553" />
+        <di:waypoint x="5199" y="1599" />
+        <di:waypoint x="5260" y="1599" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_order_rejected__correct_order_details_di" bpmnElement="Flow_order_rejected__correct_order_details">
+        <di:waypoint x="5360" y="1599" />
+        <di:waypoint x="5422" y="1599" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_wait_for_the_network__2_working_days_di" bpmnElement="Flow_wait_for_the_network__2_working_days">
+        <di:waypoint x="4899" y="1599" />
+        <di:waypoint x="4981" y="1599" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_working_days__chase_the_network_di" bpmnElement="Flow_2_working_days__chase_the_network">
+        <di:waypoint x="5017" y="1599" />
+        <di:waypoint x="5074" y="1599" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_committed_date_received__tell_customer_the_date_di" bpmnElement="Flow_committed_date_received__tell_customer_the_date">
+        <di:waypoint x="5858" y="1599" />
+        <di:waypoint x="5908" y="1599" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_tell_customer_the_date__reserve_ip_and_service_id_di" bpmnElement="Flow_tell_customer_the_date__reserve_ip_and_service_id">
+        <di:waypoint x="5958" y="1639" />
+        <di:waypoint x="5958" y="2089" />
+        <di:waypoint x="6058" y="2089" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_reserve_ip_and_service_id__configure_radius_and_speed_profile_di" bpmnElement="Flow_reserve_ip_and_service_id__configure_radius_and_speed_profile">
+        <di:waypoint x="6158" y="2089" />
+        <di:waypoint x="6220" y="2089" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_tell_customer_the_date__digital_voice_ordered_di" bpmnElement="Flow_tell_customer_the_date__digital_voice_ordered">
+        <di:waypoint x="5958" y="1639" />
+        <di:waypoint x="5958" y="2429" />
+        <di:waypoint x="6083" y="2429" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_digital_voice_ordered__set_up_digital_voice_line_di" bpmnElement="Flow_digital_voice_ordered__set_up_digital_voice_line">
+        <di:waypoint x="6133" y="2429" />
+        <di:waypoint x="6220" y="2429" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="6138" y="2410" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_set_up_digital_voice_line__keep_current_number_di" bpmnElement="Flow_set_up_digital_voice_line__keep_current_number">
+        <di:waypoint x="6320" y="2429" />
+        <di:waypoint x="6382" y="2429" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_keep_current_number__port_phone_number_di" bpmnElement="Flow_keep_current_number__port_phone_number">
+        <di:waypoint x="6432" y="2429" />
+        <di:waypoint x="6482" y="2429" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="6437" y="2410" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_keep_current_number__allocate_new_number_di" bpmnElement="Flow_keep_current_number__allocate_new_number">
+        <di:waypoint x="6407" y="2454" />
+        <di:waypoint x="6407" y="2539" />
+        <di:waypoint x="6482" y="2539" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="6412" y="2490" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_tell_customer_the_date__dispatch_router_di" bpmnElement="Flow_tell_customer_the_date__dispatch_router">
+        <di:waypoint x="5958" y="1639" />
+        <di:waypoint x="5958" y="2699" />
+        <di:waypoint x="6058" y="2699" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_dispatch_router__delivery_confirmed_di" bpmnElement="Flow_dispatch_router__delivery_confirmed">
+        <di:waypoint x="6158" y="2699" />
+        <di:waypoint x="6220" y="2699" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_tell_customer_the_date__create_billing_account_di" bpmnElement="Flow_tell_customer_the_date__create_billing_account">
+        <di:waypoint x="5958" y="1639" />
+        <di:waypoint x="5958" y="2859" />
+        <di:waypoint x="6058" y="2859" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_configure_radius_and_speed_profile__join_after_completion_notice_di" bpmnElement="Flow_configure_radius_and_speed_profile__join_after_completion_notice">
+        <di:waypoint x="6320" y="2089" />
+        <di:waypoint x="6994" y="2089" />
+        <di:waypoint x="6994" y="1624" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_port_phone_number__join_after_join_after_join_after_completion_notice_di" bpmnElement="Flow_port_phone_number__join_after_join_after_join_after_completion_notice">
+        <di:waypoint x="6582" y="2429" />
+        <di:waypoint x="6694" y="2429" />
+        <di:waypoint x="6694" y="1624" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_allocate_new_number__join_after_join_after_join_after_completion_notice_di" bpmnElement="Flow_allocate_new_number__join_after_join_after_join_after_completion_notice">
+        <di:waypoint x="6582" y="2539" />
+        <di:waypoint x="6694" y="2539" />
+        <di:waypoint x="6694" y="1624" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_join_after_join_after_join_after_completion_notice__join_after_join_after_completion_notice_di" bpmnElement="Flow_join_after_join_after_join_after_completion_notice__join_after_join_after_completion_notice">
+        <di:waypoint x="6719" y="1599" />
+        <di:waypoint x="6819" y="1599" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_digital_voice_ordered__join_after_join_after_completion_notice_di" bpmnElement="Flow_digital_voice_ordered__join_after_join_after_completion_notice">
+        <di:waypoint x="6108" y="2404" />
+        <di:waypoint x="6108" y="2383" />
+        <di:waypoint x="6844" y="2383" />
+        <di:waypoint x="6844" y="1624" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="6113" y="2388" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_join_after_join_after_completion_notice__join_after_completion_notice_di" bpmnElement="Flow_join_after_join_after_completion_notice__join_after_completion_notice">
+        <di:waypoint x="6869" y="1599" />
+        <di:waypoint x="6969" y="1599" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_delivery_confirmed__join_after_completion_notice_di" bpmnElement="Flow_delivery_confirmed__join_after_completion_notice">
+        <di:waypoint x="6320" y="2699" />
+        <di:waypoint x="6994" y="2699" />
+        <di:waypoint x="6994" y="1624" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_create_billing_account__join_after_completion_notice_di" bpmnElement="Flow_create_billing_account__join_after_completion_notice">
+        <di:waypoint x="6158" y="2859" />
+        <di:waypoint x="6994" y="2859" />
+        <di:waypoint x="6994" y="1624" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_join_after_completion_notice__completion_notice_di" bpmnElement="Flow_join_after_completion_notice__completion_notice">
+        <di:waypoint x="7019" y="1599" />
+        <di:waypoint x="7094" y="1599" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_completion_notice__confirm_installation_di" bpmnElement="Flow_completion_notice__confirm_installation">
+        <di:waypoint x="7194" y="1599" />
+        <di:waypoint x="7244" y="1599" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_confirm_installation__activate_service_di" bpmnElement="Flow_confirm_installation__activate_service">
+        <di:waypoint x="7344" y="1599" />
+        <di:waypoint x="7369" y="1599" />
+        <di:waypoint x="7369" y="2089" />
+        <di:waypoint x="7418" y="2089" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_activation_failed_2__troubleshoot_with_the_customer_di" bpmnElement="Flow_activation_failed_2__troubleshoot_with_the_customer">
+        <di:waypoint x="7785" y="2228" />
+        <di:waypoint x="7785" y="3228" />
+        <di:waypoint x="8214" y="3228" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_activate_service__start_billing_di" bpmnElement="Flow_activate_service__start_billing">
+        <di:waypoint x="8152" y="2089" />
+        <di:waypoint x="8177" y="2089" />
+        <di:waypoint x="8177" y="2859" />
+        <di:waypoint x="8214" y="2859" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_start_billing__send_welcome_pack_di" bpmnElement="Flow_start_billing__send_welcome_pack">
+        <di:waypoint x="8314" y="2859" />
+        <di:waypoint x="8339" y="2859" />
+        <di:waypoint x="8339" y="3118" />
+        <di:waypoint x="8376" y="3118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_send_welcome_pack__customer_live_di" bpmnElement="Flow_send_welcome_pack__customer_live">
+        <di:waypoint x="8476" y="3118" />
+        <di:waypoint x="8558" y="3118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14_days_after_go_live__satisfaction_call_di" bpmnElement="Flow_14_days_after_go_live__satisfaction_call">
+        <di:waypoint x="8816" y="3118" />
+        <di:waypoint x="8866" y="3118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_satisfaction_call__customer_happy_di" bpmnElement="Flow_satisfaction_call__customer_happy">
+        <di:waypoint x="8966" y="3118" />
+        <di:waypoint x="9016" y="3118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_customer_happy__case_closed_di" bpmnElement="Flow_customer_happy__case_closed">
+        <di:waypoint x="9041" y="3143" />
+        <di:waypoint x="9041" y="3228" />
+        <di:waypoint x="9148" y="3228" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="9046" y="3179" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_customer_happy__raise_service_ticket_di" bpmnElement="Flow_customer_happy__raise_service_ticket">
+        <di:waypoint x="9066" y="3118" />
+        <di:waypoint x="9116" y="3118" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="9071" y="3099" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_raise_service_ticket__ticket_raised_di" bpmnElement="Flow_raise_service_ticket__ticket_raised">
+        <di:waypoint x="9216" y="3118" />
+        <di:waypoint x="9266" y="3118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_new_line_or_transfer__run_credit_check_di" bpmnElement="Flow_new_line_or_transfer__run_credit_check">
+        <di:waypoint x="2557" y="1075" />
+        <di:waypoint x="2557" y="1429" />
+        <di:waypoint x="2944" y="1429" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2562" y="1245" width="41" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_switch_match_received__run_credit_check_di" bpmnElement="Flow_switch_match_received__run_credit_check">
+        <di:waypoint x="2882" y="1050" />
+        <di:waypoint x="2907" y="1050" />
+        <di:waypoint x="2907" y="1429" />
+        <di:waypoint x="2944" y="1429" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_correct_order_details__place_wholesale_order_di" bpmnElement="Flow_correct_order_details__place_wholesale_order">
+        <di:waypoint x="5472" y="1639" />
+        <di:waypoint x="5472" y="1903" />
+        <di:waypoint x="4251" y="1903" />
+        <di:waypoint x="4251" y="1599" />
+        <di:waypoint x="4300" y="1599" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_chase_the_network__wait_for_the_network_di" bpmnElement="Flow_chase_the_network__wait_for_the_network">
+        <di:waypoint x="5124" y="1639" />
+        <di:waypoint x="5124" y="1913" />
+        <di:waypoint x="4874" y="1913" />
+        <di:waypoint x="4874" y="1624" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_troubleshoot_with_the_customer__activate_service_di" bpmnElement="Flow_troubleshoot_with_the_customer__activate_service">
+        <di:waypoint x="8264" y="3268" />
+        <di:waypoint x="8264" y="3323" />
+        <di:waypoint x="7381" y="3323" />
+        <di:waypoint x="7381" y="2089" />
+        <di:waypoint x="7418" y="2089" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_openreach_availability_request__check_openreach_line_plant_di" bpmnElement="Flow_openreach_availability_request__check_openreach_line_plant">
+        <di:waypoint x="908" y="3468" />
+        <di:waypoint x="958" y="3468" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_check_openreach_line_plant__return_openreach_availability_di" bpmnElement="Flow_check_openreach_line_plant__return_openreach_availability">
+        <di:waypoint x="1058" y="3468" />
+        <di:waypoint x="1108" y="3468" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_return_openreach_availability__openreach_answered_di" bpmnElement="Flow_return_openreach_availability__openreach_answered">
+        <di:waypoint x="1208" y="3468" />
+        <di:waypoint x="4158" y="3468" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_openreach_order_received__validate_openreach_order_di" bpmnElement="Flow_openreach_order_received__validate_openreach_order">
+        <di:waypoint x="4767" y="3468" />
+        <di:waypoint x="4824" y="3468" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_validate_openreach_order__openreach_order_valid_di" bpmnElement="Flow_validate_openreach_order__openreach_order_valid">
+        <di:waypoint x="4924" y="3468" />
+        <di:waypoint x="4974" y="3468" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_openreach_order_valid__reject_openreach_order_di" bpmnElement="Flow_openreach_order_valid__reject_openreach_order">
+        <di:waypoint x="4999" y="3493" />
+        <di:waypoint x="4999" y="3578" />
+        <di:waypoint x="5074" y="3578" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5004" y="3529" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_reject_openreach_order__openreach_rejected_di" bpmnElement="Flow_reject_openreach_order__openreach_rejected">
+        <di:waypoint x="5174" y="3578" />
+        <di:waypoint x="5292" y="3578" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_openreach_order_valid__order_type_di" bpmnElement="Flow_openreach_order_valid__order_type">
+        <di:waypoint x="5024" y="3468" />
+        <di:waypoint x="5099" y="3468" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5029" y="3449" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_order_type__survey_and_plan_route_di" bpmnElement="Flow_order_type__survey_and_plan_route">
+        <di:waypoint x="5149" y="3468" />
+        <di:waypoint x="5211" y="3468" />
+        <di:waypoint x="5211" y="3738" />
+        <di:waypoint x="5260" y="3738" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5154" y="3449" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_survey_and_plan_route__book_engineer_appointment_di" bpmnElement="Flow_survey_and_plan_route__book_engineer_appointment">
+        <di:waypoint x="5360" y="3738" />
+        <di:waypoint x="5422" y="3738" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_book_engineer_appointment__commit_openreach_date_di" bpmnElement="Flow_book_engineer_appointment__commit_openreach_date">
+        <di:waypoint x="5522" y="3738" />
+        <di:waypoint x="5572" y="3738" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_commit_openreach_date__install_fibre_and_ont_di" bpmnElement="Flow_commit_openreach_date__install_fibre_and_ont">
+        <di:waypoint x="5672" y="3738" />
+        <di:waypoint x="5709" y="3738" />
+        <di:waypoint x="5709" y="3898" />
+        <di:waypoint x="5758" y="3898" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_appointment_missed__notify_delay_di" bpmnElement="Flow_appointment_missed__notify_delay">
+        <di:waypoint x="5808" y="3956" />
+        <di:waypoint x="5808" y="4008" />
+        <di:waypoint x="5908" y="4008" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_notify_delay__delay_notified_di" bpmnElement="Flow_notify_delay__delay_notified">
+        <di:waypoint x="6008" y="4008" />
+        <di:waypoint x="6090" y="4008" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_order_type__schedule_remote_switch_over_di" bpmnElement="Flow_order_type__schedule_remote_switch_over">
+        <di:waypoint x="5149" y="3468" />
+        <di:waypoint x="5260" y="3468" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5154" y="3473" width="38" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_schedule_remote_switch_over__commit_switch_date_di" bpmnElement="Flow_schedule_remote_switch_over__commit_switch_date">
+        <di:waypoint x="5360" y="3468" />
+        <di:waypoint x="5422" y="3468" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_commit_switch_date__switch_over_remotely_di" bpmnElement="Flow_commit_switch_date__switch_over_remotely">
+        <di:waypoint x="5522" y="3468" />
+        <di:waypoint x="5572" y="3468" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_install_fibre_and_ont__join_after_close_openreach_work_order_di" bpmnElement="Flow_install_fibre_and_ont__join_after_close_openreach_work_order" bioc:stroke="#E65100" color:border-color="#E65100">
+        <di:waypoint x="5858" y="3898" />
+        <di:waypoint x="6694" y="3898" />
+        <di:waypoint x="6694" y="3493" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_switch_over_remotely__join_after_close_openreach_work_order_di" bpmnElement="Flow_switch_over_remotely__join_after_close_openreach_work_order">
+        <di:waypoint x="5672" y="3468" />
+        <di:waypoint x="6669" y="3468" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_join_after_close_openreach_work_order__close_openreach_work_order_di" bpmnElement="Flow_join_after_close_openreach_work_order__close_openreach_work_order">
+        <di:waypoint x="6719" y="3468" />
+        <di:waypoint x="6794" y="3468" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_close_openreach_work_order__send_openreach_completion_di" bpmnElement="Flow_close_openreach_work_order__send_openreach_completion">
+        <di:waypoint x="6894" y="3468" />
+        <di:waypoint x="6944" y="3468" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_send_openreach_completion__openreach_order_complete_di" bpmnElement="Flow_send_openreach_completion__openreach_order_complete">
+        <di:waypoint x="7044" y="3468" />
+        <di:waypoint x="7126" y="3468" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_request_a_quote__quote_requested_di" bpmnElement="MessageFlow_request_a_quote__quote_requested">
+        <di:waypoint x="262" y="120" />
+        <di:waypoint x="262" y="397" />
+        <di:waypoint x="380" y="397" />
+        <di:waypoint x="380" y="1032" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_place_order__customer_order_received_di" bpmnElement="MessageFlow_place_order__customer_order_received">
+        <di:waypoint x="2282" y="120" />
+        <di:waypoint x="2282" y="405" />
+        <di:waypoint x="2432" y="405" />
+        <di:waypoint x="2432" y="1010" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_courier__router_arrives_di" bpmnElement="MessageFlow_courier__router_arrives">
+        <di:waypoint x="6270" y="430" />
+        <di:waypoint x="6270" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_courier__delivery_confirmed_di" bpmnElement="MessageFlow_courier__delivery_confirmed">
+        <di:waypoint x="6345" y="490" />
+        <di:waypoint x="6345" y="2644" />
+        <di:waypoint x="6270" y="2644" />
+        <di:waypoint x="6270" y="2659" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_return_cityfibre_availability__cityfibre_availability_di" bpmnElement="MessageFlow_return_cityfibre_availability__cityfibre_availability">
+        <di:waypoint x="1158" y="660" />
+        <di:waypoint x="1158" y="835" />
+        <di:waypoint x="1383" y="835" />
+        <di:waypoint x="1383" y="1204" />
+        <di:waypoint x="1308" y="1204" />
+        <di:waypoint x="1308" y="1219" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_reject_cityfibre_order__order_rejected_di" bpmnElement="MessageFlow_reject_cityfibre_order__order_rejected">
+        <di:waypoint x="5124" y="770" />
+        <di:waypoint x="5124" y="843" />
+        <di:waypoint x="5310" y="843" />
+        <di:waypoint x="5310" y="1559" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_commit_cityfibre_date__committed_date_received_di" bpmnElement="MessageFlow_commit_cityfibre_date__committed_date_received">
+        <di:waypoint x="5310" y="660" />
+        <di:waypoint x="5310" y="675" />
+        <di:waypoint x="5385" y="675" />
+        <di:waypoint x="5385" y="827" />
+        <di:waypoint x="5808" y="827" />
+        <di:waypoint x="5808" y="1559" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_send_cityfibre_completion__completion_notice_di" bpmnElement="MessageFlow_send_cityfibre_completion__completion_notice">
+        <di:waypoint x="6844" y="660" />
+        <di:waypoint x="6844" y="835" />
+        <di:waypoint x="7144" y="835" />
+        <di:waypoint x="7144" y="1559" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_ask_openreach_for_availability__openreach_availability_request_di" bpmnElement="MessageFlow_ask_openreach_for_availability__openreach_availability_request">
+        <di:waypoint x="748" y="1090" />
+        <di:waypoint x="748" y="1105" />
+        <di:waypoint x="823" y="1105" />
+        <di:waypoint x="823" y="3371" />
+        <di:waypoint x="890" y="3371" />
+        <di:waypoint x="890" y="3450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_ask_cityfibre_for_availability__cityfibre_availability_request_di" bpmnElement="MessageFlow_ask_cityfibre_for_availability__cityfibre_availability_request">
+        <di:waypoint x="748" y="1219" />
+        <di:waypoint x="748" y="1204" />
+        <di:waypoint x="835" y="1204" />
+        <di:waypoint x="835" y="827" />
+        <di:waypoint x="890" y="827" />
+        <di:waypoint x="890" y="638" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_send_offer__offer_received_di" bpmnElement="MessageFlow_send_offer__offer_received">
+        <di:waypoint x="1832" y="1010" />
+        <di:waypoint x="1832" y="405" />
+        <di:waypoint x="1982" y="405" />
+        <di:waypoint x="1982" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_request_switch_match__one_touch_switch_hub_di" bpmnElement="MessageFlow_request_switch_match__one_touch_switch_hub">
+        <di:waypoint x="2682" y="1090" />
+        <di:waypoint x="2682" y="4248" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2687" y="2655" width="78" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_tell_customer_no_service__no_service_at_the_address_di" bpmnElement="MessageFlow_tell_customer_no_service__no_service_at_the_address">
+        <di:waypoint x="3756" y="1010" />
+        <di:waypoint x="3756" y="397" />
+        <di:waypoint x="3942" y="397" />
+        <di:waypoint x="3942" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_run_credit_check__credit_agency_di" bpmnElement="MessageFlow_run_credit_check__credit_agency">
+        <di:waypoint x="2994" y="1469" />
+        <di:waypoint x="2994" y="4138" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2999" y="2797" width="79" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_decline_order__order_declined_di" bpmnElement="MessageFlow_decline_order__order_declined">
+        <di:waypoint x="3756" y="1389" />
+        <di:waypoint x="3756" y="1374" />
+        <di:waypoint x="3855" y="1374" />
+        <di:waypoint x="3855" y="413" />
+        <di:waypoint x="4077" y="413" />
+        <di:waypoint x="4077" y="135" />
+        <di:waypoint x="3942" y="135" />
+        <di:waypoint x="3942" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_confirm_order__order_confirmed_di" bpmnElement="MessageFlow_confirm_order__order_confirmed">
+        <di:waypoint x="3942" y="1010" />
+        <di:waypoint x="3942" y="995" />
+        <di:waypoint x="4089" y="995" />
+        <di:waypoint x="4089" y="397" />
+        <di:waypoint x="4263" y="397" />
+        <di:waypoint x="4263" y="135" />
+        <di:waypoint x="4176" y="135" />
+        <di:waypoint x="4176" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_order_from_openreach__openreach_order_received_di" bpmnElement="MessageFlow_order_from_openreach__openreach_order_received">
+        <di:waypoint x="4600" y="1639" />
+        <di:waypoint x="4600" y="1654" />
+        <di:waypoint x="4675" y="1654" />
+        <di:waypoint x="4675" y="3363" />
+        <di:waypoint x="4749" y="3363" />
+        <di:waypoint x="4749" y="3450" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_order_from_cityfibre__cityfibre_order_received_di" bpmnElement="MessageFlow_order_from_cityfibre__cityfibre_order_received">
+        <di:waypoint x="4600" y="1768" />
+        <di:waypoint x="4600" y="1753" />
+        <di:waypoint x="4687" y="1753" />
+        <di:waypoint x="4687" y="843" />
+        <di:waypoint x="4749" y="843" />
+        <di:waypoint x="4749" y="638" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_tell_customer_the_date__installation_date_di" bpmnElement="MessageFlow_tell_customer_the_date__installation_date">
+        <di:waypoint x="5958" y="1559" />
+        <di:waypoint x="5958" y="397" />
+        <di:waypoint x="6108" y="397" />
+        <di:waypoint x="6108" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_port_phone_number__one_touch_switch_hub_di" bpmnElement="MessageFlow_port_phone_number__one_touch_switch_hub">
+        <di:waypoint x="6532" y="2469" />
+        <di:waypoint x="6532" y="2484" />
+        <di:waypoint x="6607" y="2484" />
+        <di:waypoint x="6607" y="4248" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_dispatch_router__courier_di" bpmnElement="MessageFlow_dispatch_router__courier">
+        <di:waypoint x="6108" y="2659" />
+        <di:waypoint x="6108" y="2644" />
+        <di:waypoint x="6183" y="2644" />
+        <di:waypoint x="6183" y="490" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="6188" y="1560" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_confirm_installation__installation_done_di" bpmnElement="MessageFlow_confirm_installation__installation_done">
+        <di:waypoint x="7294" y="1559" />
+        <di:waypoint x="7294" y="397" />
+        <di:waypoint x="7785" y="397" />
+        <di:waypoint x="7785" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_send_welcome_pack__welcome_pack_di" bpmnElement="MessageFlow_send_welcome_pack__welcome_pack">
+        <di:waypoint x="8426" y="3078" />
+        <di:waypoint x="8426" y="405" />
+        <di:waypoint x="8576" y="405" />
+        <di:waypoint x="8576" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_return_openreach_availability__openreach_availability_di" bpmnElement="MessageFlow_return_openreach_availability__openreach_availability">
+        <di:waypoint x="1158" y="3428" />
+        <di:waypoint x="1158" y="3371" />
+        <di:waypoint x="1395" y="3371" />
+        <di:waypoint x="1395" y="1105" />
+        <di:waypoint x="1308" y="1105" />
+        <di:waypoint x="1308" y="1090" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_reject_openreach_order__order_rejected_di" bpmnElement="MessageFlow_reject_openreach_order__order_rejected">
+        <di:waypoint x="5124" y="3538" />
+        <di:waypoint x="5124" y="3523" />
+        <di:waypoint x="5223" y="3523" />
+        <di:waypoint x="5223" y="3355" />
+        <di:waypoint x="5310" y="3355" />
+        <di:waypoint x="5310" y="1639" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_commit_openreach_date__committed_date_received_di" bpmnElement="MessageFlow_commit_openreach_date__committed_date_received">
+        <di:waypoint x="5622" y="3698" />
+        <di:waypoint x="5622" y="3683" />
+        <di:waypoint x="5721" y="3683" />
+        <di:waypoint x="5721" y="3363" />
+        <di:waypoint x="5808" y="3363" />
+        <di:waypoint x="5808" y="1639" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_notify_delay__brightwave_broadband_di" bpmnElement="MessageFlow_notify_delay__brightwave_broadband">
+        <di:waypoint x="5958" y="3968" />
+        <di:waypoint x="5958" y="3338" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_commit_switch_date__committed_date_received_di" bpmnElement="MessageFlow_commit_switch_date__committed_date_received">
+        <di:waypoint x="5472" y="3428" />
+        <di:waypoint x="5472" y="3355" />
+        <di:waypoint x="5808" y="3355" />
+        <di:waypoint x="5808" y="1639" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_send_openreach_completion__completion_notice_di" bpmnElement="MessageFlow_send_openreach_completion__completion_notice">
+        <di:waypoint x="6994" y="3428" />
+        <di:waypoint x="6994" y="3363" />
+        <di:waypoint x="7144" y="3363" />
+        <di:waypoint x="7144" y="1639" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_credit_agency__credit_result_di" bpmnElement="MessageFlow_credit_agency__credit_result">
+        <di:waypoint x="3144" y="4138" />
+        <di:waypoint x="3144" y="1469" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_one_touch_switch_hub__switch_match_received_di" bpmnElement="MessageFlow_one_touch_switch_hub__switch_match_received">
+        <di:waypoint x="2832" y="4248" />
+        <di:waypoint x="2832" y="1090" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_confirm_order_di" bpmnElement="Association_confirm_order">
+        <di:waypoint x="3942" y="1010" />
+        <di:waypoint x="3942" y="980" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_find_address_key__address_database_di" bpmnElement="DataInputAssociation_find_address_key__address_database">
+        <di:waypoint x="498" y="1120" />
+        <di:waypoint x="498" y="1090" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_build_offer__product_catalogue_di" bpmnElement="DataInputAssociation_build_offer__product_catalogue">
+        <di:waypoint x="1682" y="1120" />
+        <di:waypoint x="1682" y="1090" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_place_wholesale_order__wholesale_order_di" bpmnElement="DataOutputAssociation_place_wholesale_order__wholesale_order">
+        <di:waypoint x="4350" y="1639" />
+        <di:waypoint x="4350" y="1669" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_reserve_ip_and_service_id__oss_inventory_di" bpmnElement="DataOutputAssociation_reserve_ip_and_service_id__oss_inventory">
+        <di:waypoint x="6108" y="2129" />
+        <di:waypoint x="6108" y="2240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_create_billing_account__billing_system_di" bpmnElement="DataOutputAssociation_create_billing_account__billing_system">
+        <di:waypoint x="6108" y="2899" />
+        <di:waypoint x="6108" y="2929" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_start_billing__billing_system_di" bpmnElement="DataOutputAssociation_start_billing__billing_system">
+        <di:waypoint x="8264" y="2899" />
+        <di:waypoint x="8264" y="2954" />
+        <di:waypoint x="6133" y="2954" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_activate_service_start_1__bind_service_id_to_the_ont_di" bpmnElement="Flow_activate_service_start_1__bind_service_id_to_the_ont">
+        <di:waypoint x="7474.5" y="2042" />
+        <di:waypoint x="7524.5" y="2042" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_bind_service_id_to_the_ont__push_configuration_di" bpmnElement="Flow_bind_service_id_to_the_ont__push_configuration">
+        <di:waypoint x="7624.5" y="2042" />
+        <di:waypoint x="7674.5" y="2042" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_push_configuration__run_line_tests_di" bpmnElement="Flow_push_configuration__run_line_tests">
+        <di:waypoint x="7774.5" y="2042" />
+        <di:waypoint x="7824.5" y="2042" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_run_line_tests__tests_pass_di" bpmnElement="Flow_run_line_tests__tests_pass">
+        <di:waypoint x="7924.5" y="2042" />
+        <di:waypoint x="7974.5" y="2042" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_tests_pass__service_active_di" bpmnElement="Flow_tests_pass__service_active">
+        <di:waypoint x="8024.5" y="2042" />
+        <di:waypoint x="8074.5" y="2042" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="8029.5" y="2023" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_tests_pass__activation_failed_di" bpmnElement="Flow_tests_pass__activation_failed">
+        <di:waypoint x="7999.5" y="2067" />
+        <di:waypoint x="7999.5" y="2152" />
+        <di:waypoint x="8074.5" y="2152" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="8004.5" y="2103" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
+

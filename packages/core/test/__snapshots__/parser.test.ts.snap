@@ -2100,3 +2100,2769 @@ exports[`parser on the corpus > examples/07-multi-phase.bpmnt 1`] = `
   "type": "document",
 }
 `;
+
+exports[`parser on the corpus > examples/08-broadband-provisioning.bpmnt 1`] = `
+{
+  "body": [
+    {
+      "range": "8:1-8:135",
+      "text": "From a customer's quote request to a working, billed full-fibre line on Openreach or CityFibre, and the first check-in afterwards.",
+      "type": "doc",
+    },
+    {
+      "kind": "store",
+      "name": "Address database",
+      "range": "10:1-10:23",
+      "type": "data",
+    },
+    {
+      "kind": "store",
+      "name": "Product catalogue",
+      "range": "11:1-11:24",
+      "type": "data",
+    },
+    {
+      "kind": "store",
+      "name": "OSS inventory",
+      "range": "12:1-12:20",
+      "type": "data",
+    },
+    {
+      "kind": "store",
+      "name": "Billing system",
+      "range": "13:1-13:21",
+      "type": "data",
+    },
+    {
+      "body": [
+        {
+          "range": "16:3-16:88",
+          "text": "A household getting full-fibre broadband, new or switching from another provider.",
+          "type": "doc",
+        },
+        {
+          "body": [
+            {
+              "element": {
+                "keyword": "start",
+                "kind": "start",
+                "name": "Wants faster broadband",
+                "range": "18:5-18:33",
+                "type": "element",
+              },
+              "range": "18:5-18:33",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "send",
+                "kind": "send",
+                "name": "Request a quote",
+                "range": "19:5-19:25",
+                "type": "element",
+              },
+              "range": "19:5-19:44",
+              "tail": [
+                {
+                  "op": "message",
+                  "range": "19:26-19:44",
+                  "targets": [
+                    {
+                      "name": "Quote requested",
+                      "range": "19:29-19:44",
+                      "type": "ref",
+                    },
+                  ],
+                },
+              ],
+              "type": "element-stmt",
+            },
+            {
+              "branches": [
+                {
+                  "body": [
+                    {
+                      "element": {
+                        "keyword": "user",
+                        "kind": "user",
+                        "name": "Choose speed and extras",
+                        "range": "22:9-22:37",
+                        "type": "element",
+                      },
+                      "range": "22:9-22:37",
+                      "type": "element-stmt",
+                    },
+                    {
+                      "range": "23:9-23:87",
+                      "text": "For example 500 Mbps with digital voice, keeping the current phone number.",
+                      "type": "doc",
+                    },
+                    {
+                      "element": {
+                        "keyword": "send",
+                        "kind": "send",
+                        "name": "Place order",
+                        "range": "24:9-24:25",
+                        "type": "element",
+                      },
+                      "range": "24:9-24:52",
+                      "tail": [
+                        {
+                          "op": "message",
+                          "range": "24:26-24:52",
+                          "targets": [
+                            {
+                              "name": "Customer order received",
+                              "range": "24:29-24:52",
+                              "type": "ref",
+                            },
+                          ],
+                        },
+                      ],
+                      "type": "element-stmt",
+                    },
+                    {
+                      "branches": [
+                        {
+                          "form": "bullet",
+                          "inline": {
+                            "target": {
+                              "keyword": "receive",
+                              "kind": "receive",
+                              "name": "Order confirmed",
+                              "range": "26:13-26:36",
+                              "type": "element",
+                            },
+                          },
+                          "range": "26:11-26:36",
+                          "type": "branch",
+                        },
+                        {
+                          "form": "bullet",
+                          "inline": {
+                            "tail": [
+                              {
+                                "op": "sequence",
+                                "range": "27:36-27:61",
+                                "targets": [
+                                  {
+                                    "keyword": "end",
+                                    "kind": "end",
+                                    "name": "Order not accepted",
+                                    "range": "27:39-27:61",
+                                    "type": "element",
+                                  },
+                                ],
+                              },
+                            ],
+                            "target": {
+                              "keyword": "receive",
+                              "kind": "receive",
+                              "name": "Order declined",
+                              "range": "27:13-27:35",
+                              "type": "element",
+                            },
+                          },
+                          "range": "27:11-27:61",
+                          "type": "branch",
+                        },
+                      ],
+                      "element": {
+                        "keyword": "event",
+                        "kind": "event",
+                        "name": "Wait for the provider",
+                        "range": "25:9-25:36",
+                        "type": "element",
+                      },
+                      "range": "25:9-27:61",
+                      "type": "gateway",
+                    },
+                  ],
+                  "form": "bullet",
+                  "inline": {
+                    "target": {
+                      "keyword": "receive",
+                      "kind": "receive",
+                      "name": "Offer received",
+                      "range": "21:9-21:31",
+                      "type": "element",
+                    },
+                  },
+                  "range": "21:7-27:61",
+                  "type": "branch",
+                },
+                {
+                  "form": "bullet",
+                  "inline": {
+                    "tail": [
+                      {
+                        "op": "sequence",
+                        "range": "28:43-28:63",
+                        "targets": [
+                          {
+                            "keyword": "end",
+                            "kind": "end",
+                            "name": "Not available",
+                            "range": "28:46-28:63",
+                            "type": "element",
+                          },
+                        ],
+                      },
+                    ],
+                    "target": {
+                      "keyword": "receive",
+                      "kind": "receive",
+                      "name": "No service at the address",
+                      "range": "28:9-28:42",
+                      "type": "element",
+                    },
+                  },
+                  "range": "28:7-28:63",
+                  "type": "branch",
+                },
+              ],
+              "element": {
+                "keyword": "event",
+                "kind": "event",
+                "name": "Wait for the quote",
+                "range": "20:5-20:29",
+                "type": "element",
+              },
+              "range": "20:5-28:63",
+              "type": "gateway",
+            },
+          ],
+          "name": "Quote and order",
+          "range": "17:3-28:63",
+          "type": "group",
+        },
+        {
+          "body": [
+            {
+              "element": {
+                "keyword": "receive",
+                "kind": "receive",
+                "name": "Installation date",
+                "range": "30:5-30:30",
+                "type": "element",
+              },
+              "range": "30:5-30:30",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "receive",
+                "kind": "receive",
+                "name": "Router arrives",
+                "range": "31:5-31:27",
+                "type": "element",
+              },
+              "range": "31:5-31:27",
+              "type": "element-stmt",
+            },
+          ],
+          "name": "Build",
+          "range": "29:3-31:27",
+          "type": "group",
+        },
+        {
+          "body": [
+            {
+              "element": {
+                "keyword": "receive",
+                "kind": "receive",
+                "name": "Installation done",
+                "range": "33:5-33:30",
+                "type": "element",
+              },
+              "range": "33:5-33:30",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "receive",
+                "kind": "receive",
+                "name": "Welcome pack",
+                "range": "34:5-34:25",
+                "type": "element",
+              },
+              "range": "34:5-34:25",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "end",
+                "kind": "end",
+                "name": "Online",
+                "range": "35:5-35:15",
+                "type": "element",
+              },
+              "range": "35:5-35:15",
+              "type": "element-stmt",
+            },
+          ],
+          "name": "Go live",
+          "range": "32:3-35:15",
+          "type": "group",
+        },
+      ],
+      "name": "Customer",
+      "range": "15:1-35:15",
+      "type": "pool",
+    },
+    {
+      "attrs": [
+        {
+          "key": "collapsed",
+          "range": "37:15-37:24",
+        },
+      ],
+      "name": "Courier",
+      "range": "37:1-37:25",
+      "type": "pool",
+    },
+    {
+      "range": "38:1-38:26",
+      "source": {
+        "name": "Courier",
+        "range": "38:1-38:8",
+        "type": "ref",
+      },
+      "step": {
+        "op": "message",
+        "range": "38:9-38:26",
+        "targets": [
+          {
+            "name": "Router arrives",
+            "range": "38:12-38:26",
+            "type": "ref",
+          },
+        ],
+      },
+      "type": "message",
+    },
+    {
+      "range": "39:1-39:30",
+      "source": {
+        "name": "Courier",
+        "range": "39:1-39:8",
+        "type": "ref",
+      },
+      "step": {
+        "op": "message",
+        "range": "39:9-39:30",
+        "targets": [
+          {
+            "name": "Delivery confirmed",
+            "range": "39:12-39:30",
+            "type": "ref",
+          },
+        ],
+      },
+      "type": "message",
+    },
+    {
+      "body": [
+        {
+          "range": "42:3-42:76",
+          "text": "An alternative wholesale full-fibre network in many towns and cities.",
+          "type": "doc",
+        },
+        {
+          "body": [
+            {
+              "element": {
+                "eventType": "message",
+                "keyword": "start",
+                "kind": "start",
+                "name": "CityFibre availability request",
+                "range": "44:5-44:49",
+                "type": "element",
+              },
+              "range": "44:5-44:49",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "service",
+                "kind": "service",
+                "name": "Check CityFibre coverage",
+                "range": "45:5-45:37",
+                "type": "element",
+              },
+              "range": "45:5-45:37",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "send",
+                "kind": "send",
+                "name": "Return CityFibre availability",
+                "range": "46:5-46:39",
+                "type": "element",
+              },
+              "range": "46:5-46:65",
+              "tail": [
+                {
+                  "op": "message",
+                  "range": "46:40-46:65",
+                  "targets": [
+                    {
+                      "name": "CityFibre availability",
+                      "range": "46:43-46:65",
+                      "type": "ref",
+                    },
+                  ],
+                },
+              ],
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "end",
+                "kind": "end",
+                "name": "CityFibre answered",
+                "range": "47:5-47:27",
+                "type": "element",
+              },
+              "range": "47:5-47:27",
+              "type": "element-stmt",
+            },
+          ],
+          "name": "Quote and order",
+          "range": "43:3-47:27",
+          "type": "group",
+        },
+        {
+          "body": [
+            {
+              "element": {
+                "eventType": "message",
+                "keyword": "start",
+                "kind": "start",
+                "name": "CityFibre order received",
+                "range": "49:5-49:43",
+                "type": "element",
+              },
+              "range": "49:5-49:43",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "service",
+                "kind": "service",
+                "name": "Validate CityFibre order",
+                "range": "50:5-50:37",
+                "type": "element",
+              },
+              "range": "50:5-50:37",
+              "type": "element-stmt",
+            },
+            {
+              "branches": [
+                {
+                  "body": [
+                    {
+                      "element": {
+                        "keyword": "send",
+                        "kind": "send",
+                        "name": "Reject CityFibre order",
+                        "range": "53:9-53:36",
+                        "type": "element",
+                      },
+                      "range": "53:9-53:54",
+                      "tail": [
+                        {
+                          "op": "message",
+                          "range": "53:37-53:54",
+                          "targets": [
+                            {
+                              "name": "Order rejected",
+                              "range": "53:40-53:54",
+                              "type": "ref",
+                            },
+                          ],
+                        },
+                      ],
+                      "type": "element-stmt",
+                    },
+                    {
+                      "element": {
+                        "keyword": "end",
+                        "kind": "end",
+                        "name": "CityFibre rejected",
+                        "range": "54:9-54:31",
+                        "type": "element",
+                      },
+                      "range": "54:9-54:31",
+                      "type": "element-stmt",
+                    },
+                  ],
+                  "form": "labelled",
+                  "label": "no",
+                  "range": "52:7-54:31",
+                  "type": "branch",
+                },
+                {
+                  "body": [
+                    {
+                      "element": {
+                        "keyword": "user",
+                        "kind": "user",
+                        "name": "Book installer",
+                        "range": "56:9-56:28",
+                        "type": "element",
+                      },
+                      "range": "56:9-56:28",
+                      "type": "element-stmt",
+                    },
+                    {
+                      "element": {
+                        "keyword": "send",
+                        "kind": "send",
+                        "name": "Commit CityFibre date",
+                        "range": "57:9-57:35",
+                        "type": "element",
+                      },
+                      "range": "57:9-57:62",
+                      "tail": [
+                        {
+                          "op": "message",
+                          "range": "57:36-57:62",
+                          "targets": [
+                            {
+                              "name": "Committed date received",
+                              "range": "57:39-57:62",
+                              "type": "ref",
+                            },
+                          ],
+                        },
+                      ],
+                      "type": "element-stmt",
+                    },
+                  ],
+                  "form": "labelled",
+                  "label": "yes",
+                  "range": "55:7-57:62",
+                  "type": "branch",
+                },
+              ],
+              "element": {
+                "keyword": "xor",
+                "kind": "xor",
+                "name": "CityFibre order valid?",
+                "range": "51:5-51:31",
+                "type": "element",
+              },
+              "range": "51:5-57:62",
+              "type": "gateway",
+            },
+          ],
+          "name": "Build",
+          "range": "48:3-57:62",
+          "type": "group",
+        },
+        {
+          "body": [
+            {
+              "element": {
+                "keyword": "user",
+                "kind": "user",
+                "name": "Install CityFibre connection",
+                "range": "59:5-59:38",
+                "type": "element",
+              },
+              "range": "59:5-59:38",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "send",
+                "kind": "send",
+                "name": "Send CityFibre completion",
+                "range": "60:5-60:35",
+                "type": "element",
+              },
+              "range": "60:5-60:56",
+              "tail": [
+                {
+                  "op": "message",
+                  "range": "60:36-60:56",
+                  "targets": [
+                    {
+                      "name": "Completion notice",
+                      "range": "60:39-60:56",
+                      "type": "ref",
+                    },
+                  ],
+                },
+              ],
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "end",
+                "kind": "end",
+                "name": "CityFibre order complete",
+                "range": "61:5-61:33",
+                "type": "element",
+              },
+              "range": "61:5-61:33",
+              "type": "element-stmt",
+            },
+          ],
+          "name": "Go live",
+          "range": "58:3-61:33",
+          "type": "group",
+        },
+      ],
+      "name": "CityFibre",
+      "range": "41:1-61:33",
+      "type": "pool",
+    },
+    {
+      "body": [
+        {
+          "range": "64:3-64:93",
+          "text": "The retail provider: sells the service, builds it in its own systems and bills for it.",
+          "type": "doc",
+        },
+        {
+          "lanes": [
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "65:16-65:30",
+                  "values": [
+                    "#E3F2FD",
+                  ],
+                },
+              ],
+              "name": "Sales",
+              "range": "65:9-65:31",
+            },
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "65:51-65:65",
+                  "values": [
+                    "#E3F2FD",
+                  ],
+                },
+              ],
+              "name": "Credit and fraud",
+              "range": "65:33-65:66",
+            },
+          ],
+          "range": "65:3-65:66",
+          "type": "lanes",
+        },
+        {
+          "lanes": [
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "66:27-66:41",
+                  "values": [
+                    "#FFF8E1",
+                  ],
+                },
+              ],
+              "name": "Order management",
+              "range": "66:9-66:42",
+            },
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "66:66-66:80",
+                  "values": [
+                    "#E8F5E9",
+                  ],
+                },
+              ],
+              "name": "Network provisioning",
+              "range": "66:44-66:81",
+            },
+          ],
+          "range": "66:3-66:81",
+          "type": "lanes",
+        },
+        {
+          "lanes": [
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "67:16-67:30",
+                  "values": [
+                    "#E8F5E9",
+                  ],
+                },
+              ],
+              "name": "Voice",
+              "range": "67:9-67:31",
+            },
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "67:44-67:58",
+                  "values": [
+                    "#E8F5E9",
+                  ],
+                },
+              ],
+              "name": "Logistics",
+              "range": "67:33-67:59",
+            },
+          ],
+          "range": "67:3-67:59",
+          "type": "lanes",
+        },
+        {
+          "lanes": [
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "68:18-68:32",
+                  "values": [
+                    "#F3E5F5",
+                  ],
+                },
+              ],
+              "name": "Billing",
+              "range": "68:9-68:33",
+            },
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "68:50-68:64",
+                  "values": [
+                    "#F3E5F5",
+                  ],
+                },
+              ],
+              "name": "Customer care",
+              "range": "68:35-68:65",
+            },
+          ],
+          "range": "68:3-68:65",
+          "type": "lanes",
+        },
+        {
+          "body": [
+            {
+              "name": "Sales",
+              "range": "71:5-71:15",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "eventType": "message",
+                "keyword": "start",
+                "kind": "start",
+                "name": "Quote requested",
+                "range": "72:5-72:34",
+                "type": "element",
+              },
+              "range": "72:5-72:34",
+              "type": "element-stmt",
+            },
+            {
+              "range": "73:5-73:107",
+              "text": "Quote requests arrive from the website with the address and, for a transfer, the current provider.",
+              "type": "doc",
+            },
+            {
+              "element": {
+                "attrs": [
+                  {
+                    "key": "reads",
+                    "range": "74:31-74:54",
+                    "values": [
+                      "Address database",
+                    ],
+                  },
+                ],
+                "keyword": "service",
+                "kind": "service",
+                "name": "Find address key",
+                "range": "74:5-74:55",
+                "type": "element",
+              },
+              "range": "74:5-74:55",
+              "type": "element-stmt",
+            },
+            {
+              "range": "75:5-75:65",
+              "text": "Looks up the UPRN and each network's address key for it.",
+              "type": "doc",
+            },
+            {
+              "branches": [
+                {
+                  "body": [
+                    {
+                      "element": {
+                        "keyword": "send",
+                        "kind": "send",
+                        "name": "Ask Openreach for availability",
+                        "range": "78:9-78:44",
+                        "type": "element",
+                      },
+                      "range": "78:9-78:78",
+                      "tail": [
+                        {
+                          "op": "message",
+                          "range": "78:45-78:78",
+                          "targets": [
+                            {
+                              "name": "Openreach availability request",
+                              "range": "78:48-78:78",
+                              "type": "ref",
+                            },
+                          ],
+                        },
+                      ],
+                      "type": "element-stmt",
+                    },
+                    {
+                      "element": {
+                        "keyword": "receive",
+                        "kind": "receive",
+                        "name": "Openreach availability",
+                        "range": "79:9-79:39",
+                        "type": "element",
+                      },
+                      "range": "79:9-79:39",
+                      "type": "element-stmt",
+                    },
+                  ],
+                  "form": "bullet",
+                  "range": "77:7-79:39",
+                  "type": "branch",
+                },
+                {
+                  "body": [
+                    {
+                      "element": {
+                        "keyword": "send",
+                        "kind": "send",
+                        "name": "Ask CityFibre for availability",
+                        "range": "81:9-81:44",
+                        "type": "element",
+                      },
+                      "range": "81:9-81:78",
+                      "tail": [
+                        {
+                          "op": "message",
+                          "range": "81:45-81:78",
+                          "targets": [
+                            {
+                              "name": "CityFibre availability request",
+                              "range": "81:48-81:78",
+                              "type": "ref",
+                            },
+                          ],
+                        },
+                      ],
+                      "type": "element-stmt",
+                    },
+                    {
+                      "element": {
+                        "keyword": "receive",
+                        "kind": "receive",
+                        "name": "CityFibre availability",
+                        "range": "82:9-82:39",
+                        "type": "element",
+                      },
+                      "range": "82:9-82:39",
+                      "type": "element-stmt",
+                    },
+                  ],
+                  "form": "bullet",
+                  "range": "80:7-82:39",
+                  "type": "branch",
+                },
+              ],
+              "element": {
+                "keyword": "and",
+                "kind": "and",
+                "name": "Check both networks",
+                "range": "76:5-76:28",
+                "type": "element",
+              },
+              "range": "76:5-82:39",
+              "type": "gateway",
+            },
+            {
+              "branches": [
+                {
+                  "body": [
+                    {
+                      "element": {
+                        "attrs": [
+                          {
+                            "key": "reads",
+                            "range": "85:30-85:54",
+                            "values": [
+                              "Product catalogue",
+                            ],
+                          },
+                        ],
+                        "keyword": "service",
+                        "kind": "service",
+                        "name": "Build offer",
+                        "range": "85:9-85:55",
+                        "type": "element",
+                      },
+                      "range": "85:9-85:55",
+                      "type": "element-stmt",
+                    },
+                    {
+                      "range": "86:9-86:174",
+                      "text": "Speed tiers per available network (for example 150, 500 and 900 Mbps, and 2 Gbps on CityFibre), with extras: digital voice, number porting, a mesh Wi-Fi booster.",
+                      "type": "doc",
+                    },
+                    {
+                      "element": {
+                        "keyword": "send",
+                        "kind": "send",
+                        "name": "Send offer",
+                        "range": "87:9-87:24",
+                        "type": "element",
+                      },
+                      "range": "87:9-87:42",
+                      "tail": [
+                        {
+                          "op": "message",
+                          "range": "87:25-87:42",
+                          "targets": [
+                            {
+                              "name": "Offer received",
+                              "range": "87:28-87:42",
+                              "type": "ref",
+                            },
+                          ],
+                        },
+                      ],
+                      "type": "element-stmt",
+                    },
+                    {
+                      "element": {
+                        "keyword": "receive",
+                        "kind": "receive",
+                        "name": "Customer order received",
+                        "range": "88:9-88:40",
+                        "type": "element",
+                      },
+                      "range": "88:9-88:40",
+                      "type": "element-stmt",
+                    },
+                    {
+                      "branches": [
+                        {
+                          "body": [
+                            {
+                              "range": "91:13-91:32",
+                              "tail": [
+                                {
+                                  "op": "sequence",
+                                  "range": "91:13-91:32",
+                                  "targets": [
+                                    {
+                                      "name": "Run credit check",
+                                      "range": "91:16-91:32",
+                                      "type": "ref",
+                                    },
+                                  ],
+                                },
+                              ],
+                              "type": "goto",
+                            },
+                          ],
+                          "form": "labelled",
+                          "label": "new line",
+                          "range": "90:11-91:32",
+                          "type": "branch",
+                        },
+                        {
+                          "body": [
+                            {
+                              "element": {
+                                "keyword": "service",
+                                "kind": "service",
+                                "name": "Request switch match",
+                                "range": "93:13-93:41",
+                                "type": "element",
+                              },
+                              "range": "93:13-93:99",
+                              "tail": [
+                                {
+                                  "label": "name, address, current provider",
+                                  "op": "message",
+                                  "range": "93:42-93:99",
+                                  "targets": [
+                                    {
+                                      "name": "One Touch Switch hub",
+                                      "range": "93:79-93:99",
+                                      "type": "ref",
+                                    },
+                                  ],
+                                },
+                              ],
+                              "type": "element-stmt",
+                            },
+                            {
+                              "element": {
+                                "keyword": "receive",
+                                "kind": "receive",
+                                "name": "Switch match received",
+                                "range": "94:13-94:42",
+                                "type": "element",
+                              },
+                              "range": "94:13-94:42",
+                              "type": "element-stmt",
+                            },
+                            {
+                              "range": "95:13-95:128",
+                              "text": "The hub returns a switch order reference and tells the current provider; their service ends on the switch date.",
+                              "type": "doc",
+                            },
+                            {
+                              "range": "96:13-96:32",
+                              "tail": [
+                                {
+                                  "op": "sequence",
+                                  "range": "96:13-96:32",
+                                  "targets": [
+                                    {
+                                      "name": "Run credit check",
+                                      "range": "96:16-96:32",
+                                      "type": "ref",
+                                    },
+                                  ],
+                                },
+                              ],
+                              "type": "goto",
+                            },
+                          ],
+                          "form": "labelled",
+                          "label": "transfer",
+                          "range": "92:11-96:32",
+                          "type": "branch",
+                        },
+                      ],
+                      "element": {
+                        "keyword": "xor",
+                        "kind": "xor",
+                        "name": "New line or transfer?",
+                        "range": "89:9-89:34",
+                        "type": "element",
+                      },
+                      "range": "89:9-96:32",
+                      "type": "gateway",
+                    },
+                  ],
+                  "form": "labelled",
+                  "label": "yes",
+                  "range": "84:7-96:32",
+                  "type": "branch",
+                },
+                {
+                  "body": [
+                    {
+                      "element": {
+                        "keyword": "send",
+                        "kind": "send",
+                        "name": "Tell customer no service",
+                        "range": "98:9-98:38",
+                        "type": "element",
+                      },
+                      "range": "98:9-98:67",
+                      "tail": [
+                        {
+                          "op": "message",
+                          "range": "98:39-98:67",
+                          "targets": [
+                            {
+                              "name": "No service at the address",
+                              "range": "98:42-98:67",
+                              "type": "ref",
+                            },
+                          ],
+                        },
+                      ],
+                      "type": "element-stmt",
+                    },
+                    {
+                      "element": {
+                        "keyword": "end",
+                        "kind": "end",
+                        "name": "No service",
+                        "range": "99:9-99:23",
+                        "type": "element",
+                      },
+                      "range": "99:9-99:23",
+                      "type": "element-stmt",
+                    },
+                  ],
+                  "form": "labelled",
+                  "label": "no",
+                  "range": "97:7-99:23",
+                  "type": "branch",
+                },
+              ],
+              "element": {
+                "keyword": "xor",
+                "kind": "xor",
+                "name": "Any full fibre available?",
+                "range": "83:5-83:34",
+                "type": "element",
+              },
+              "range": "83:5-99:23",
+              "type": "gateway",
+            },
+            {
+              "name": "Credit and fraud",
+              "range": "101:5-101:26",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "keyword": "service",
+                "kind": "service",
+                "name": "Run credit check",
+                "range": "102:5-102:29",
+                "type": "element",
+              },
+              "range": "102:5-102:66",
+              "tail": [
+                {
+                  "label": "applicant details",
+                  "op": "message",
+                  "range": "102:30-102:66",
+                  "targets": [
+                    {
+                      "name": "Credit agency",
+                      "range": "102:53-102:66",
+                      "type": "ref",
+                    },
+                  ],
+                },
+              ],
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "receive",
+                "kind": "receive",
+                "name": "Credit result",
+                "range": "103:5-103:26",
+                "type": "element",
+              },
+              "range": "103:5-103:26",
+              "type": "element-stmt",
+            },
+            {
+              "branches": [
+                {
+                  "body": [
+                    {
+                      "element": {
+                        "keyword": "user",
+                        "kind": "user",
+                        "name": "Review application manually",
+                        "range": "106:9-106:41",
+                        "type": "element",
+                      },
+                      "range": "106:9-106:41",
+                      "type": "element-stmt",
+                    },
+                    {
+                      "range": "107:9-107:106",
+                      "text": "Fraud analysts check identity documents within one working day and record approve or decline.",
+                      "type": "doc",
+                    },
+                  ],
+                  "form": "labelled",
+                  "label": "refer",
+                  "range": "105:7-107:106",
+                  "type": "branch",
+                },
+                {
+                  "form": "labelled",
+                  "label": "pass or fail",
+                  "range": "108:7-108:20",
+                  "type": "branch",
+                },
+              ],
+              "element": {
+                "keyword": "xor",
+                "kind": "xor",
+                "name": "Credit decision?",
+                "range": "104:5-104:25",
+                "type": "element",
+              },
+              "range": "104:5-108:20",
+              "type": "gateway",
+            },
+            {
+              "branches": [
+                {
+                  "form": "labelled",
+                  "label": "yes",
+                  "range": "110:7-110:11",
+                  "type": "branch",
+                },
+                {
+                  "body": [
+                    {
+                      "element": {
+                        "keyword": "send",
+                        "kind": "send",
+                        "name": "Decline order",
+                        "range": "112:9-112:27",
+                        "type": "element",
+                      },
+                      "range": "112:9-112:45",
+                      "tail": [
+                        {
+                          "op": "message",
+                          "range": "112:28-112:45",
+                          "targets": [
+                            {
+                              "name": "Order declined",
+                              "range": "112:31-112:45",
+                              "type": "ref",
+                            },
+                          ],
+                        },
+                      ],
+                      "type": "element-stmt",
+                    },
+                    {
+                      "element": {
+                        "keyword": "end",
+                        "kind": "end",
+                        "name": "Declined",
+                        "range": "113:9-113:21",
+                        "type": "element",
+                      },
+                      "range": "113:9-113:21",
+                      "type": "element-stmt",
+                    },
+                  ],
+                  "form": "labelled",
+                  "label": "no",
+                  "range": "111:7-113:21",
+                  "type": "branch",
+                },
+              ],
+              "element": {
+                "keyword": "xor",
+                "kind": "xor",
+                "name": "Approved?",
+                "range": "109:5-109:18",
+                "type": "element",
+              },
+              "range": "109:5-113:21",
+              "type": "gateway",
+            },
+            {
+              "name": "Sales",
+              "range": "114:5-114:15",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "keyword": "send",
+                "kind": "send",
+                "name": "Confirm order",
+                "range": "115:5-115:23",
+                "type": "element",
+              },
+              "range": "115:5-115:42",
+              "tail": [
+                {
+                  "op": "message",
+                  "range": "115:24-115:42",
+                  "targets": [
+                    {
+                      "name": "Order confirmed",
+                      "range": "115:27-115:42",
+                      "type": "ref",
+                    },
+                  ],
+                },
+              ],
+              "type": "element-stmt",
+            },
+            {
+              "range": "116:5-116:64",
+              "text": "Confirmation includes the earliest installation window",
+              "type": "note",
+            },
+          ],
+          "name": "Quote and order",
+          "range": "70:3-116:64",
+          "type": "group",
+        },
+        {
+          "body": [
+            {
+              "name": "Order management",
+              "range": "119:5-119:26",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "attrs": [
+                  {
+                    "key": "writes",
+                    "range": "120:36-120:59",
+                    "values": [
+                      "Wholesale order",
+                    ],
+                  },
+                ],
+                "keyword": "service",
+                "kind": "service",
+                "name": "Place wholesale order",
+                "range": "120:5-120:60",
+                "type": "element",
+              },
+              "range": "120:5-120:60",
+              "type": "element-stmt",
+            },
+            {
+              "range": "121:5-121:112",
+              "text": "A new-provide or a transfer order, with the address key, the speed tier and the appointment preference.",
+              "type": "doc",
+            },
+            {
+              "branches": [
+                {
+                  "body": [
+                    {
+                      "element": {
+                        "keyword": "send",
+                        "kind": "send",
+                        "name": "Order from Openreach",
+                        "range": "124:9-124:34",
+                        "type": "element",
+                      },
+                      "range": "124:9-124:62",
+                      "tail": [
+                        {
+                          "op": "message",
+                          "range": "124:35-124:62",
+                          "targets": [
+                            {
+                              "name": "Openreach order received",
+                              "range": "124:38-124:62",
+                              "type": "ref",
+                            },
+                          ],
+                        },
+                      ],
+                      "type": "element-stmt",
+                    },
+                  ],
+                  "form": "labelled",
+                  "label": "openreach",
+                  "range": "123:7-124:62",
+                  "type": "branch",
+                },
+                {
+                  "body": [
+                    {
+                      "element": {
+                        "keyword": "send",
+                        "kind": "send",
+                        "name": "Order from CityFibre",
+                        "range": "126:9-126:34",
+                        "type": "element",
+                      },
+                      "range": "126:9-126:62",
+                      "tail": [
+                        {
+                          "op": "message",
+                          "range": "126:35-126:62",
+                          "targets": [
+                            {
+                              "name": "CityFibre order received",
+                              "range": "126:38-126:62",
+                              "type": "ref",
+                            },
+                          ],
+                        },
+                      ],
+                      "type": "element-stmt",
+                    },
+                  ],
+                  "form": "labelled",
+                  "label": "cityfibre",
+                  "range": "125:7-126:62",
+                  "type": "branch",
+                },
+              ],
+              "element": {
+                "keyword": "xor",
+                "kind": "xor",
+                "name": "Which network?",
+                "range": "122:5-122:23",
+                "type": "element",
+              },
+              "range": "122:5-126:62",
+              "type": "gateway",
+            },
+            {
+              "branches": [
+                {
+                  "form": "bullet",
+                  "inline": {
+                    "target": {
+                      "keyword": "receive",
+                      "kind": "receive",
+                      "name": "Committed date received",
+                      "range": "128:9-128:40",
+                      "type": "element",
+                    },
+                  },
+                  "range": "128:7-128:40",
+                  "type": "branch",
+                },
+                {
+                  "body": [
+                    {
+                      "element": {
+                        "keyword": "user",
+                        "kind": "user",
+                        "name": "Correct order details",
+                        "range": "130:9-130:35",
+                        "type": "element",
+                      },
+                      "range": "130:9-130:35",
+                      "type": "element-stmt",
+                    },
+                    {
+                      "range": "131:9-131:105",
+                      "text": "Typical rejections: wrong address key, a tier the line cannot carry, missing access details.",
+                      "type": "doc",
+                    },
+                    {
+                      "range": "132:9-132:33",
+                      "tail": [
+                        {
+                          "op": "sequence",
+                          "range": "132:9-132:33",
+                          "targets": [
+                            {
+                              "name": "Place wholesale order",
+                              "range": "132:12-132:33",
+                              "type": "ref",
+                            },
+                          ],
+                        },
+                      ],
+                      "type": "goto",
+                    },
+                  ],
+                  "form": "bullet",
+                  "inline": {
+                    "target": {
+                      "keyword": "receive",
+                      "kind": "receive",
+                      "name": "Order rejected",
+                      "range": "129:9-129:31",
+                      "type": "element",
+                    },
+                  },
+                  "range": "129:7-132:33",
+                  "type": "branch",
+                },
+                {
+                  "body": [
+                    {
+                      "element": {
+                        "keyword": "user",
+                        "kind": "user",
+                        "name": "Chase the network",
+                        "range": "134:9-134:31",
+                        "type": "element",
+                      },
+                      "range": "134:9-134:31",
+                      "type": "element-stmt",
+                    },
+                    {
+                      "range": "135:9-135:32",
+                      "tail": [
+                        {
+                          "op": "sequence",
+                          "range": "135:9-135:32",
+                          "targets": [
+                            {
+                              "name": "Wait for the network",
+                              "range": "135:12-135:32",
+                              "type": "ref",
+                            },
+                          ],
+                        },
+                      ],
+                      "type": "goto",
+                    },
+                  ],
+                  "form": "bullet",
+                  "inline": {
+                    "target": {
+                      "eventType": "timer",
+                      "keyword": "wait",
+                      "kind": "catch",
+                      "name": "2 working days",
+                      "range": "133:9-133:28",
+                      "type": "element",
+                    },
+                  },
+                  "range": "133:7-135:32",
+                  "type": "branch",
+                },
+              ],
+              "element": {
+                "keyword": "event",
+                "kind": "event",
+                "name": "Wait for the network",
+                "range": "127:5-127:31",
+                "type": "element",
+              },
+              "range": "127:5-135:32",
+              "type": "gateway",
+            },
+            {
+              "element": {
+                "keyword": "send",
+                "kind": "send",
+                "name": "Tell customer the date",
+                "range": "136:5-136:32",
+                "type": "element",
+              },
+              "range": "136:5-136:53",
+              "tail": [
+                {
+                  "op": "message",
+                  "range": "136:33-136:53",
+                  "targets": [
+                    {
+                      "name": "Installation date",
+                      "range": "136:36-136:53",
+                      "type": "ref",
+                    },
+                  ],
+                },
+              ],
+              "type": "element-stmt",
+            },
+            {
+              "branches": [
+                {
+                  "body": [
+                    {
+                      "name": "Network provisioning",
+                      "range": "139:9-139:34",
+                      "type": "lane",
+                    },
+                    {
+                      "element": {
+                        "attrs": [
+                          {
+                            "key": "writes",
+                            "range": "140:44-140:65",
+                            "values": [
+                              "OSS inventory",
+                            ],
+                          },
+                        ],
+                        "keyword": "service",
+                        "kind": "service",
+                        "name": "Reserve IP and service ID",
+                        "range": "140:9-140:66",
+                        "type": "element",
+                      },
+                      "range": "140:9-140:66",
+                      "type": "element-stmt",
+                    },
+                    {
+                      "element": {
+                        "keyword": "service",
+                        "kind": "service",
+                        "name": "Configure RADIUS and speed profile",
+                        "range": "141:9-141:51",
+                        "type": "element",
+                      },
+                      "range": "141:9-141:51",
+                      "type": "element-stmt",
+                    },
+                  ],
+                  "form": "bullet",
+                  "range": "138:7-141:51",
+                  "type": "branch",
+                },
+                {
+                  "body": [
+                    {
+                      "name": "Voice",
+                      "range": "143:9-143:19",
+                      "type": "lane",
+                    },
+                    {
+                      "branches": [
+                        {
+                          "body": [
+                            {
+                              "element": {
+                                "keyword": "service",
+                                "kind": "service",
+                                "name": "Set up digital voice line",
+                                "range": "146:13-146:46",
+                                "type": "element",
+                              },
+                              "range": "146:13-146:46",
+                              "type": "element-stmt",
+                            },
+                            {
+                              "branches": [
+                                {
+                                  "form": "labelled",
+                                  "inline": {
+                                    "tail": [
+                                      {
+                                        "op": "message",
+                                        "range": "148:46-148:69",
+                                        "targets": [
+                                          {
+                                            "name": "One Touch Switch hub",
+                                            "range": "148:49-148:69",
+                                            "type": "ref",
+                                          },
+                                        ],
+                                      },
+                                    ],
+                                    "target": {
+                                      "keyword": "service",
+                                      "kind": "service",
+                                      "name": "Port phone number",
+                                      "range": "148:20-148:45",
+                                      "type": "element",
+                                    },
+                                  },
+                                  "label": "yes",
+                                  "range": "148:15-148:69",
+                                  "type": "branch",
+                                },
+                                {
+                                  "form": "labelled",
+                                  "inline": {
+                                    "target": {
+                                      "keyword": "service",
+                                      "kind": "service",
+                                      "name": "Allocate new number",
+                                      "range": "149:19-149:46",
+                                      "type": "element",
+                                    },
+                                  },
+                                  "label": "no",
+                                  "range": "149:15-149:46",
+                                  "type": "branch",
+                                },
+                              ],
+                              "element": {
+                                "keyword": "xor",
+                                "kind": "xor",
+                                "name": "Keep current number?",
+                                "range": "147:13-147:37",
+                                "type": "element",
+                              },
+                              "range": "147:13-149:46",
+                              "type": "gateway",
+                            },
+                          ],
+                          "form": "labelled",
+                          "label": "yes",
+                          "range": "145:11-149:46",
+                          "type": "branch",
+                        },
+                        {
+                          "form": "labelled",
+                          "label": "no",
+                          "range": "150:11-150:14",
+                          "type": "branch",
+                        },
+                      ],
+                      "element": {
+                        "keyword": "xor",
+                        "kind": "xor",
+                        "name": "Digital voice ordered?",
+                        "range": "144:9-144:35",
+                        "type": "element",
+                      },
+                      "range": "144:9-150:14",
+                      "type": "gateway",
+                    },
+                  ],
+                  "form": "bullet",
+                  "range": "142:7-150:14",
+                  "type": "branch",
+                },
+                {
+                  "body": [
+                    {
+                      "name": "Logistics",
+                      "range": "152:9-152:23",
+                      "type": "lane",
+                    },
+                    {
+                      "element": {
+                        "keyword": "service",
+                        "kind": "service",
+                        "name": "Dispatch router",
+                        "range": "153:9-153:32",
+                        "type": "element",
+                      },
+                      "range": "153:9-153:60",
+                      "tail": [
+                        {
+                          "label": "shipping order",
+                          "op": "message",
+                          "range": "153:33-153:60",
+                          "targets": [
+                            {
+                              "name": "Courier",
+                              "range": "153:53-153:60",
+                              "type": "ref",
+                            },
+                          ],
+                        },
+                      ],
+                      "type": "element-stmt",
+                    },
+                    {
+                      "element": {
+                        "keyword": "receive",
+                        "kind": "receive",
+                        "name": "Delivery confirmed",
+                        "range": "154:9-154:35",
+                        "type": "element",
+                      },
+                      "range": "154:9-154:35",
+                      "type": "element-stmt",
+                    },
+                  ],
+                  "form": "bullet",
+                  "range": "151:7-154:35",
+                  "type": "branch",
+                },
+                {
+                  "body": [
+                    {
+                      "name": "Billing",
+                      "range": "156:9-156:21",
+                      "type": "lane",
+                    },
+                    {
+                      "element": {
+                        "attrs": [
+                          {
+                            "key": "writes",
+                            "range": "157:41-157:63",
+                            "values": [
+                              "Billing system",
+                            ],
+                          },
+                        ],
+                        "keyword": "service",
+                        "kind": "service",
+                        "name": "Create billing account",
+                        "range": "157:9-157:64",
+                        "type": "element",
+                      },
+                      "range": "157:9-157:64",
+                      "type": "element-stmt",
+                    },
+                    {
+                      "range": "158:9-158:82",
+                      "text": "The account is created now but stays inactive until the line is live.",
+                      "type": "doc",
+                    },
+                  ],
+                  "form": "bullet",
+                  "range": "155:7-158:82",
+                  "type": "branch",
+                },
+              ],
+              "range": "137:5-158:82",
+              "type": "fork",
+            },
+          ],
+          "name": "Build",
+          "range": "118:3-158:82",
+          "type": "group",
+        },
+        {
+          "body": [
+            {
+              "name": "Order management",
+              "range": "161:5-161:26",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "keyword": "receive",
+                "kind": "receive",
+                "name": "Completion notice",
+                "range": "162:5-162:30",
+                "type": "element",
+              },
+              "range": "162:5-162:30",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "send",
+                "kind": "send",
+                "name": "Confirm installation",
+                "range": "163:5-163:30",
+                "type": "element",
+              },
+              "range": "163:5-163:51",
+              "tail": [
+                {
+                  "op": "message",
+                  "range": "163:31-163:51",
+                  "targets": [
+                    {
+                      "name": "Installation done",
+                      "range": "163:34-163:51",
+                      "type": "ref",
+                    },
+                  ],
+                },
+              ],
+              "type": "element-stmt",
+            },
+            {
+              "name": "Network provisioning",
+              "range": "164:5-164:30",
+              "type": "lane",
+            },
+            {
+              "body": [
+                {
+                  "element": {
+                    "keyword": "start",
+                    "kind": "start",
+                    "range": "166:7-166:12",
+                    "type": "element",
+                  },
+                  "range": "166:7-166:12",
+                  "type": "element-stmt",
+                },
+                {
+                  "element": {
+                    "keyword": "service",
+                    "kind": "service",
+                    "name": "Bind service ID to the ONT",
+                    "range": "167:7-167:41",
+                    "type": "element",
+                  },
+                  "range": "167:7-167:41",
+                  "type": "element-stmt",
+                },
+                {
+                  "element": {
+                    "keyword": "service",
+                    "kind": "service",
+                    "name": "Push configuration",
+                    "range": "168:7-168:33",
+                    "type": "element",
+                  },
+                  "range": "168:7-168:33",
+                  "type": "element-stmt",
+                },
+                {
+                  "element": {
+                    "keyword": "service",
+                    "kind": "service",
+                    "name": "Run line tests",
+                    "range": "169:7-169:29",
+                    "type": "element",
+                  },
+                  "range": "169:7-169:29",
+                  "type": "element-stmt",
+                },
+                {
+                  "branches": [
+                    {
+                      "form": "labelled",
+                      "inline": {
+                        "target": {
+                          "keyword": "end",
+                          "kind": "end",
+                          "name": "Service active",
+                          "range": "171:14-171:32",
+                          "type": "element",
+                        },
+                      },
+                      "label": "yes",
+                      "range": "171:9-171:32",
+                      "type": "branch",
+                    },
+                    {
+                      "form": "labelled",
+                      "inline": {
+                        "target": {
+                          "eventType": "error",
+                          "keyword": "end",
+                          "kind": "end",
+                          "name": "Activation failed",
+                          "range": "172:13-172:40",
+                          "type": "element",
+                        },
+                      },
+                      "label": "no",
+                      "range": "172:9-172:40",
+                      "type": "branch",
+                    },
+                  ],
+                  "element": {
+                    "keyword": "xor",
+                    "kind": "xor",
+                    "name": "Tests pass?",
+                    "range": "170:7-170:22",
+                    "type": "element",
+                  },
+                  "range": "170:7-172:40",
+                  "type": "gateway",
+                },
+              ],
+              "boundaries": [
+                {
+                  "body": [
+                    {
+                      "name": "Customer care",
+                      "range": "174:9-174:27",
+                      "type": "lane",
+                    },
+                    {
+                      "element": {
+                        "keyword": "user",
+                        "kind": "user",
+                        "name": "Troubleshoot with the customer",
+                        "range": "175:9-175:44",
+                        "type": "element",
+                      },
+                      "range": "175:9-175:44",
+                      "type": "element-stmt",
+                    },
+                    {
+                      "range": "176:9-176:108",
+                      "text": "Remote checks first; a second network visit is booked only if the fault is on the network side.",
+                      "type": "doc",
+                    },
+                    {
+                      "range": "177:9-177:28",
+                      "tail": [
+                        {
+                          "op": "sequence",
+                          "range": "177:9-177:28",
+                          "targets": [
+                            {
+                              "name": "Activate service",
+                              "range": "177:12-177:28",
+                              "type": "ref",
+                            },
+                          ],
+                        },
+                      ],
+                      "type": "goto",
+                    },
+                  ],
+                  "element": {
+                    "eventType": "error",
+                    "keyword": "on",
+                    "kind": "on",
+                    "name": "Activation failed",
+                    "range": "173:7-173:33",
+                    "type": "element",
+                  },
+                  "range": "173:7-177:28",
+                  "type": "boundary",
+                },
+              ],
+              "element": {
+                "keyword": "sub",
+                "kind": "sub",
+                "name": "Activate service",
+                "range": "165:5-165:25",
+                "type": "element",
+              },
+              "range": "165:5-177:28",
+              "type": "sub",
+            },
+            {
+              "name": "Billing",
+              "range": "178:5-178:17",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "attrs": [
+                  {
+                    "key": "writes",
+                    "range": "179:28-179:50",
+                    "values": [
+                      "Billing system",
+                    ],
+                  },
+                ],
+                "keyword": "service",
+                "kind": "service",
+                "name": "Start billing",
+                "range": "179:5-179:51",
+                "type": "element",
+              },
+              "range": "179:5-179:51",
+              "type": "element-stmt",
+            },
+            {
+              "name": "Customer care",
+              "range": "180:5-180:23",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "keyword": "send",
+                "kind": "send",
+                "name": "Send welcome pack",
+                "range": "181:5-181:27",
+                "type": "element",
+              },
+              "range": "181:5-181:43",
+              "tail": [
+                {
+                  "op": "message",
+                  "range": "181:28-181:43",
+                  "targets": [
+                    {
+                      "name": "Welcome pack",
+                      "range": "181:31-181:43",
+                      "type": "ref",
+                    },
+                  ],
+                },
+              ],
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "end",
+                "kind": "end",
+                "name": "Customer live",
+                "range": "182:5-182:22",
+                "type": "element",
+              },
+              "range": "182:5-182:22",
+              "type": "element-stmt",
+            },
+          ],
+          "name": "Go live",
+          "range": "160:3-182:22",
+          "type": "group",
+        },
+        {
+          "body": [
+            {
+              "name": "Customer care",
+              "range": "185:5-185:23",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "eventType": "timer",
+                "keyword": "start",
+                "kind": "start",
+                "name": "14 days after go-live",
+                "range": "186:5-186:38",
+                "type": "element",
+              },
+              "range": "186:5-186:38",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "user",
+                "kind": "user",
+                "name": "Satisfaction call",
+                "range": "187:5-187:27",
+                "type": "element",
+              },
+              "range": "187:5-187:27",
+              "type": "element-stmt",
+            },
+            {
+              "branches": [
+                {
+                  "form": "labelled",
+                  "inline": {
+                    "target": {
+                      "keyword": "end",
+                      "kind": "end",
+                      "name": "Case closed",
+                      "range": "189:12-189:27",
+                      "type": "element",
+                    },
+                  },
+                  "label": "yes",
+                  "range": "189:7-189:27",
+                  "type": "branch",
+                },
+                {
+                  "body": [
+                    {
+                      "element": {
+                        "keyword": "user",
+                        "kind": "user",
+                        "name": "Raise service ticket",
+                        "range": "191:9-191:34",
+                        "type": "element",
+                      },
+                      "range": "191:9-191:34",
+                      "type": "element-stmt",
+                    },
+                    {
+                      "element": {
+                        "keyword": "end",
+                        "kind": "end",
+                        "name": "Ticket raised",
+                        "range": "192:9-192:26",
+                        "type": "element",
+                      },
+                      "range": "192:9-192:26",
+                      "type": "element-stmt",
+                    },
+                  ],
+                  "form": "labelled",
+                  "label": "no",
+                  "range": "190:7-192:26",
+                  "type": "branch",
+                },
+              ],
+              "element": {
+                "keyword": "xor",
+                "kind": "xor",
+                "name": "Customer happy?",
+                "range": "188:5-188:24",
+                "type": "element",
+              },
+              "range": "188:5-192:26",
+              "type": "gateway",
+            },
+          ],
+          "name": "Aftercare",
+          "range": "184:3-192:26",
+          "type": "group",
+        },
+      ],
+      "name": "Brightwave Broadband",
+      "range": "63:1-192:26",
+      "type": "pool",
+    },
+    {
+      "body": [
+        {
+          "range": "195:3-195:73",
+          "text": "The national wholesale network that builds and connects the fibre.",
+          "type": "doc",
+        },
+        {
+          "lanes": [
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "196:25-196:39",
+                  "values": [
+                    "#FFF3E0",
+                  ],
+                },
+              ],
+              "name": "Order handling",
+              "range": "196:9-196:40",
+            },
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "196:52-196:66",
+                  "values": [
+                    "#FFF3E0",
+                  ],
+                },
+              ],
+              "name": "Planning",
+              "range": "196:42-196:67",
+            },
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "196:88-196:102",
+                  "values": [
+                    "#FFE0B2",
+                  ],
+                },
+              ],
+              "name": "Field engineering",
+              "range": "196:69-196:103",
+            },
+          ],
+          "range": "196:3-196:103",
+          "type": "lanes",
+        },
+        {
+          "body": [
+            {
+              "name": "Order handling",
+              "range": "199:5-199:24",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "eventType": "message",
+                "keyword": "start",
+                "kind": "start",
+                "name": "Openreach availability request",
+                "range": "200:5-200:49",
+                "type": "element",
+              },
+              "range": "200:5-200:49",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "service",
+                "kind": "service",
+                "name": "Check Openreach line plant",
+                "range": "201:5-201:39",
+                "type": "element",
+              },
+              "range": "201:5-201:39",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "send",
+                "kind": "send",
+                "name": "Return Openreach availability",
+                "range": "202:5-202:39",
+                "type": "element",
+              },
+              "range": "202:5-202:65",
+              "tail": [
+                {
+                  "op": "message",
+                  "range": "202:40-202:65",
+                  "targets": [
+                    {
+                      "name": "Openreach availability",
+                      "range": "202:43-202:65",
+                      "type": "ref",
+                    },
+                  ],
+                },
+              ],
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "end",
+                "kind": "end",
+                "name": "Openreach answered",
+                "range": "203:5-203:27",
+                "type": "element",
+              },
+              "range": "203:5-203:27",
+              "type": "element-stmt",
+            },
+          ],
+          "name": "Quote and order",
+          "range": "198:3-203:27",
+          "type": "group",
+        },
+        {
+          "body": [
+            {
+              "name": "Order handling",
+              "range": "206:5-206:24",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "eventType": "message",
+                "keyword": "start",
+                "kind": "start",
+                "name": "Openreach order received",
+                "range": "207:5-207:43",
+                "type": "element",
+              },
+              "range": "207:5-207:43",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "service",
+                "kind": "service",
+                "name": "Validate Openreach order",
+                "range": "208:5-208:37",
+                "type": "element",
+              },
+              "range": "208:5-208:37",
+              "type": "element-stmt",
+            },
+            {
+              "branches": [
+                {
+                  "body": [
+                    {
+                      "element": {
+                        "keyword": "send",
+                        "kind": "send",
+                        "name": "Reject Openreach order",
+                        "range": "211:9-211:36",
+                        "type": "element",
+                      },
+                      "range": "211:9-211:54",
+                      "tail": [
+                        {
+                          "op": "message",
+                          "range": "211:37-211:54",
+                          "targets": [
+                            {
+                              "name": "Order rejected",
+                              "range": "211:40-211:54",
+                              "type": "ref",
+                            },
+                          ],
+                        },
+                      ],
+                      "type": "element-stmt",
+                    },
+                    {
+                      "element": {
+                        "keyword": "end",
+                        "kind": "end",
+                        "name": "Openreach rejected",
+                        "range": "212:9-212:31",
+                        "type": "element",
+                      },
+                      "range": "212:9-212:31",
+                      "type": "element-stmt",
+                    },
+                  ],
+                  "form": "labelled",
+                  "label": "no",
+                  "range": "210:7-212:31",
+                  "type": "branch",
+                },
+                {
+                  "body": [
+                    {
+                      "branches": [
+                        {
+                          "body": [
+                            {
+                              "name": "Planning",
+                              "range": "216:13-216:26",
+                              "type": "lane",
+                            },
+                            {
+                              "element": {
+                                "attrs": [
+                                  {
+                                    "key": "collapsed",
+                                    "range": "217:40-217:49",
+                                  },
+                                ],
+                                "keyword": "sub",
+                                "kind": "sub",
+                                "name": "Survey and plan route",
+                                "range": "217:13-217:50",
+                                "type": "element",
+                              },
+                              "range": "217:13-217:50",
+                              "type": "sub",
+                            },
+                            {
+                              "range": "218:13-218:89",
+                              "text": "Desk survey of ducts and poles; a site survey when the route is unclear.",
+                              "type": "doc",
+                            },
+                            {
+                              "element": {
+                                "keyword": "user",
+                                "kind": "user",
+                                "name": "Book engineer appointment",
+                                "range": "219:13-219:43",
+                                "type": "element",
+                              },
+                              "range": "219:13-219:43",
+                              "type": "element-stmt",
+                            },
+                            {
+                              "element": {
+                                "keyword": "send",
+                                "kind": "send",
+                                "name": "Commit Openreach date",
+                                "range": "220:13-220:39",
+                                "type": "element",
+                              },
+                              "range": "220:13-220:66",
+                              "tail": [
+                                {
+                                  "op": "message",
+                                  "range": "220:40-220:66",
+                                  "targets": [
+                                    {
+                                      "name": "Committed date received",
+                                      "range": "220:43-220:66",
+                                      "type": "ref",
+                                    },
+                                  ],
+                                },
+                              ],
+                              "type": "element-stmt",
+                            },
+                            {
+                              "name": "Field engineering",
+                              "range": "221:13-221:35",
+                              "type": "lane",
+                            },
+                            {
+                              "boundaries": [
+                                {
+                                  "element": {
+                                    "attrs": [
+                                      {
+                                        "key": "non-interrupting",
+                                        "range": "223:44-223:60",
+                                      },
+                                    ],
+                                    "eventType": "timer",
+                                    "keyword": "on",
+                                    "kind": "on",
+                                    "name": "Appointment missed",
+                                    "range": "223:15-223:61",
+                                    "type": "element",
+                                  },
+                                  "range": "223:15-223:128",
+                                  "tail": [
+                                    {
+                                      "op": "sequence",
+                                      "range": "223:62-223:82",
+                                      "targets": [
+                                        {
+                                          "keyword": "send",
+                                          "kind": "send",
+                                          "name": "Notify delay",
+                                          "range": "223:65-223:82",
+                                          "type": "element",
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      "op": "message",
+                                      "range": "223:83-223:106",
+                                      "targets": [
+                                        {
+                                          "name": "Brightwave Broadband",
+                                          "range": "223:86-223:106",
+                                          "type": "ref",
+                                        },
+                                      ],
+                                    },
+                                    {
+                                      "op": "sequence",
+                                      "range": "223:107-223:128",
+                                      "targets": [
+                                        {
+                                          "keyword": "end",
+                                          "kind": "end",
+                                          "name": "Delay notified",
+                                          "range": "223:110-223:128",
+                                          "type": "element",
+                                        },
+                                      ],
+                                    },
+                                  ],
+                                  "type": "boundary",
+                                },
+                              ],
+                              "element": {
+                                "attrs": [
+                                  {
+                                    "key": "stroke",
+                                    "range": "222:41-222:56",
+                                    "values": [
+                                      "#E65100",
+                                    ],
+                                  },
+                                ],
+                                "keyword": "user",
+                                "kind": "user",
+                                "name": "Install fibre and ONT",
+                                "range": "222:13-222:57",
+                                "type": "element",
+                              },
+                              "range": "222:13-223:128",
+                              "type": "element-stmt",
+                            },
+                          ],
+                          "form": "labelled",
+                          "label": "new provide",
+                          "range": "215:11-223:128",
+                          "type": "branch",
+                        },
+                        {
+                          "body": [
+                            {
+                              "element": {
+                                "keyword": "service",
+                                "kind": "service",
+                                "name": "Schedule remote switch-over",
+                                "range": "225:13-225:48",
+                                "type": "element",
+                              },
+                              "range": "225:13-225:48",
+                              "type": "element-stmt",
+                            },
+                            {
+                              "range": "226:13-226:104",
+                              "text": "The existing fibre and ONT stay; the line moves to the new provider on the switch date.",
+                              "type": "doc",
+                            },
+                            {
+                              "element": {
+                                "keyword": "send",
+                                "kind": "send",
+                                "name": "Commit switch date",
+                                "range": "227:13-227:36",
+                                "type": "element",
+                              },
+                              "range": "227:13-227:63",
+                              "tail": [
+                                {
+                                  "op": "message",
+                                  "range": "227:37-227:63",
+                                  "targets": [
+                                    {
+                                      "name": "Committed date received",
+                                      "range": "227:40-227:63",
+                                      "type": "ref",
+                                    },
+                                  ],
+                                },
+                              ],
+                              "type": "element-stmt",
+                            },
+                            {
+                              "element": {
+                                "keyword": "service",
+                                "kind": "service",
+                                "name": "Switch over remotely",
+                                "range": "228:13-228:41",
+                                "type": "element",
+                              },
+                              "range": "228:13-228:41",
+                              "type": "element-stmt",
+                            },
+                          ],
+                          "form": "labelled",
+                          "label": "transfer",
+                          "range": "224:11-228:41",
+                          "type": "branch",
+                        },
+                      ],
+                      "element": {
+                        "keyword": "xor",
+                        "kind": "xor",
+                        "name": "Order type?",
+                        "range": "214:9-214:24",
+                        "type": "element",
+                      },
+                      "range": "214:9-228:41",
+                      "type": "gateway",
+                    },
+                  ],
+                  "form": "labelled",
+                  "label": "yes",
+                  "range": "213:7-228:41",
+                  "type": "branch",
+                },
+              ],
+              "element": {
+                "keyword": "xor",
+                "kind": "xor",
+                "name": "Openreach order valid?",
+                "range": "209:5-209:31",
+                "type": "element",
+              },
+              "range": "209:5-228:41",
+              "type": "gateway",
+            },
+          ],
+          "name": "Build",
+          "range": "205:3-228:41",
+          "type": "group",
+        },
+        {
+          "body": [
+            {
+              "name": "Order handling",
+              "range": "231:5-231:24",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "keyword": "service",
+                "kind": "service",
+                "name": "Close Openreach work order",
+                "range": "232:5-232:39",
+                "type": "element",
+              },
+              "range": "232:5-232:39",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "send",
+                "kind": "send",
+                "name": "Send Openreach completion",
+                "range": "233:5-233:35",
+                "type": "element",
+              },
+              "range": "233:5-233:56",
+              "tail": [
+                {
+                  "op": "message",
+                  "range": "233:36-233:56",
+                  "targets": [
+                    {
+                      "name": "Completion notice",
+                      "range": "233:39-233:56",
+                      "type": "ref",
+                    },
+                  ],
+                },
+              ],
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "end",
+                "kind": "end",
+                "name": "Openreach order complete",
+                "range": "234:5-234:33",
+                "type": "element",
+              },
+              "range": "234:5-234:33",
+              "type": "element-stmt",
+            },
+          ],
+          "name": "Go live",
+          "range": "230:3-234:33",
+          "type": "group",
+        },
+      ],
+      "name": "Openreach",
+      "range": "194:1-234:33",
+      "type": "pool",
+    },
+    {
+      "attrs": [
+        {
+          "key": "collapsed",
+          "range": "236:21-236:30",
+        },
+      ],
+      "name": "Credit agency",
+      "range": "236:1-236:31",
+      "type": "pool",
+    },
+    {
+      "range": "237:1-237:31",
+      "source": {
+        "name": "Credit agency",
+        "range": "237:1-237:14",
+        "type": "ref",
+      },
+      "step": {
+        "op": "message",
+        "range": "237:15-237:31",
+        "targets": [
+          {
+            "name": "Credit result",
+            "range": "237:18-237:31",
+            "type": "ref",
+          },
+        ],
+      },
+      "type": "message",
+    },
+    {
+      "attrs": [
+        {
+          "key": "collapsed",
+          "range": "239:28-239:37",
+        },
+      ],
+      "name": "One Touch Switch hub",
+      "range": "239:1-239:38",
+      "type": "pool",
+    },
+    {
+      "range": "240:1-240:46",
+      "source": {
+        "name": "One Touch Switch hub",
+        "range": "240:1-240:21",
+        "type": "ref",
+      },
+      "step": {
+        "op": "message",
+        "range": "240:22-240:46",
+        "targets": [
+          {
+            "name": "Switch match received",
+            "range": "240:25-240:46",
+            "type": "ref",
+          },
+        ],
+      },
+      "type": "message",
+    },
+  ],
+  "directives": [
+    {
+      "range": "7:1-7:42",
+      "type": "title",
+      "value": ""Full-fibre broadband provisioning"",
+    },
+  ],
+  "range": "1:1-241:1",
+  "type": "document",
+}
+`;
