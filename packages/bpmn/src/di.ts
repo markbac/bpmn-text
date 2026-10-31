@@ -1,4 +1,4 @@
-import type { Container, Model } from '@bpmn-text/core';
+import type { Container, Model, Style } from '@bpmn-text/core';
 import type { Bounds, LayoutResult } from '@bpmn-text/layout';
 import type { BpmnModdle, ModdleElement } from 'bpmn-moddle';
 import type { Semantic } from './semantic.js';
@@ -35,6 +35,39 @@ export function addDiagrams(
   };
   for (const p of model.pools) if (p.process) walk(p.process);
 
+  // Colours (ADR-011): shapes by their own style, edges by the stroke of
+  // their source element.
+  const styles = new Map<string, Style>();
+  const edgeSource = new Map<string, string>();
+  const styled = (c: Container) => {
+    for (const n of c.nodes) {
+      if (n.style) styles.set(n.id, n.style);
+      if (n.children) styled(n.children);
+    }
+    for (const f of c.flows) edgeSource.set(f.id, f.sourceRef);
+  };
+  for (const p of model.pools) {
+    if (p.style) styles.set(p.id, p.style);
+    for (const l of p.lanes) if (l.style) styles.set(l.id, l.style);
+    if (p.process) styled(p.process);
+  }
+  for (const g of model.groups) if (g.style) styles.set(g.id, g.style);
+  for (const f of model.messageFlows) edgeSource.set(f.id, f.sourceRef);
+  const colours = (style: Style | undefined, edge: boolean) => {
+    const attrs: Record<string, string> = {};
+    if (style?.fill && !edge) {
+      attrs['bioc:fill'] = style.fill;
+      attrs['color:background-color'] = style.fill;
+    }
+    if (style?.stroke) {
+      attrs['bioc:stroke'] = style.stroke;
+      attrs['color:border-color'] = style.stroke;
+    }
+    return attrs;
+  };
+  const labelColour = (style: Style | undefined) =>
+    style?.stroke ? { 'color:color': style.stroke } : {};
+
   function diagram(
     id: string,
     planeId: string,
@@ -47,10 +80,12 @@ export function addDiagrams(
       const edge = layout.edges.get(id);
       const bpmnElement = elements.get(id)!;
       if (shape) {
+        const style = styles.get(id);
         const attrs: Record<string, unknown> = {
           id: `${id}_di`,
           bpmnElement,
           bounds: bounds(shape),
+          ...colours(style, false),
         };
         const type = bpmnElement.$type;
         if (type === 'bpmn:Participant' || type === 'bpmn:Lane') {
@@ -60,20 +95,25 @@ export function addDiagrams(
         if (shape.label) {
           attrs.label = moddle.create('bpmndi:BPMNLabel', {
             bounds: bounds(shape.label),
+            ...labelColour(style),
           });
         }
         planeElement.push(moddle.create('bpmndi:BPMNShape', attrs));
       } else if (edge) {
+        const source = edgeSource.get(id);
+        const style = source ? styles.get(source) : undefined;
         const attrs: Record<string, unknown> = {
           id: `${id}_di`,
           bpmnElement,
           waypoint: edge.waypoints.map((p) =>
             moddle.create('dc:Point', { x: p.x, y: p.y }),
           ),
+          ...colours(style, true),
         };
         if (edge.label) {
           attrs.label = moddle.create('bpmndi:BPMNLabel', {
             bounds: bounds(edge.label),
+            ...labelColour(style),
           });
         }
         planeElement.push(moddle.create('bpmndi:BPMNEdge', attrs));
@@ -89,6 +129,32 @@ export function addDiagrams(
     });
   }
 
+  // Each element's plane: a collapsed subprocess's, or the main one.
+  const planeOf = new Map<string, string | undefined>();
+  const assign = (c: Container, plane: string | undefined) => {
+    for (const n of c.nodes) {
+      planeOf.set(n.id, plane);
+      for (const a of [...n.reads, ...n.writes]) planeOf.set(a.id, plane);
+      if (n.children) assign(n.children, n.collapsed ? n.id : plane);
+    }
+    for (const f of c.flows) planeOf.set(f.id, plane);
+    for (const a of c.annotations) {
+      planeOf.set(a.id, plane);
+      planeOf.set(a.association, plane);
+    }
+  };
+  for (const p of model.pools) if (p.process) assign(p.process, undefined);
+  for (const p of model.pools) {
+    for (const d of [
+      ...(p.process?.dataObjects ?? []).map((o) => [o.reference, o.container]),
+      ...(p.process?.dataStoreReferences ?? []).map((r) => [r.id, r.container]),
+    ] as [string, string | undefined][]) {
+      const [id, container] = d;
+      const sub = subprocesses.find(([s]) => s === container);
+      planeOf.set(id, sub ? container : container && planeOf.get(container));
+    }
+  }
+
   // Shapes before edges, so that bpmn-js draws edges on top.
   const ordered = (ids: Iterable<string>) => {
     const list = [...ids];
@@ -97,20 +163,17 @@ export function addDiagrams(
       ...list.filter((id) => layout.edges.has(id)),
     ];
   };
-  const nested = new Set(
-    subprocesses.flatMap(([, c]) => [
-      ...c.nodes.map((n) => n.id),
-      ...c.flows.map((f) => f.id),
-    ]),
-  );
-  const main = [...layout.shapes.keys(), ...layout.edges.keys()].filter(
-    (id) => !nested.has(id),
-  );
+  const all = [...layout.shapes.keys(), ...layout.edges.keys()];
   const diagrams = [
-    diagram('BPMNDiagram_1', 'BPMNPlane_1', root, ordered(main)),
+    diagram(
+      'BPMNDiagram_1',
+      'BPMNPlane_1',
+      root,
+      ordered(all.filter((id) => planeOf.get(id) === undefined)),
+    ),
   ];
-  for (const [id, c] of subprocesses) {
-    const ids = [...c.nodes.map((n) => n.id), ...c.flows.map((f) => f.id)];
+  for (const [id] of subprocesses) {
+    const ids = all.filter((i) => planeOf.get(i) === id);
     if (!ids.some((i) => layout.shapes.has(i))) continue;
     diagrams.push(
       diagram(`${id}_diagram`, `${id}_plane`, elements.get(id)!, ordered(ids)),

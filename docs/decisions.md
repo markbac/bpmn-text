@@ -28,6 +28,29 @@ where you write story order and `lane X` changes the current lane.
 **Decision.** Lane switches. A switch inside a branch is scoped to that
 branch.
 
+<!-- screenshot: adr-002-lane-switches -->
+
+```bpmnt
+pool Company
+  lane Sales
+  start Order
+  task Check credit
+  xor Credit OK?
+    yes:
+      lane Warehouse
+      task Pick items
+    no:
+      task Ask for prepayment
+  lane Warehouse
+  task Ship
+  end Shipped
+```
+
+![Lane switches](images/adr-002-lane-switches.png)
+
+The `no:` branch stays in Sales because the switch to Warehouse in `yes:`
+ends with that branch.
+
 **Consequences.** Processes read top to bottom as they happen, need few
 arrows, and work naturally with automatic joins. Seeing everything one lane
 does means scanning the file. The editor's document outline (symbols grouped
@@ -41,6 +64,24 @@ by lane) makes up for this.
 the gateway block. A join of the matching type is inserted when there are two
 or more open branches. XOR joins can be direct merges via `option xor-join
 direct`.
+
+<!-- screenshot: adr-003-joins -->
+
+```bpmnt
+start
+and
+  - task Pick items
+  - task Print invoice
+xor Express?
+  yes: task Book courier
+  no: task Book post
+end Shipped
+```
+
+![Inserted joins](images/adr-003-joins.png)
+
+No join is written: a parallel join is inserted before `Express?` and an
+exclusive one before `Shipped`.
 
 **Consequences.** Well-structured processes need no join syntax. Merges that
 are not well structured use an explicit gateway with `@id` and jumps.
@@ -146,6 +187,11 @@ members. Nested and overlapping groups are out of scope for v1.
 Groups that are not contiguous in story order are not supported; the
 workaround is a `[fit]` group per contiguous run.
 
+![Two phases over eight lanes](images/07-multi-phase.png)
+
+[Example 07](../examples/07-multi-phase.bpmnt): each phase takes its own
+columns across every lane.
+
 ---
 
 ## ADR-010: Gateway-less fan-out (`fork`, multi-target jumps) — *Accepted*
@@ -173,3 +219,32 @@ Color* (`color:background-color`, `color:border-color`) and bpmn-js
 **Consequences.** Colours show in bpmn.io, Camunda Modeler and other tools
 that support the OMG extension. Lane colours fill the whole lane, since DI
 cannot colour only the lane header.
+
+---
+
+## ADR-012: Static editor, optional containers, one update script — *Accepted*
+
+**Context.** The editor and the CLI must run on users' PCs and on an own
+server, without a hosted service. The editor compiles in the browser, so a
+server only hands out files.
+
+**Decision.** The editor is deployed as static files: from a checkout with
+`vite preview` on a PC, or in an nginx container on a server. A second
+image holds the CLI with Chromium for SVG and PNG. `scripts/update.sh` and
+`scripts/update.ps1`, modelled on py-doc's, pull, build, check and
+(re)start everything; the same command deploys a change.
+
+```mermaid
+flowchart LR
+  git[(Git)] -->|pull| u[update script]
+  u --> b[npm ci, build, doctor]
+  b --> pc[PC: bpmn-text on the PATH,<br/>editor on localhost]
+  b -->|--docker| img[Images: bpmn-text-editor, bpmn-text]
+  img -->|--serve| srv[Server: editor container<br/>behind a reverse proxy]
+```
+
+**Consequences.** No server code to secure or keep running, and diagrams
+never leave the user's machine. Containers are a convenience, not a
+requirement. Deploying a change is one command, which can also run from
+cron. See [deployment.md](deployment.md).
+

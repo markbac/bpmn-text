@@ -1309,3 +1309,794 @@ exports[`parser on the corpus > examples/06-subprocess-data.bpmnt 1`] = `
   "type": "document",
 }
 `;
+
+exports[`parser on the corpus > examples/07-multi-phase.bpmnt 1`] = `
+{
+  "body": [
+    {
+      "range": "5:1-5:77",
+      "text": "From signed order to a working installation and the first service visit.",
+      "type": "doc",
+    },
+    {
+      "body": [
+        {
+          "range": "8:3-8:52",
+          "text": "A regional installer of rooftop solar panels.",
+          "type": "doc",
+        },
+        {
+          "lanes": [
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "9:16-9:30",
+                  "values": [
+                    "#E3F2FD",
+                  ],
+                },
+              ],
+              "name": "Sales",
+              "range": "9:9-9:31",
+            },
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "9:49-9:63",
+                  "values": [
+                    "#E3F2FD",
+                  ],
+                },
+              ],
+              "name": "Credit control",
+              "range": "9:33-9:64",
+            },
+          ],
+          "range": "9:3-9:64",
+          "type": "lanes",
+        },
+        {
+          "lanes": [
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "10:19-10:33",
+                  "values": [
+                    "#FFF8E1",
+                  ],
+                },
+              ],
+              "name": "Planning",
+              "range": "10:9-10:34",
+            },
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "10:47-10:61",
+                  "values": [
+                    "#FFF8E1",
+                  ],
+                },
+              ],
+              "name": "Warehouse",
+              "range": "10:36-10:62",
+            },
+          ],
+          "range": "10:3-10:62",
+          "type": "lanes",
+        },
+        {
+          "lanes": [
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "11:20-11:34",
+                  "values": [
+                    "#FFF8E1",
+                  ],
+                },
+              ],
+              "name": "Logistics",
+              "range": "11:9-11:35",
+            },
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "11:52-11:66",
+                  "values": [
+                    "#E8F5E9",
+                  ],
+                },
+              ],
+              "name": "Field service",
+              "range": "11:37-11:67",
+            },
+          ],
+          "range": "11:3-11:67",
+          "type": "lanes",
+        },
+        {
+          "lanes": [
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "12:18-12:32",
+                  "values": [
+                    "#F3E5F5",
+                  ],
+                },
+              ],
+              "name": "Billing",
+              "range": "12:9-12:33",
+            },
+            {
+              "attrs": [
+                {
+                  "key": "color",
+                  "range": "12:50-12:64",
+                  "values": [
+                    "#F3E5F5",
+                  ],
+                },
+              ],
+              "name": "Customer care",
+              "range": "12:35-12:65",
+            },
+          ],
+          "range": "12:3-12:65",
+          "type": "lanes",
+        },
+        {
+          "body": [
+            {
+              "name": "Sales",
+              "range": "15:5-15:15",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "eventType": "message",
+                "keyword": "start",
+                "kind": "start",
+                "name": "Order signed",
+                "range": "16:5-16:31",
+                "type": "element",
+              },
+              "range": "16:5-16:31",
+              "type": "element-stmt",
+            },
+            {
+              "range": "17:5-17:57",
+              "text": "The customer has signed the quote in the portal.",
+              "type": "doc",
+            },
+            {
+              "element": {
+                "keyword": "user",
+                "kind": "user",
+                "name": "Confirm order",
+                "range": "18:5-18:23",
+                "type": "element",
+              },
+              "range": "18:5-18:23",
+              "type": "element-stmt",
+            },
+            {
+              "range": "19:5-19:71",
+              "text": "Check the quote against the site survey and confirm the order.",
+              "type": "doc",
+            },
+            {
+              "name": "Credit control",
+              "range": "20:5-20:24",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "attrs": [
+                  {
+                    "key": "collapsed",
+                    "range": "21:23-21:32",
+                  },
+                ],
+                "keyword": "sub",
+                "kind": "sub",
+                "name": "Credit check",
+                "range": "21:5-21:33",
+                "type": "element",
+              },
+              "range": "21:5-21:33",
+              "type": "sub",
+            },
+            {
+              "range": "22:5-22:73",
+              "text": "Runs the standard credit check, documented in the credit manual.",
+              "type": "doc",
+            },
+            {
+              "branches": [
+                {
+                  "body": [
+                    {
+                      "name": "Planning",
+                      "range": "25:9-25:22",
+                      "type": "lane",
+                    },
+                    {
+                      "element": {
+                        "keyword": "user",
+                        "kind": "user",
+                        "name": "Plan installation",
+                        "range": "26:9-26:31",
+                        "type": "element",
+                      },
+                      "range": "26:9-26:31",
+                      "type": "element-stmt",
+                    },
+                    {
+                      "range": "27:9-27:50",
+                      "text": "Pick an installation date and a crew.",
+                      "type": "doc",
+                    },
+                  ],
+                  "form": "labelled",
+                  "label": "yes",
+                  "range": "24:7-27:50",
+                  "type": "branch",
+                },
+                {
+                  "body": [
+                    {
+                      "name": "Sales",
+                      "range": "29:9-29:19",
+                      "type": "lane",
+                    },
+                    {
+                      "element": {
+                        "keyword": "user",
+                        "kind": "user",
+                        "name": "Ask for deposit",
+                        "range": "30:9-30:29",
+                        "type": "element",
+                      },
+                      "range": "30:9-30:29",
+                      "type": "element-stmt",
+                    },
+                    {
+                      "range": "31:9-31:56",
+                      "text": "Ask the customer for a 30% deposit instead.",
+                      "type": "doc",
+                    },
+                    {
+                      "element": {
+                        "eventType": "message",
+                        "keyword": "catch",
+                        "kind": "catch",
+                        "name": "Deposit received",
+                        "range": "32:9-32:39",
+                        "type": "element",
+                      },
+                      "range": "32:9-32:39",
+                      "type": "element-stmt",
+                    },
+                    {
+                      "range": "33:9-33:57",
+                      "text": "The deposit has arrived in the bank account.",
+                      "type": "doc",
+                    },
+                  ],
+                  "form": "labelled",
+                  "label": "no",
+                  "range": "28:7-33:57",
+                  "type": "branch",
+                },
+              ],
+              "element": {
+                "attrs": [
+                  {
+                    "key": "doc",
+                    "range": "23:27-23:86",
+                    "values": [
+                      "The credit check decides whether the order goes ahead.",
+                    ],
+                  },
+                ],
+                "keyword": "xor",
+                "kind": "xor",
+                "name": "Credit approved?",
+                "range": "23:5-23:87",
+                "type": "element",
+              },
+              "range": "23:5-33:57",
+              "type": "gateway",
+            },
+            {
+              "name": "Planning",
+              "range": "34:5-34:18",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "keyword": "service",
+                "kind": "service",
+                "name": "Publish plan",
+                "range": "35:5-35:25",
+                "type": "element",
+              },
+              "range": "35:5-35:25",
+              "type": "element-stmt",
+            },
+            {
+              "range": "36:5-36:67",
+              "text": "Publishes the plan to the warehouse and logistics systems.",
+              "type": "doc",
+            },
+            {
+              "branches": [
+                {
+                  "body": [
+                    {
+                      "name": "Warehouse",
+                      "range": "39:9-39:23",
+                      "type": "lane",
+                    },
+                    {
+                      "element": {
+                        "keyword": "user",
+                        "kind": "user",
+                        "name": "Pick panels and inverter",
+                        "range": "40:9-40:38",
+                        "type": "element",
+                      },
+                      "range": "40:9-40:38",
+                      "type": "element-stmt",
+                    },
+                    {
+                      "range": "41:9-41:69",
+                      "text": "Pick the kit from stock and stage it at the loading bay.",
+                      "type": "doc",
+                    },
+                  ],
+                  "form": "bullet",
+                  "range": "38:7-41:69",
+                  "type": "branch",
+                },
+                {
+                  "body": [
+                    {
+                      "name": "Logistics",
+                      "range": "43:9-43:23",
+                      "type": "lane",
+                    },
+                    {
+                      "element": {
+                        "keyword": "user",
+                        "kind": "user",
+                        "name": "Book delivery van",
+                        "range": "44:9-44:31",
+                        "type": "element",
+                      },
+                      "range": "44:9-44:31",
+                      "type": "element-stmt",
+                    },
+                    {
+                      "range": "45:9-45:56",
+                      "text": "Book a van for the day before installation.",
+                      "type": "doc",
+                    },
+                  ],
+                  "form": "bullet",
+                  "range": "42:7-45:56",
+                  "type": "branch",
+                },
+              ],
+              "range": "37:5-45:56",
+              "type": "fork",
+            },
+            {
+              "name": "Logistics",
+              "range": "46:5-46:19",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "attrs": [
+                  {
+                    "key": "stroke",
+                    "range": "47:23-47:38",
+                    "values": [
+                      "#1F4E79",
+                    ],
+                  },
+                ],
+                "keyword": "task",
+                "kind": "task",
+                "name": "Deliver kit",
+                "range": "47:5-47:39",
+                "type": "element",
+              },
+              "range": "47:5-47:39",
+              "type": "element-stmt",
+            },
+            {
+              "range": "48:5-48:48",
+              "text": "Deliver the kit to the customer's site.",
+              "type": "doc",
+            },
+            {
+              "name": "Field service",
+              "range": "49:5-49:23",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "attrs": [
+                  {
+                    "key": "collapsed",
+                    "range": "50:25-50:34",
+                  },
+                  {
+                    "key": "color",
+                    "range": "50:36-50:50",
+                    "values": [
+                      "#C8E6C9",
+                    ],
+                  },
+                ],
+                "keyword": "sub",
+                "kind": "sub",
+                "name": "Install panels",
+                "range": "50:5-50:51",
+                "type": "element",
+              },
+              "range": "50:5-50:51",
+              "type": "sub",
+            },
+            {
+              "range": "51:5-51:78",
+              "text": "Mount, wire and commission the panels, as in the installation manual.",
+              "type": "doc",
+            },
+            {
+              "element": {
+                "keyword": "user",
+                "kind": "user",
+                "name": "Hand over installation",
+                "range": "52:5-52:32",
+                "type": "element",
+              },
+              "range": "52:5-52:32",
+              "type": "element-stmt",
+            },
+            {
+              "range": "53:5-53:60",
+              "text": "Show the customer the app and the isolation switch.",
+              "type": "doc",
+            },
+            {
+              "name": "Billing",
+              "range": "54:5-54:17",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "keyword": "service",
+                "kind": "service",
+                "name": "Send final invoice",
+                "range": "55:5-55:31",
+                "type": "element",
+              },
+              "range": "55:5-55:31",
+              "type": "element-stmt",
+            },
+            {
+              "range": "56:5-56:38",
+              "text": "Invoice the remaining amount.",
+              "type": "doc",
+            },
+            {
+              "element": {
+                "keyword": "end",
+                "kind": "end",
+                "name": "Installation complete",
+                "range": "57:5-57:30",
+                "type": "element",
+              },
+              "range": "57:5-57:30",
+              "type": "element-stmt",
+            },
+            {
+              "range": "58:5-58:47",
+              "text": "The installation is live and invoiced.",
+              "type": "doc",
+            },
+          ],
+          "name": "Fulfilment",
+          "range": "14:3-58:47",
+          "type": "group",
+        },
+        {
+          "attrs": [
+            {
+              "key": "color",
+              "range": "60:22-60:36",
+              "values": [
+                "#FFF5F5",
+              ],
+            },
+          ],
+          "body": [
+            {
+              "name": "Customer care",
+              "range": "61:5-61:23",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "eventType": "timer",
+                "keyword": "start",
+                "kind": "start",
+                "name": "Six months after installation",
+                "range": "62:5-62:46",
+                "type": "element",
+              },
+              "range": "62:5-62:46",
+              "type": "element-stmt",
+            },
+            {
+              "range": "63:5-63:66",
+              "text": "Every installation gets a service visit after six months.",
+              "type": "doc",
+            },
+            {
+              "element": {
+                "keyword": "user",
+                "kind": "user",
+                "name": "Call customer",
+                "range": "64:5-64:23",
+                "type": "element",
+              },
+              "range": "64:5-64:23",
+              "type": "element-stmt",
+            },
+            {
+              "range": "65:5-65:44",
+              "text": "Agree a date for the service visit.",
+              "type": "doc",
+            },
+            {
+              "name": "Field service",
+              "range": "66:5-66:23",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "attrs": [
+                  {
+                    "key": "stroke",
+                    "range": "67:25-67:36",
+                    "values": [
+                      "red",
+                    ],
+                  },
+                ],
+                "keyword": "user",
+                "kind": "user",
+                "name": "Service visit",
+                "range": "67:5-67:37",
+                "type": "element",
+              },
+              "range": "67:5-67:37",
+              "type": "element-stmt",
+            },
+            {
+              "range": "68:5-68:54",
+              "text": "Clean the panels and check the inverter logs.",
+              "type": "doc",
+            },
+            {
+              "branches": [
+                {
+                  "body": [
+                    {
+                      "element": {
+                        "attrs": [
+                          {
+                            "key": "collapsed",
+                            "range": "71:21-71:30",
+                          },
+                        ],
+                        "keyword": "sub",
+                        "kind": "sub",
+                        "name": "Repair",
+                        "range": "71:9-71:31",
+                        "type": "element",
+                      },
+                      "range": "71:9-71:31",
+                      "type": "sub",
+                    },
+                    {
+                      "range": "72:9-72:49",
+                      "text": "Repairs follow the warranty process.",
+                      "type": "doc",
+                    },
+                  ],
+                  "form": "labelled",
+                  "label": "yes",
+                  "range": "70:7-72:49",
+                  "type": "branch",
+                },
+                {
+                  "body": [
+                    {
+                      "name": "Customer care",
+                      "range": "74:9-74:27",
+                      "type": "lane",
+                    },
+                    {
+                      "element": {
+                        "keyword": "manual",
+                        "kind": "manual",
+                        "name": "File visit report",
+                        "range": "75:9-75:33",
+                        "type": "element",
+                      },
+                      "range": "75:9-75:33",
+                      "type": "element-stmt",
+                    },
+                    {
+                      "range": "76:9-76:59",
+                      "text": "File the signed report in the customer folder.",
+                      "type": "doc",
+                    },
+                  ],
+                  "form": "labelled",
+                  "label": "no",
+                  "range": "73:7-76:59",
+                  "type": "branch",
+                },
+              ],
+              "element": {
+                "attrs": [
+                  {
+                    "key": "doc",
+                    "range": "69:23-69:73",
+                    "values": [
+                      "A fault is anything the inverter logs report.",
+                    ],
+                  },
+                ],
+                "keyword": "xor",
+                "kind": "xor",
+                "name": "Fault found?",
+                "range": "69:5-69:74",
+                "type": "element",
+              },
+              "range": "69:5-76:59",
+              "type": "gateway",
+            },
+            {
+              "name": "Customer care",
+              "range": "77:5-77:23",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "keyword": "end",
+                "kind": "end",
+                "name": "Visit closed",
+                "range": "78:5-78:21",
+                "type": "element",
+              },
+              "range": "78:5-78:21",
+              "type": "element-stmt",
+            },
+            {
+              "range": "79:5-79:49",
+              "text": "The customer has a working installation.",
+              "type": "doc",
+            },
+            {
+              "element": {
+                "eventType": "message",
+                "keyword": "start",
+                "kind": "start",
+                "name": "Complaint received",
+                "range": "80:5-80:37",
+                "type": "element",
+              },
+              "range": "80:5-80:37",
+              "type": "element-stmt",
+            },
+            {
+              "range": "81:5-81:49",
+              "text": "A customer complains by phone or e-mail.",
+              "type": "doc",
+            },
+            {
+              "element": {
+                "keyword": "user",
+                "kind": "user",
+                "name": "Log complaint",
+                "range": "82:5-82:23",
+                "type": "element",
+              },
+              "range": "82:5-82:23",
+              "type": "element-stmt",
+            },
+            {
+              "range": "83:5-83:67",
+              "text": "Record the complaint and promise a call back within a day.",
+              "type": "doc",
+            },
+            {
+              "name": "Field service",
+              "range": "84:5-84:23",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "keyword": "user",
+                "kind": "user",
+                "name": "Investigate complaint",
+                "range": "85:5-85:31",
+                "type": "element",
+              },
+              "range": "85:5-85:31",
+              "type": "element-stmt",
+            },
+            {
+              "range": "86:5-86:34",
+              "text": "Visit the site if needed.",
+              "type": "doc",
+            },
+            {
+              "name": "Customer care",
+              "range": "87:5-87:23",
+              "type": "lane",
+            },
+            {
+              "element": {
+                "keyword": "end",
+                "kind": "end",
+                "name": "Complaint closed",
+                "range": "88:5-88:25",
+                "type": "element",
+              },
+              "range": "88:5-88:25",
+              "type": "element-stmt",
+            },
+            {
+              "range": "89:5-89:46",
+              "text": "The customer has accepted the answer.",
+              "type": "doc",
+            },
+          ],
+          "name": "After-sales",
+          "range": "60:3-89:46",
+          "type": "group",
+        },
+      ],
+      "name": "Installer",
+      "range": "7:1-89:46",
+      "type": "pool",
+    },
+  ],
+  "directives": [
+    {
+      "range": "4:1-4:33",
+      "type": "title",
+      "value": ""Solar panel installation"",
+    },
+  ],
+  "range": "1:1-90:1",
+  "type": "document",
+}
+`;

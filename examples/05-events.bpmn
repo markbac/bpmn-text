@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" name="Support ticket" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-text">
+  <bpmn:process id="Process_support_ticket" name="Support ticket" isExecutable="false">
+    <bpmn:startEvent id="Event_ticket_raised" name="Ticket raised">
+      <bpmn:outgoing>Flow_ticket_raised__triage_ticket</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Event_ticket_raised_definition" />
+    </bpmn:startEvent>
+    <bpmn:userTask id="Activity_triage_ticket" name="Triage ticket">
+      <bpmn:incoming>Flow_ticket_raised__triage_ticket</bpmn:incoming>
+      <bpmn:outgoing>Flow_triage_ticket__resolve_ticket</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="Event_4_hours" name="4 hours" cancelActivity="false" attachedToRef="Activity_triage_ticket">
+      <bpmn:outgoing>Flow_4_hours__notify_team_lead</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="Event_4_hours_definition" />
+    </bpmn:boundaryEvent>
+    <bpmn:sendTask id="Activity_notify_team_lead" name="Notify team lead">
+      <bpmn:incoming>Flow_4_hours__notify_team_lead</bpmn:incoming>
+      <bpmn:outgoing>Flow_notify_team_lead__lead_notified</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_lead_notified" name="Lead notified">
+      <bpmn:incoming>Flow_notify_team_lead__lead_notified</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Activity_resolve_ticket" name="Resolve ticket">
+      <bpmn:incoming>Flow_triage_ticket__resolve_ticket</bpmn:incoming>
+      <bpmn:incoming>Flow_customer_reopens__resolve_ticket</bpmn:incoming>
+      <bpmn:outgoing>Flow_resolve_ticket__join_after_ask_customer_to_confirm</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="Event_2_days" name="2 days" attachedToRef="Activity_resolve_ticket">
+      <bpmn:outgoing>Flow_2_days__specialist_investigation</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="Event_2_days_definition" />
+    </bpmn:boundaryEvent>
+    <bpmn:userTask id="Activity_specialist_investigation" name="Specialist investigation">
+      <bpmn:incoming>Flow_2_days__specialist_investigation</bpmn:incoming>
+      <bpmn:outgoing>Flow_specialist_investigation__join_after_ask_customer_to_confirm</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="Activity_ask_customer_to_confirm" name="Ask customer to confirm">
+      <bpmn:incoming>Flow_join_after_ask_customer_to_confirm__ask_customer_to_confirm</bpmn:incoming>
+      <bpmn:outgoing>Flow_ask_customer_to_confirm__wait_for_customer</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:exclusiveGateway id="Gateway_join_after_ask_customer_to_confirm">
+      <bpmn:incoming>Flow_resolve_ticket__join_after_ask_customer_to_confirm</bpmn:incoming>
+      <bpmn:incoming>Flow_specialist_investigation__join_after_ask_customer_to_confirm</bpmn:incoming>
+      <bpmn:outgoing>Flow_join_after_ask_customer_to_confirm__ask_customer_to_confirm</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:eventBasedGateway id="Gateway_wait_for_customer" name="Wait for customer">
+      <bpmn:incoming>Flow_ask_customer_to_confirm__wait_for_customer</bpmn:incoming>
+      <bpmn:outgoing>Flow_wait_for_customer__customer_confirms</bpmn:outgoing>
+      <bpmn:outgoing>Flow_wait_for_customer__customer_reopens</bpmn:outgoing>
+      <bpmn:outgoing>Flow_wait_for_customer__7_days</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+    <bpmn:intermediateCatchEvent id="Event_customer_confirms" name="Customer confirms">
+      <bpmn:incoming>Flow_wait_for_customer__customer_confirms</bpmn:incoming>
+      <bpmn:outgoing>Flow_customer_confirms__join_after_ticket_closed</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Event_customer_confirms_definition" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="Event_customer_reopens" name="Customer reopens">
+      <bpmn:incoming>Flow_wait_for_customer__customer_reopens</bpmn:incoming>
+      <bpmn:outgoing>Flow_customer_reopens__resolve_ticket</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Event_customer_reopens_definition" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="Event_7_days" name="7 days">
+      <bpmn:incoming>Flow_wait_for_customer__7_days</bpmn:incoming>
+      <bpmn:outgoing>Flow_7_days__join_after_ticket_closed</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="Event_7_days_definition" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="Event_ticket_closed" name="Ticket closed">
+      <bpmn:incoming>Flow_join_after_ticket_closed__ticket_closed</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="Gateway_join_after_ticket_closed">
+      <bpmn:incoming>Flow_customer_confirms__join_after_ticket_closed</bpmn:incoming>
+      <bpmn:incoming>Flow_7_days__join_after_ticket_closed</bpmn:incoming>
+      <bpmn:outgoing>Flow_join_after_ticket_closed__ticket_closed</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_ticket_raised__triage_ticket" sourceRef="Event_ticket_raised" targetRef="Activity_triage_ticket" />
+    <bpmn:sequenceFlow id="Flow_4_hours__notify_team_lead" sourceRef="Event_4_hours" targetRef="Activity_notify_team_lead" />
+    <bpmn:sequenceFlow id="Flow_notify_team_lead__lead_notified" sourceRef="Activity_notify_team_lead" targetRef="Event_lead_notified" />
+    <bpmn:sequenceFlow id="Flow_triage_ticket__resolve_ticket" sourceRef="Activity_triage_ticket" targetRef="Activity_resolve_ticket" />
+    <bpmn:sequenceFlow id="Flow_2_days__specialist_investigation" sourceRef="Event_2_days" targetRef="Activity_specialist_investigation" />
+    <bpmn:sequenceFlow id="Flow_resolve_ticket__join_after_ask_customer_to_confirm" sourceRef="Activity_resolve_ticket" targetRef="Gateway_join_after_ask_customer_to_confirm" />
+    <bpmn:sequenceFlow id="Flow_specialist_investigation__join_after_ask_customer_to_confirm" sourceRef="Activity_specialist_investigation" targetRef="Gateway_join_after_ask_customer_to_confirm" />
+    <bpmn:sequenceFlow id="Flow_join_after_ask_customer_to_confirm__ask_customer_to_confirm" sourceRef="Gateway_join_after_ask_customer_to_confirm" targetRef="Activity_ask_customer_to_confirm" />
+    <bpmn:sequenceFlow id="Flow_ask_customer_to_confirm__wait_for_customer" sourceRef="Activity_ask_customer_to_confirm" targetRef="Gateway_wait_for_customer" />
+    <bpmn:sequenceFlow id="Flow_wait_for_customer__customer_confirms" sourceRef="Gateway_wait_for_customer" targetRef="Event_customer_confirms" />
+    <bpmn:sequenceFlow id="Flow_wait_for_customer__customer_reopens" sourceRef="Gateway_wait_for_customer" targetRef="Event_customer_reopens" />
+    <bpmn:sequenceFlow id="Flow_wait_for_customer__7_days" sourceRef="Gateway_wait_for_customer" targetRef="Event_7_days" />
+    <bpmn:sequenceFlow id="Flow_customer_confirms__join_after_ticket_closed" sourceRef="Event_customer_confirms" targetRef="Gateway_join_after_ticket_closed" />
+    <bpmn:sequenceFlow id="Flow_7_days__join_after_ticket_closed" sourceRef="Event_7_days" targetRef="Gateway_join_after_ticket_closed" />
+    <bpmn:sequenceFlow id="Flow_join_after_ticket_closed__ticket_closed" sourceRef="Gateway_join_after_ticket_closed" targetRef="Event_ticket_closed" />
+    <bpmn:sequenceFlow id="Flow_customer_reopens__resolve_ticket" sourceRef="Event_customer_reopens" targetRef="Activity_resolve_ticket" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_support_ticket">
+      <bpmndi:BPMNShape id="Event_ticket_raised_di" bpmnElement="Event_ticket_raised">
+        <dc:Bounds x="100" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="87" y="103" width="63" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_triage_ticket_di" bpmnElement="Activity_triage_ticket">
+        <dc:Bounds x="186" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_notify_team_lead_di" bpmnElement="Activity_notify_team_lead">
+        <dc:Bounds x="348" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_lead_notified_di" bpmnElement="Event_lead_notified">
+        <dc:Bounds x="554" y="282" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="541" y="323" width="63" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_resolve_ticket_di" bpmnElement="Activity_resolve_ticket">
+        <dc:Bounds x="348" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_specialist_investigation_di" bpmnElement="Activity_specialist_investigation">
+        <dc:Bounds x="522" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ask_customer_to_confirm_di" bpmnElement="Activity_ask_customer_to_confirm">
+        <dc:Bounds x="772" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_join_after_ask_customer_to_confirm_di" bpmnElement="Gateway_join_after_ask_customer_to_confirm">
+        <dc:Bounds x="672" y="55" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_wait_for_customer_di" bpmnElement="Gateway_wait_for_customer">
+        <dc:Bounds x="922" y="55" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="904" y="36" width="87" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_customer_confirms_di" bpmnElement="Event_customer_confirms">
+        <dc:Bounds x="1022" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1016" y="103" width="48" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_customer_reopens_di" bpmnElement="Event_customer_reopens">
+        <dc:Bounds x="1022" y="282" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1016" y="323" width="48" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_7_days_di" bpmnElement="Event_7_days">
+        <dc:Bounds x="1022" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1024" y="213" width="33" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_ticket_closed_di" bpmnElement="Event_ticket_closed">
+        <dc:Bounds x="1208" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1194" y="103" width="65" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_join_after_ticket_closed_di" bpmnElement="Gateway_join_after_ticket_closed">
+        <dc:Bounds x="1108" y="55" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_4_hours_di" bpmnElement="Event_4_hours">
+        <dc:Bounds x="218" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="241" y="143" width="37" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_2_days_di" bpmnElement="Event_2_days">
+        <dc:Bounds x="380" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="403" y="143" width="33" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_ticket_raised__triage_ticket_di" bpmnElement="Flow_ticket_raised__triage_ticket">
+        <di:waypoint x="136" y="80" />
+        <di:waypoint x="186" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_hours__notify_team_lead_di" bpmnElement="Flow_4_hours__notify_team_lead">
+        <di:waypoint x="236" y="138" />
+        <di:waypoint x="236" y="190" />
+        <di:waypoint x="348" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_notify_team_lead__lead_notified_di" bpmnElement="Flow_notify_team_lead__lead_notified">
+        <di:waypoint x="448" y="190" />
+        <di:waypoint x="473" y="190" />
+        <di:waypoint x="473" y="300" />
+        <di:waypoint x="554" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_triage_ticket__resolve_ticket_di" bpmnElement="Flow_triage_ticket__resolve_ticket">
+        <di:waypoint x="286" y="80" />
+        <di:waypoint x="348" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_days__specialist_investigation_di" bpmnElement="Flow_2_days__specialist_investigation">
+        <di:waypoint x="398" y="138" />
+        <di:waypoint x="398" y="144" />
+        <di:waypoint x="485" y="144" />
+        <di:waypoint x="485" y="190" />
+        <di:waypoint x="522" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_resolve_ticket__join_after_ask_customer_to_confirm_di" bpmnElement="Flow_resolve_ticket__join_after_ask_customer_to_confirm">
+        <di:waypoint x="448" y="80" />
+        <di:waypoint x="672" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_specialist_investigation__join_after_ask_customer_to_confirm_di" bpmnElement="Flow_specialist_investigation__join_after_ask_customer_to_confirm">
+        <di:waypoint x="622" y="190" />
+        <di:waypoint x="697" y="190" />
+        <di:waypoint x="697" y="105" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_join_after_ask_customer_to_confirm__ask_customer_to_confirm_di" bpmnElement="Flow_join_after_ask_customer_to_confirm__ask_customer_to_confirm">
+        <di:waypoint x="722" y="80" />
+        <di:waypoint x="772" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ask_customer_to_confirm__wait_for_customer_di" bpmnElement="Flow_ask_customer_to_confirm__wait_for_customer">
+        <di:waypoint x="872" y="80" />
+        <di:waypoint x="922" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_wait_for_customer__customer_confirms_di" bpmnElement="Flow_wait_for_customer__customer_confirms">
+        <di:waypoint x="972" y="80" />
+        <di:waypoint x="1022" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_wait_for_customer__customer_reopens_di" bpmnElement="Flow_wait_for_customer__customer_reopens">
+        <di:waypoint x="947" y="105" />
+        <di:waypoint x="947" y="300" />
+        <di:waypoint x="1022" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_wait_for_customer__7_days_di" bpmnElement="Flow_wait_for_customer__7_days">
+        <di:waypoint x="947" y="105" />
+        <di:waypoint x="947" y="190" />
+        <di:waypoint x="1022" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_customer_confirms__join_after_ticket_closed_di" bpmnElement="Flow_customer_confirms__join_after_ticket_closed">
+        <di:waypoint x="1058" y="80" />
+        <di:waypoint x="1108" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_days__join_after_ticket_closed_di" bpmnElement="Flow_7_days__join_after_ticket_closed">
+        <di:waypoint x="1058" y="190" />
+        <di:waypoint x="1133" y="190" />
+        <di:waypoint x="1133" y="105" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_join_after_ticket_closed__ticket_closed_di" bpmnElement="Flow_join_after_ticket_closed__ticket_closed">
+        <di:waypoint x="1158" y="80" />
+        <di:waypoint x="1208" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_customer_reopens__resolve_ticket_di" bpmnElement="Flow_customer_reopens__resolve_ticket">
+        <di:waypoint x="1040" y="318" />
+        <di:waypoint x="1040" y="395" />
+        <di:waypoint x="311" y="395" />
+        <di:waypoint x="311" y="80" />
+        <di:waypoint x="348" y="80" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
+

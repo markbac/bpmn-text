@@ -17,6 +17,7 @@ import type {
   Container,
   DataObject,
   DataStore,
+  DataStoreReference,
   FlowNode,
   Group,
   Lane,
@@ -28,7 +29,9 @@ import type {
   Process,
   SequenceFlow,
   Annotation,
+  Style,
 } from './model.js';
+import { normaliseColour } from './colours.js';
 import { didYouMean } from './suggest.js';
 
 export interface BuildResult {
@@ -103,7 +106,11 @@ const HANDLED = new Set([
   'lane',
   'doc',
   'fit',
+  'color',
+  'stroke',
 ]);
+/** Colour attributes and the style property each sets. */
+const COLOURS = { color: 'fill', stroke: 'stroke' } as const;
 
 /** A point flow continues from, and the label/default of its next flow. */
 interface End {
@@ -118,6 +125,8 @@ interface End {
 interface Open {
   kind?: SplitKind;
   items: (End | Open)[];
+  /** The split statement, which an inserted join maps back to. */
+  source?: Range;
 }
 const isEnd = (x: End | Open): x is End => 'node' in x;
 const none = (): Open => ({ items: [] });
@@ -148,8 +157,8 @@ interface NodeInfo {
   group?: Group;
   host?: FlowNode;
   explicitId?: string | undefined;
-  reads: (DataObject | DataStore)[];
-  writes: (DataObject | DataStore)[];
+  reads: (DataObject | DataStoreReference)[];
+  writes: (DataObject | DataStoreReference)[];
   /** Inserted joins: the element the join leads into, for its ID. */
   joinTarget?: FlowNode;
 }
@@ -172,6 +181,10 @@ interface PendingMessage {
   range: Range;
 }
 type Documented = { documentation?: string };
+type Attributed = Documented & {
+  extra: Record<string, string>;
+  style?: Style;
+};
 
 const normalise = (name: string) =>
   name.trim().replace(/\s+/g, ' ').toLowerCase();
@@ -199,6 +212,16 @@ class Builder {
   private readonly groups = new Map<string, Group>();
   private readonly stores = new Map<string, DataStore>();
   private readonly dataObjects = new Map<Process, Map<string, DataObject>>();
+  private readonly storeRefs = new Map<
+    Process,
+    Map<DataStore, DataStoreReference>
+  >();
+  /** Data references first used or declared inside a subprocess. */
+  private readonly dataContainer = new Map<
+    DataObject | DataStoreReference,
+    FlowNode | undefined
+  >();
+  private readonly usedData = new Set<DataObject | DataStoreReference>();
   /** Explicit `@id`s, with where each was first written. */
   private readonly explicitIds = new Map<string, Range>();
 
@@ -277,15 +300,42 @@ class Builder {
       : text;
   }
 
-  /** `[doc: …]`, and attributes kept for later stages such as colours (#61). */
-  private commonAttrs(
-    target: Documented & { extra: Record<string, string> },
-    attrs: Attr[],
-  ) {
+  /**
+   * `[doc: …]`, colours, and unknown attributes kept for extensions. With
+   * `conflicts`, a colour that differs from one given before is BT251.
+   */
+  private commonAttrs(target: Attributed, attrs: Attr[], conflicts = false) {
     for (const a of attrs) {
+      const key = a.key.value;
       const value = a.values.map((v) => v.value).join(', ');
-      if (a.key.value === 'doc') this.document(target, value);
-      else if (!HANDLED.has(a.key.value)) target.extra[a.key.value] = value;
+      if (key === 'doc') this.document(target, value);
+      else if (key === 'color' || key === 'stroke') {
+        const written = a.values[0];
+        if (!written) continue;
+        const property = COLOURS[key];
+        const colour = normaliseColour(written.value, property);
+        if (!colour) {
+          this.diagnostics.push(
+            diagnostic(
+              'BT104',
+              `\`${written.value}\` is not a colour. Use #RRGGBB, #RGB, a palette name (blue, orange, green, red, purple) or a CSS colour name.`,
+              written.range,
+            ),
+          );
+          continue;
+        }
+        const before = target.style?.[property];
+        if (conflicts && before && before !== colour) {
+          this.diagnostics.push(
+            diagnostic(
+              'BT251',
+              `This lane already has \`${key}\` ${before}; the last value, ${colour}, is used.`,
+              a.key.range,
+            ),
+          );
+        }
+        target.style = { ...target.style, [property]: colour };
+      } else if (!HANDLED.has(key)) target.extra[key] = value;
     }
   }
 
@@ -314,8 +364,10 @@ class Builder {
         flows: [],
         annotations: [],
         dataObjects: [],
+        dataStoreReferences: [],
       };
       this.dataObjects.set(pool.process, new Map());
+      this.storeRefs.set(pool.process, new Map());
     }
     const pb = { pool, usesLanes };
     this.pools.push(pb);
@@ -373,7 +425,7 @@ class Builder {
       lane = { id: '', name, extra: {}, source };
       pb.pool.lanes.push(lane);
     }
-    this.commonAttrs(lane, attrs);
+    this.commonAttrs(lane, attrs, true);
     return lane;
   }
 
@@ -439,6 +491,7 @@ class Builder {
             id: '',
             text: s.text.value,
             attachedTo: '',
+            association: '',
             source: s.range,
           };
           ctx.container.annotations.push(annotation);
@@ -454,7 +507,13 @@ class Builder {
             const collection = s.attrs.some(
               (a) => a.key.value === 'collection',
             );
-            this.dataObject(ctx.process, s.name.value, s.range, collection);
+            const object = this.dataObject(
+              ctx.process,
+              s.name.value,
+              s.range,
+              collection,
+            );
+            this.placeData(object, ctx, false);
           }
           break;
         case 'pool':
@@ -538,7 +597,7 @@ class Builder {
         node.markers.push(key as Marker);
       else if (key === 'reads' || key === 'writes') {
         for (const v of a.values)
-          info[key].push(this.data(ctx.process, v.value, v.range));
+          info[key].push(this.data(ctx, v.value, v.range, true));
       } else if (key === 'collapsed' && kind === 'subProcess')
         node.collapsed = true;
       else if (key === 'non-interrupting' && kind === 'boundaryEvent')
@@ -674,7 +733,9 @@ class Builder {
       }
     }
     // Open interrupting chains merge into the host's successor (notation §10).
-    return merges.length ? { kind: 'xor', items: [open, ...merges] } : open;
+    return merges.length
+      ? { kind: 'xor', items: [open, ...merges], source: host.source }
+      : open;
   }
 
   // Gateways, forks and groups
@@ -692,21 +753,22 @@ class Builder {
       if (b.form === 'else') end.isDefault = true;
       return this.branch(b, ctx, { items: [end] }, g);
     });
-    return [{ kind, items }, g];
+    return [{ kind, items, source: g.source }, g];
   }
 
   private fork(s: ForkStmt, ctx: Ctx, open: Open, last: Documented): Open {
     const base = this.materialize(open, ctx);
+    const start = s.range.start;
+    const forkKeyword = {
+      start,
+      end: { ...start, col: start.col + 4, offset: start.offset + 4 },
+    };
     if (!base.length) {
-      const start = s.range.start;
       this.diagnostics.push(
         diagnostic(
           'BT224',
           '`fork` needs an element to fan out from, but the previous element ends the flow.',
-          {
-            start,
-            end: { ...start, col: start.col + 4, offset: start.offset + 4 },
-          },
+          forkKeyword,
         ),
       );
     }
@@ -722,7 +784,7 @@ class Builder {
         last,
       ),
     );
-    return { kind: 'fork', items };
+    return { kind: 'fork', items, source: forkKeyword };
   }
 
   private branch(b: Branch, ctx: Ctx, open: Open, docTarget: Documented): Open {
@@ -860,7 +922,7 @@ class Builder {
     const objects = this.dataObjects.get(process)!;
     let object = objects.get(normalise(name));
     if (!object) {
-      object = { id: '', name, collection, source };
+      object = { id: '', reference: '', name, collection, source };
       objects.set(normalise(name), object);
       process.dataObjects.push(object);
     }
@@ -868,15 +930,47 @@ class Builder {
     return object;
   }
 
-  /** A data store if one has this name, else a data object, created on first use. */
+  /**
+   * The process's reference to a data store if one has this name, else a
+   * data object, created on first use.
+   */
   private data(
-    process: Process,
+    ctx: Ctx,
     name: string,
     source: Range,
-  ): DataObject | DataStore {
-    return (
-      this.stores.get(normalise(name)) ?? this.dataObject(process, name, source)
-    );
+    use: boolean,
+  ): DataObject | DataStoreReference {
+    const process = ctx.process;
+    const store = this.stores.get(normalise(name));
+    let data: DataObject | DataStoreReference;
+    if (!store) data = this.dataObject(process, name, source);
+    else {
+      const refs = this.storeRefs.get(process)!;
+      let ref = refs.get(store);
+      if (!ref) {
+        ref = { id: '', store: '', source };
+        refs.set(store, ref);
+        process.dataStoreReferences.push(ref);
+      }
+      data = ref;
+    }
+    this.placeData(data, ctx, use);
+    return data;
+  }
+
+  /**
+   * Records the container of a data reference: where it is first used, or
+   * where it is declared if it is never used.
+   */
+  private placeData(
+    data: DataObject | DataStoreReference,
+    ctx: Ctx,
+    use: boolean,
+  ) {
+    if (this.usedData.has(data)) return;
+    if (use) this.usedData.add(data);
+    else if (this.dataContainer.has(data)) return;
+    this.dataContainer.set(data, ctx.sub);
   }
 
   // Flows and joins
@@ -929,6 +1023,7 @@ class Builder {
       next?.source ?? ctx.pool.pool.source,
     );
     gateway.generated = 'join';
+    if (open.source) gateway.cause = open.source;
     if (next) this.info.get(gateway)!.joinTarget = next;
     for (const i of items) {
       for (const e of isEnd(i) ? [i] : this.materialize(i, ctx, gateway)) {
@@ -1148,7 +1243,38 @@ class Builder {
         ),
       ),
     );
-    for (const [o, id] of qualify(objects, poolSlug)) o.id = take(id);
+    for (const [o, id] of qualify(objects, poolSlug)) {
+      o.id = take(id);
+      o.reference = take(`DataObjectReference_${stripPrefix(o.id)}`);
+    }
+    const storeOf = new Map(
+      [...this.storeRefs.values()].flatMap((refs) =>
+        [...refs].map(([store, ref]) => [ref, store] as const),
+      ),
+    );
+    const storeRefs = new Map(
+      this.pools.flatMap((pb) =>
+        (pb.pool.process?.dataStoreReferences ?? []).map(
+          (r) =>
+            [
+              r,
+              {
+                owner: pb,
+                id: `DataStoreReference_${stripPrefix(storeOf.get(r)!.id)}`,
+              },
+            ] as const,
+        ),
+      ),
+    );
+    for (const [r, id] of qualify(storeRefs, poolSlug)) {
+      r.id = take(id);
+      r.store = storeOf.get(r)!.id;
+    }
+    for (const [data, sub] of this.dataContainer) {
+      if (sub) data.container = sub.id;
+    }
+    const drawn = (d: DataObject | DataStoreReference) =>
+      'reference' in d ? d.reference : d.id;
 
     for (const n of this.nodes) {
       const info = this.info.get(n)!;
@@ -1161,8 +1287,18 @@ class Builder {
         n.attachedTo = info.host.id;
         info.host.boundaries.push(n.id);
       }
-      n.reads = info.reads.map((d) => d.id);
-      n.writes = info.writes.map((d) => d.id);
+      n.reads = info.reads.map((d) => ({
+        id: take(
+          `DataInputAssociation_${stripPrefix(n.id)}__${stripPrefix(drawn(d))}`,
+        ),
+        dataRef: drawn(d),
+      }));
+      n.writes = info.writes.map((d) => ({
+        id: take(
+          `DataOutputAssociation_${stripPrefix(n.id)}__${stripPrefix(drawn(d))}`,
+        ),
+        dataRef: drawn(d),
+      }));
     }
     for (const { flow, from, to } of this.flows) {
       flow.sourceRef = from.id;
@@ -1181,6 +1317,9 @@ class Builder {
     for (const [annotation, host] of this.annotationHosts) {
       annotation.attachedTo = host.id;
       annotation.id = take(`TextAnnotation_${stripPrefix(host.id)}`);
+      annotation.association = take(
+        `Association_${stripPrefix(annotation.id)}`,
+      );
     }
   }
 
@@ -1273,7 +1412,10 @@ export function slug(name: string): string {
 }
 
 const stripPrefix = (id: string) =>
-  id.replace(/^(Event|Activity|Gateway|Participant)_/, '');
+  id.replace(
+    /^(Event|Activity|Gateway|Participant|DataObject|DataStore|DataObjectReference|DataStoreReference|TextAnnotation)_/,
+    '',
+  );
 
 function quoteIfNeeded(name: string): string {
   return /->|-\(|~>|~\(|@|\[|\s#|,|:(\s|$)|^"/.test(name)

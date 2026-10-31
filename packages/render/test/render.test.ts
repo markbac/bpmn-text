@@ -32,4 +32,18 @@ describe('renderer', () => {
     const [w2, h2] = size(two);
     expect([w2, h2]).toEqual([w1! * 2, h1! * 2]);
   });
+
+  it('draws PNG from the exported SVG, without the viewer watermark', async () => {
+    const r = await renderer;
+    const svg = await r.svg(xml);
+    const attr = (name: string) =>
+      Number(new RegExp(`<svg[^>]* ${name}="([\\d.]+)"`).exec(svg)![1]);
+    // The exported SVG has no bpmn.io watermark; the PNG is that SVG plus
+    // a 20px margin.
+    expect(svg).not.toContain('bjs-powered-by');
+    expect(size(await r.png(xml))).toEqual([
+      Math.ceil(attr('width') + 40),
+      Math.ceil(attr('height') + 40),
+    ]);
+  });
 });

@@ -22,6 +22,42 @@ BPMN tools.
 | Architect / technical writer | Produce consistent, well-laid-out diagrams for documentation sites. |
 | Tool builders / LLM workflows | Generate BPMN from a format that is easy for programs and language models to emit. |
 
+How the pieces serve these users:
+
+```mermaid
+flowchart LR
+  a([Analyst]) -->|types| ed[Web editor<br/>live diagram]
+  d([Developer]) -->|edits .bpmnt in Git| vs[VS Code<br/>preview, diagnostics]
+  w([Writer]) -->|builds in CI| cli[CLI<br/>build, check, fmt]
+  t([Program or LLM]) -->|emits text| lib[compile API]
+  ed --> out[(.bpmn, .svg, .png)]
+  vs --> out
+  cli --> out
+  lib --> out
+  out --> tools[Camunda Modeler,<br/>bpmn.io, Signavio]
+  out --> sites[Documentation sites]
+```
+
+For example, this text is the whole input for a small collaboration:
+
+<!-- screenshot: functionality-example -->
+
+```bpmnt
+pool Customer
+  start Need help
+  send Ask question ~> Question received
+  receive Answer
+  end Helped
+
+pool Support
+  start message Question received
+  user Research the answer
+  send Reply ~> Answer
+  end Answered
+```
+
+![A small collaboration](images/functionality-example.png)
+
 ## 3. Scope
 
 ### 3.1 In scope (v1)

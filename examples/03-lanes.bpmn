@@ -93,7 +93,7 @@
       <bpmndi:BPMNShape id="Gateway_approved_di" bpmnElement="Gateway_approved">
         <dc:Bounds x="498" y="215" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="439" y="196" width="54" height="14" />
+          <dc:Bounds x="553" y="196" width="54" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_update_leave_balance_di" bpmnElement="Activity_update_leave_balance">

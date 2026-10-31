@@ -16,14 +16,21 @@
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "typecheck": "tsc -b",
-    "test:update-baselines": "node scripts/update-layout-baselines.js"
+    "test:update-baselines": "node scripts/update-layout-baselines.js",
+    "screenshots": "node scripts/screenshots.js",
+    "changeset": "changeset",
+    "release:version": "changeset version && npm install --package-lock-only",
+    "release:pack": "node scripts/pack-release.js",
+    "bench": "node test/bench/run.ts"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.1",
     "@eslint/js": "^9.39.0",
     "@types/node": "^22.20.0",
     "@vitest/coverage-v8": "^4.1.12",
     "eslint": "^9.39.0",
     "eslint-config-prettier": "^10.1.0",
+    "mermaid": "^11.17.2",
     "prettier": "^3.6.0",
     "tsup": "^8.5.0",
     "typescript": "~5.9.3",

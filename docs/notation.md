@@ -7,7 +7,9 @@ collaboration and process diagrams. You describe a process **in the order it
 happens**. The compiler infers sequence flows, inserts join gateways, assigns
 steps to lanes and computes the diagram layout.
 
-```
+<!-- screenshot: notation-intro -->
+
+```bpmnt
 title "Order fulfilment"
 
 pool Customer
@@ -35,6 +37,8 @@ pool Company
   send Send confirmation ~> Confirmation
   end Shipped
 ```
+
+![The order-fulfilment example](images/notation-intro.png)
 
 ---
 
@@ -68,7 +72,7 @@ pool Company
 **Quote a name when** it contains a terminator, ends with `:` inside a gateway,
 or starts with a keyword and is used as a reference (see §6.2).
 
-```
+```bpmnt
 task "Check stock -> reserve"     # contains "->", so it must be quoted
 task Check stock                  # bare name "Check stock"
 task "Line one\nLine two"         # two-line label
@@ -78,7 +82,7 @@ task "Line one\nLine two"         # two-line label
 
 ## 3. Document structure
 
-```
+```text
 document   := directive* ( (pool | message-flow)+ | body )
 directive  := 'title' NAME
             | 'option' KEY VALUE
@@ -109,7 +113,7 @@ body       := statement*
 
 Every element statement has the same shape:
 
-```
+```text
 <keyword> [<name>] [@id] [[attributes]] [<flow tail>]
 ```
 
@@ -171,11 +175,15 @@ Gateways are always followed by a block of branches (§7).
 | `[reads: A, B]` on an activity | Data input associations from A, B |
 | `[writes: C]` on an activity | Data output association to C |
 
-```
+<!-- screenshot: notation-data -->
+
+```bpmnt
 store Inventory
 task Check stock [reads: Inventory, writes: Stock report]
 note Uses the nightly snapshot, not live stock
 ```
+
+![A data store, a data object and a note](images/notation-data.png)
 
 ### 4.5 Attributes
 
@@ -186,7 +194,7 @@ ends that list and starts the next attribute, so `[reads: A, B, loop, writes:
 C]` reads A and B, sets `loop` and writes C. Quote a value that is spelt like
 a flag.
 
-```
+```bpmnt
 user Approve order @approve [parallel, reads: Order]
 ```
 
@@ -211,7 +219,7 @@ Unknown attributes produce a warning, not an error.
 BPMN tools show it in their properties panel, and it stays in the `.bpmn`
 file.
 
-```
+```bpmnt
 service Validate order
 doc Checks every order line against the product catalogue and rejects unknown items.
 ```
@@ -223,7 +231,7 @@ doc Checks every order line against the product catalogue and rejects unknown it
   The block is raw text: nothing in it is parsed, and blank lines become
   paragraph breaks.
 
-  ```
+  ```bpmnt
   service Reserve stock
   doc
     Reserves the ordered quantities in every warehouse that holds
@@ -243,10 +251,15 @@ doc Checks every order line against the product catalogue and rejects unknown it
 `[color: …]` sets the fill and `[stroke: …]` sets the border and text
 colour. They can be used on elements, pools, lanes and groups.
 
-```
+<!-- screenshot: notation-colours -->
+
+```bpmnt
 lanes Sales [color: #1F4E79], Warehouse [color: green]
+lane Sales
 task Escalate [color: #FFE0E0, stroke: red]
 ```
+
+![Coloured lanes and a task](images/notation-colours.png)
 
 * **Values:** `#RRGGBB`, `#RGB`, or a named colour from the bpmn-js palette
   (`blue`, `orange`, `green`, `red`, `purple`) or CSS names. An invalid value
@@ -273,12 +286,16 @@ check"*. Use `call` instead if it refers to a reusable process.
 Within a block (a pool body, a branch or a subprocess body), **each flow node
 is connected to the next flow node in the same block**.
 
-```
+<!-- screenshot: notation-implicit-flow -->
+
+```bpmnt
 start Order received
 task Check order          # Order received -> Check order
 task Ship                 # Check order -> Ship
 end Done                  # Ship -> Done
 ```
+
+![Implicit flow](images/notation-implicit-flow.png)
 
 Implicit flow **does not** leave:
 
@@ -294,7 +311,9 @@ the middle of a block begins a new, independent chain. If the element before
 it is still open (not an end event, jump or gateway), that element gets
 warning **BT302 dead end**. Close it with an `end` or a jump.
 
-```
+<!-- screenshot: notation-start-chains -->
+
+```bpmnt
 pool Company
   lane Sales
   start timer Monthly planning
@@ -304,6 +323,8 @@ pool Company
   start timer Visit day           # new chain; nothing flows into it
   user Install equipment
 ```
+
+![Two independent start chains in one pool](images/notation-start-chains.png)
 
 **End of a block.** Open ends left at the end of a pool or `sub` body are
 dead ends (BT302). Open ends at the end of a branch are open branches (§7.1).
@@ -318,7 +339,7 @@ An arrow after an element declares a flow to the element on its right. If the
 right-hand side starts with an element keyword, it **declares a new element
 inline**:
 
-```
+```bpmnt
 task Pick items -> task Pack parcel -> end Packed
 ```
 
@@ -330,10 +351,15 @@ is an end event or a reference.
 If the right-hand side does **not** start with a keyword, it is a **reference**
 to an existing element, which may be declared before or after:
 
-```
+<!-- screenshot: notation-jump -->
+
+```bpmnt
+task Check order
 task Fix order
 -> Check order            # loop back; nothing flows implicitly to the next line
 ```
+
+![A jump back to an earlier step](images/notation-jump.png)
 
 A line made of only `-> Target` creates a flow from the previous element to
 `Target`.
@@ -341,7 +367,9 @@ A line made of only `-> Target` creates a flow from the previous element to
 **Several targets.** A jump can name several targets separated by commas.
 Each one gets its own flow from the same source, with **no gateway**:
 
-```
+<!-- fragment -->
+
+```bpmnt
 service Publish order -> Update billing, Update CRM
 -> Retry, Notify operator          # standalone form, from the previous element
 ```
@@ -364,7 +392,7 @@ order*, use `fork` (§7.4).
 
 ### 6.3 Flow labels
 
-```
+```bpmnt
 task A -(after review)-> task B
 ```
 
@@ -374,7 +402,9 @@ Inside gateways, branch labels (§7) are the normal way to label flows.
 
 `~>` declares a message flow. It never affects sequence flow.
 
-```
+<!-- fragment -->
+
+```bpmnt
 send Place order ~> Receive order            # to an element in another pool
 send Request payment ~(invoice)~> Bank       # to a (collapsed) pool, with a label
 Bank ~> Payment received                     # standalone statement: pool → element
@@ -401,13 +431,17 @@ A gateway is followed by an indented block of **branches**:
 A branch is either **inline**, with a chain on the same line, or a **block**
 on the following lines. It can also be both:
 
-```
+<!-- screenshot: notation-branches -->
+
+```bpmnt
 xor Approved?
   yes: task Ship -> end Shipped          # inline
   no:                                    # block
     task Notify customer
     end Rejected
 ```
+
+![Inline and block branches](images/notation-branches.png)
 
 ### 7.1 Automatic joins
 
@@ -428,30 +462,38 @@ statement after the block**:
 
 The inserted join is placed in the lane of the next statement.
 
-```
+<!-- screenshot: notation-and-join -->
+
+```bpmnt
 and
   - task Pick items
   - task Print invoice
 task Ship                    # AND-join inserted before "Ship"
 ```
 
+![An inserted parallel join](images/notation-and-join.png)
+
 ### 7.2 Event-based gateways
 
 Every branch of `event` must start with a catch event or a receive task
 (error **BT220** otherwise):
 
-```
+<!-- screenshot: notation-event-gateway -->
+
+```bpmnt
 event Wait for reply
   - catch message Payment received -> task Ship
   - wait 14 days -> end Cancelled
 ```
+
+![An event-based gateway](images/notation-event-gateway.png)
 
 ### 7.3 Explicit gateways
 
 For merges that are not well structured, declare a gateway with an ID and
 jump to it:
 
-```
+```bpmnt
 xor Merge @m
 ```
 
@@ -464,7 +506,10 @@ and implicit flow continues out of it.
 Each branch starts with a flow straight from the preceding element. This is
 an *uncontrolled split*: all branches run in parallel.
 
-```
+<!-- screenshot: notation-fork -->
+
+```bpmnt
+lane Orders
 service Publish order
 fork
   -
@@ -477,6 +522,8 @@ fork
     -> Sync done
 xor Sync done
 ```
+
+![Fan-out without a gateway](images/notation-fork.png)
 
 * Branches may be unlabelled (`-`) or labelled. A label goes on the flow,
   but there are no conditions and no `else:` (BT221).
@@ -492,7 +539,9 @@ xor Sync done
 
 ## 8. Subprocesses
 
-```
+<!-- screenshot: notation-subprocess -->
+
+```bpmnt
 sub Handle payment
   start
   service Charge card
@@ -500,6 +549,8 @@ sub Handle payment
     yes: end Paid
     no:  end error Payment failed
 ```
+
+![An embedded subprocess](images/notation-subprocess.png)
 
 * The block is the subprocess body, with its own implicit flow scope.
 * `sub Handle payment [collapsed]` draws a collapsed subprocess. The body is
@@ -517,7 +568,9 @@ Inside a pool, `lane <name>` **switches the current lane**. Every following
 element is placed in that lane until the next switch. Implicit flow continues
 across lane switches, so a process reads as one story.
 
-```
+<!-- screenshot: notation-lanes -->
+
+```bpmnt
 pool Company
   lane Sales
   receive Order received
@@ -525,6 +578,8 @@ pool Company
   lane Warehouse
   task Pick items             # Warehouse; Check credit -> Pick items
 ```
+
+![Lane switches](images/notation-lanes.png)
 
 **Rules**
 
@@ -548,18 +603,20 @@ pool Company
 A group is a dashed box around related elements, typically a **phase** of
 the process. It is written as a block:
 
-```
+<!-- fragment -->
+
+```bpmnt
 pool Company
   group Fulfilment
     lane Sales
     start
     user Create order
-    ...
+    # …
   group After-sales [color: #FFF5F5]
     lane Sales
     start
     user Send satisfaction survey
-    ...
+    # …
 ```
 
 * **Transparency.** A group block does not create a flow scope or a lane
@@ -586,7 +643,9 @@ pool Company
 Boundary events are written as `on` lines in an **indented block under an
 activity**:
 
-```
+<!-- fragment -->
+
+```bpmnt
 user Approve request
   on timer 48 hours -> task Escalate -> end Escalated
   on message Cancelled [non-interrupting]
@@ -594,7 +653,7 @@ user Approve request
     -> Archive
 ```
 
-```
+```text
 on <event-type> [name] [@id] [[attributes]] [flow tail]
 ```
 
@@ -712,3 +771,4 @@ See [`examples/`](../examples) for complete files covering every feature:
 | `04-collaboration.bpmnt` | Two pools, message flows, a collapsed pool |
 | `05-events.bpmnt` | Timers, boundary events, event-based gateway |
 | `06-subprocess-data.bpmnt` | Subprocesses, data objects/stores, notes, markers |
+| `07-multi-phase.bpmnt` | Eight lanes, phase groups, several start chains, `fork`, placeholders, colours, `doc` |

@@ -1,0 +1,59 @@
+pool Participant_installer
+  node Event_order_signed in Lane_sales
+  node Activity_confirm_order in Lane_sales
+  node Activity_credit_check in Lane_credit_control
+  node Gateway_credit_approved in Lane_credit_control
+  node Activity_plan_installation in Lane_planning
+  node Activity_ask_for_deposit in Lane_sales
+  node Event_deposit_received in Lane_sales
+  node Activity_publish_plan in Lane_planning
+  node Gateway_join_after_publish_plan in Lane_planning
+  node Activity_pick_panels_and_inverter in Lane_warehouse
+  node Activity_book_delivery_van in Lane_logistics
+  node Activity_deliver_kit in Lane_logistics
+  node Gateway_join_after_deliver_kit in Lane_logistics
+  node Activity_install_panels in Lane_field_service
+  node Activity_hand_over_installation in Lane_field_service
+  node Activity_send_final_invoice in Lane_billing
+  node Event_installation_complete in Lane_billing
+  node Event_six_months_after_installation in Lane_customer_care
+  node Activity_call_customer in Lane_customer_care
+  node Activity_service_visit in Lane_field_service
+  node Gateway_fault_found in Lane_field_service
+  node Activity_repair in Lane_field_service
+  node Activity_file_visit_report in Lane_customer_care
+  node Event_visit_closed in Lane_customer_care
+  node Gateway_join_after_visit_closed in Lane_customer_care
+  node Event_complaint_received in Lane_customer_care
+  node Activity_log_complaint in Lane_customer_care
+  node Activity_investigate_complaint in Lane_field_service
+  node Event_complaint_closed in Lane_customer_care
+  Event_order_signed -> Activity_confirm_order
+  Activity_confirm_order -> Activity_credit_check
+  Activity_credit_check -> Gateway_credit_approved
+  Gateway_credit_approved -> Activity_plan_installation [yes]
+  Gateway_credit_approved -> Activity_ask_for_deposit [no]
+  Activity_ask_for_deposit -> Event_deposit_received
+  Activity_plan_installation -> Gateway_join_after_publish_plan
+  Event_deposit_received -> Gateway_join_after_publish_plan
+  Gateway_join_after_publish_plan -> Activity_publish_plan
+  Activity_publish_plan -> Activity_pick_panels_and_inverter
+  Activity_publish_plan -> Activity_book_delivery_van
+  Activity_pick_panels_and_inverter -> Gateway_join_after_deliver_kit
+  Activity_book_delivery_van -> Gateway_join_after_deliver_kit
+  Gateway_join_after_deliver_kit -> Activity_deliver_kit
+  Activity_deliver_kit -> Activity_install_panels
+  Activity_install_panels -> Activity_hand_over_installation
+  Activity_hand_over_installation -> Activity_send_final_invoice
+  Activity_send_final_invoice -> Event_installation_complete
+  Event_six_months_after_installation -> Activity_call_customer
+  Activity_call_customer -> Activity_service_visit
+  Activity_service_visit -> Gateway_fault_found
+  Gateway_fault_found -> Activity_repair [yes]
+  Gateway_fault_found -> Activity_file_visit_report [no]
+  Activity_repair -> Gateway_join_after_visit_closed
+  Activity_file_visit_report -> Gateway_join_after_visit_closed
+  Gateway_join_after_visit_closed -> Event_visit_closed
+  Event_complaint_received -> Activity_log_complaint
+  Activity_log_complaint -> Activity_investigate_complaint
+  Activity_investigate_complaint -> Event_complaint_closed

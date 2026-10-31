@@ -32,3 +32,38 @@ jobs:
       - name: Coverage summary
         if: matrix.os == 'ubuntu-latest' && matrix.node == 22
         run: node scripts/coverage-summary.js >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload the web editor bundle
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 22
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor
+          path: apps/editor/dist
+      - name: Benchmarks (warn on a regression of more than 20%)
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 22
+        run: npm run bench
+
+  update:
+    # The update scripts, as users run them: scripts/update.sh with the
+    # Docker images on Linux, scripts/update.ps1 on Windows.
+    name: Update script on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Chromium's system libraries
+        if: runner.os == 'Linux'
+        run: npx --yes playwright-core@1.63.0 install-deps chromium
+      - name: scripts/update.sh --docker
+        if: runner.os == 'Linux'
+        run: scripts/update.sh --no-pull --docker
+      - name: scripts/update.ps1
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/update.ps1 -NoPull

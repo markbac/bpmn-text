@@ -45,9 +45,26 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
     return element;
   };
   const named = (name: string | undefined) => (name ? { name } : {});
+  /** The current process's data references, by subprocess ID. */
+  const dataRefs = new Map<string | undefined, ModdleElement[]>();
+  const documented = (text: string | undefined) =>
+    text
+      ? {
+          documentation: [
+            moddle.create('bpmn:Documentation', {
+              text,
+              textFormat: 'text/plain',
+            }),
+          ],
+        }
+      : {};
 
   function node(n: FlowNode): ModdleElement {
-    const attrs: Record<string, unknown> = { id: n.id, ...named(n.name) };
+    const attrs: Record<string, unknown> = {
+      id: n.id,
+      ...named(n.name),
+      ...documented(n.documentation),
+    };
     if (n.eventType) {
       const definition: Record<string, unknown> = { id: `${n.id}_definition` };
       // The schema requires a condition and a link name.
@@ -60,10 +77,75 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
       ];
     }
     if (n.interrupting === false) attrs.cancelActivity = false;
+    const marker = n.markers[0];
+    if (marker === 'loop') {
+      attrs.loopCharacteristics = moddle.create(
+        'bpmn:StandardLoopCharacteristics',
+      );
+    } else if (marker) {
+      attrs.loopCharacteristics = moddle.create(
+        'bpmn:MultiInstanceLoopCharacteristics',
+        marker === 'sequential' ? { isSequential: true } : {},
+      );
+    }
     if (n.kind === 'subProcess' && n.children) {
-      attrs.flowElements = container(n.children);
+      attrs.flowElements = [
+        ...container(n.children),
+        ...(dataRefs.get(n.id) ?? []),
+      ];
+      attrs.artifacts = artifacts(n.children);
     }
     return create(typeOf(n.kind), attrs);
+  }
+
+  /**
+   * Data associations, linked once every data reference exists. A data
+   * input association targets a placeholder property, as bpmn-js does,
+   * because the schema requires a target.
+   */
+  function associateData(n: FlowNode) {
+    const element = elements.get(n.id)!;
+    if (n.reads.length > 0) {
+      const property = moddle.create('bpmn:Property', {
+        id: `${n.id}_property`,
+        name: '__targetRef_placeholder',
+      });
+      element.properties = [property];
+      element.dataInputAssociations = n.reads.map((a) =>
+        create('bpmn:DataInputAssociation', {
+          id: a.id,
+          sourceRef: [elements.get(a.dataRef)],
+          targetRef: property,
+        }),
+      );
+    }
+    if (n.writes.length > 0) {
+      element.dataOutputAssociations = n.writes.map((a) =>
+        create('bpmn:DataOutputAssociation', {
+          id: a.id,
+          targetRef: elements.get(a.dataRef),
+        }),
+      );
+    }
+    for (const child of n.children?.nodes ?? []) associateData(child);
+  }
+
+  /** Text annotations and their associations. */
+  function artifacts(c: Container): ModdleElement[] {
+    return c.annotations.flatMap((a) => {
+      const annotation = create('bpmn:TextAnnotation', {
+        id: a.id,
+        text: a.text,
+      });
+      return [
+        annotation,
+        create('bpmn:Association', {
+          id: a.association,
+          sourceRef: elements.get(a.attachedTo),
+          targetRef: annotation,
+        }),
+      ];
+    });
   }
 
   /** Flow nodes, then sequence flows, with their references linked. */
@@ -92,13 +174,52 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
 
   function process(pool: Pool): ModdleElement {
     const p = pool.process!;
-    const flowElements = container(p);
+    // Data references go in the container where they are first used; the
+    // data objects themselves belong to the process.
+    dataRefs.clear();
+    const addRef = (container: string | undefined, ref: ModdleElement) =>
+      dataRefs.set(container, [...(dataRefs.get(container) ?? []), ref]);
+    const objects = p.dataObjects.map((o) => {
+      const object = create('bpmn:DataObject', {
+        id: o.id,
+        ...(o.collection ? { isCollection: true } : {}),
+      });
+      addRef(
+        o.container,
+        create('bpmn:DataObjectReference', {
+          id: o.reference,
+          name: o.name,
+          dataObjectRef: object,
+        }),
+      );
+      return object;
+    });
+    for (const r of p.dataStoreReferences) {
+      const store = elements.get(r.store)!;
+      addRef(
+        r.container,
+        create('bpmn:DataStoreReference', {
+          id: r.id,
+          name: store.name,
+          dataStoreRef: store,
+        }),
+      );
+    }
+    const flowElements = [
+      ...container(p),
+      ...objects,
+      ...(dataRefs.get(undefined) ?? []),
+    ];
+    for (const n of p.nodes) associateData(n);
     const attrs: Record<string, unknown> = {
       id: p.id,
       isExecutable: false,
       flowElements,
+      artifacts: artifacts(p),
     };
-    if (!model.collaboration) Object.assign(attrs, named(pool.name));
+    if (!model.collaboration) {
+      Object.assign(attrs, named(pool.name), documented(model.documentation));
+    }
     if (pool.lanes.length > 0) {
       attrs.laneSets = [
         moddle.create('bpmn:LaneSet', {
@@ -107,6 +228,7 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
             create('bpmn:Lane', {
               id: l.id,
               ...named(l.name),
+              ...documented(l.documentation),
               flowNodeRef: p.nodes
                 .filter((n) => n.laneId === l.id)
                 .map((n) => elements.get(n.id)),
@@ -118,14 +240,44 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
     return create('bpmn:Process', attrs);
   }
 
+  const stores = model.dataStores.map((s) =>
+    create('bpmn:DataStore', { id: s.id, name: s.name }),
+  );
   const processes = model.pools.filter((p) => p.process).map(process);
-  const rootElements = [...processes];
+  const rootElements = [...stores, ...processes];
   let root = processes[0]!;
+
+  // Groups: one category value each, and the group in the root element.
+  const groups = model.groups.map((g) => {
+    const value = moddle.create('bpmn:CategoryValue', {
+      id: g.id.replace(/^Group_/, 'CategoryValue_'),
+      value: g.name,
+    });
+    return [
+      value,
+      create('bpmn:Group', {
+        id: g.id,
+        categoryValueRef: value,
+        ...documented(g.documentation),
+      }),
+    ] as const;
+  });
+  if (groups.length > 0) {
+    rootElements.unshift(
+      moddle.create('bpmn:Category', {
+        id: 'Category_groups',
+        categoryValue: groups.map(([value]) => value),
+      }),
+    );
+  }
+  const groupElements = groups.map(([, group]) => group);
+
   if (model.collaboration) {
     const participants = model.pools.map((p) =>
       create('bpmn:Participant', {
         id: p.id,
         ...named(p.name),
+        ...documented(p.documentation),
         ...(p.process ? { processRef: elements.get(p.process.id) } : {}),
       }),
     );
@@ -139,10 +291,14 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
     );
     root = moddle.create('bpmn:Collaboration', {
       id: 'Collaboration_1',
+      ...documented(model.documentation),
       participants,
       messageFlows,
+      artifacts: groupElements,
     });
-    rootElements.unshift(root);
+    rootElements.splice(groups.length > 0 ? 1 : 0, 0, root);
+  } else {
+    push(root, 'artifacts', ...groupElements);
   }
 
   const definitions = moddle.create('bpmn:Definitions', {
@@ -155,8 +311,8 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
   return { definitions, root, elements };
 }
 
-function push(element: ModdleElement, property: string, value: unknown) {
+function push(element: ModdleElement, property: string, ...values: unknown[]) {
   const list = (element[property] as unknown[] | undefined) ?? [];
-  list.push(value);
+  list.push(...values);
   element[property] = list;
 }

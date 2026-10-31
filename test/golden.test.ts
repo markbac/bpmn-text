@@ -11,9 +11,17 @@ import { afterAll, describe, expect, it } from 'vitest';
 
 afterAll(closeBrowser);
 
-// The core examples (#26). Each golden file sits next to its source; run
+// The examples (#26, #31-#36, #65). Each golden file sits next to its source; run
 // `npx vitest run test/golden.test.ts -u` to accept an intended change.
-const examples = ['01-simple', '02-gateways', '03-lanes', '04-collaboration'];
+const examples = [
+  '01-simple',
+  '02-gateways',
+  '03-lanes',
+  '04-collaboration',
+  '05-events',
+  '06-subprocess-data',
+  '07-multi-phase',
+];
 const root = join(import.meta.dirname, '..');
 
 describe.each(examples)('golden: %s', (name) => {
