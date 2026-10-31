@@ -8,7 +8,7 @@ export {
   type TokenKind,
 } from './lexer.js';
 export type * from './ast.js';
-export { parse, type ParseResult } from './parser.js';
+export { parse, vocabulary, type ParseResult } from './parser.js';
 export type * from './model.js';
 export { build, slug, type BuildOptions, type BuildResult } from './builder.js';
 export {

@@ -1,0 +1,272 @@
+:root {
+  color-scheme: light;
+  --bg: #ffffff;
+  --panel: #f6f7f9;
+  --text: #1d2330;
+  --muted: #5d6576;
+  --border: #d9dde5;
+  --accent: #1f6feb;
+  --selected: #1f6feb;
+  --syntax-keyword: #8b1fa9;
+  --syntax-type: #0b6e99;
+  --syntax-string: #0a7a3a;
+  --syntax-doc: #5d6576;
+  --syntax-comment: #8a8f99;
+  --syntax-operator: #c2410c;
+  --syntax-id: #9a6700;
+  --syntax-label: #1f6feb;
+  --syntax-attribute: #0b6e99;
+  --syntax-value: #9a6700;
+  --diagram-filter: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #15181e;
+    --panel: #1d2129;
+    --text: #e3e6eb;
+    --muted: #9aa3b2;
+    --border: #2e3440;
+    --accent: #6ea8ff;
+    --selected: #6ea8ff;
+    --syntax-keyword: #d49cf2;
+    --syntax-type: #6cc4e8;
+    --syntax-string: #7fd49b;
+    --syntax-doc: #9aa3b2;
+    --syntax-comment: #6b7280;
+    --syntax-operator: #f59e63;
+    --syntax-id: #e8c35a;
+    --syntax-label: #8ab4ff;
+    --syntax-attribute: #6cc4e8;
+    --syntax-value: #e8c35a;
+    --diagram-filter: invert(0.88) hue-rotate(180deg);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #15181e;
+  --panel: #1d2129;
+  --text: #e3e6eb;
+  --muted: #9aa3b2;
+  --border: #2e3440;
+  --accent: #6ea8ff;
+  --selected: #6ea8ff;
+  --syntax-keyword: #d49cf2;
+  --syntax-type: #6cc4e8;
+  --syntax-string: #7fd49b;
+  --syntax-doc: #9aa3b2;
+  --syntax-comment: #6b7280;
+  --syntax-operator: #f59e63;
+  --syntax-id: #e8c35a;
+  --syntax-label: #8ab4ff;
+  --syntax-attribute: #6cc4e8;
+  --syntax-value: #e8c35a;
+  --diagram-filter: invert(0.88) hue-rotate(180deg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font:
+    14px/1.4 system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.brand {
+  margin-right: 8px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+button,
+select {
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+button:hover,
+select:hover {
+  border-color: var(--accent);
+}
+
+button:focus-visible,
+select:focus-visible,
+.divider:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.menu {
+  position: relative;
+}
+
+.menu-items {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  padding: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 15%);
+}
+
+.menu-items[hidden] {
+  display: none;
+}
+
+.menu-items button {
+  border: 0;
+  text-align: left;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.split {
+  --ratio: 45%;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: var(--ratio) 6px 1fr;
+}
+
+.pane {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+#source .cm-editor {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+
+#source .cm-scroller {
+  font-family:
+    ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: 13px;
+}
+
+#source .cm-gutters {
+  background: var(--panel);
+  color: var(--muted);
+  border-right: 1px solid var(--border);
+}
+
+#source .cm-activeLine,
+#source .cm-activeLineGutter {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+#source .cm-cursor {
+  border-left-color: var(--text);
+}
+
+#source .cm-tooltip {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.divider {
+  background: var(--border);
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.diagram {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  filter: var(--diagram-filter);
+}
+
+.djs-element.source-selected .djs-visual > :first-child {
+  stroke: var(--selected) !important;
+  stroke-width: 3px !important;
+}
+
+.tooltip {
+  position: absolute;
+  z-index: 5;
+  max-width: 320px;
+  padding: 6px 10px;
+  white-space: pre-wrap;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 15%);
+  pointer-events: none;
+}
+
+.status {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 4px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.toast {
+  color: var(--accent);
+}
+
+@media (max-width: 800px) {
+  .split {
+    grid-template-columns: 1fr;
+    grid-template-rows: var(--ratio) 6px 1fr;
+  }
+
+  .divider {
+    cursor: row-resize;
+  }
+}

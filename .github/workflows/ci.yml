@@ -32,3 +32,9 @@ jobs:
       - name: Coverage summary
         if: matrix.os == 'ubuntu-latest' && matrix.node == 22
         run: node scripts/coverage-summary.js >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload the web editor bundle
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 22
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor
+          path: apps/editor/dist

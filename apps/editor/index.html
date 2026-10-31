@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>bpmn-text editor</title>
+    <meta
+      name="description"
+      content="Write BPMN diagrams as text and see them laid out as you type."
+    />
+  </head>
+  <body>
+    <header class="toolbar">
+      <strong class="brand">bpmn-text</strong>
+      <label class="examples">
+        <span class="visually-hidden">Example</span>
+        <select id="examples" aria-label="Load an example">
+          <option value="">Examples…</option>
+        </select>
+      </label>
+      <span class="spacer"></span>
+      <button id="share" type="button" title="Copy a link to this diagram">
+        Share link
+      </button>
+      <div class="menu">
+        <button id="download" type="button" aria-haspopup="true">
+          Download ▾
+        </button>
+        <div id="download-menu" class="menu-items" hidden>
+          <button type="button" data-format="bpmnt">Source (.bpmnt)</button>
+          <button type="button" data-format="bpmn">BPMN (.bpmn)</button>
+          <button type="button" data-format="svg">Image (.svg)</button>
+          <button type="button" data-format="png">Image (.png)</button>
+        </div>
+      </div>
+      <button id="theme" type="button" title="Switch light and dark theme">
+        ◐
+      </button>
+    </header>
+    <main id="split" class="split">
+      <section id="source" class="pane" aria-label="Source"></section>
+      <div
+        id="divider"
+        class="divider"
+        role="separator"
+        aria-orientation="vertical"
+        tabindex="0"
+      ></div>
+      <section class="pane diagram-pane" aria-label="Diagram">
+        <div id="diagram" class="diagram"></div>
+        <div id="tooltip" class="tooltip" hidden></div>
+      </section>
+    </main>
+    <footer class="status">
+      <span id="status">Loading…</span>
+      <span id="toast" class="toast" role="status"></span>
+    </footer>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

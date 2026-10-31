@@ -41,6 +41,13 @@ gateways, lane placement and the whole diagram layout are inferred.
 
 ![The multi-phase example](docs/images/07-multi-phase.png)
 
+## Web editor
+
+A live split-view editor runs entirely in the browser: type on the left and
+see the diagram on the right, with inline errors, completion, selection
+sync, downloads and share links. See [apps/editor](apps/editor/README.md)
+to run or self-host it.
+
 ## Command line
 
 ```bash

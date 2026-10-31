@@ -1,9 +1,11 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "build/types"
+    "outDir": "build/types",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"]
   },
-  "include": ["src", "test"],
+  "include": ["src", "test", "vite.config.ts"],
   "references": [
     {
       "path": "../../packages/core"

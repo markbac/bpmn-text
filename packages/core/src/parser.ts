@@ -115,6 +115,16 @@ const ATTRIBUTES = new Set([
   'fit',
 ]);
 
+/**
+ * The words of the notation, for editors: statement keywords, the event
+ * types each event keyword takes, and attribute names.
+ */
+export const vocabulary = {
+  keywords: STATEMENT_KEYWORDS,
+  eventTypes: EVENT_TYPES,
+  attributes: [...ATTRIBUTES],
+} as const;
+
 /** Thrown inside a statement; the statement loop reports it and skips the line. */
 class SyntaxError {
   constructor(readonly diagnostic: Diagnostic) {}
