@@ -1,0 +1,288 @@
+pool Participant_customer
+  node Event_wants_faster_broadband
+  node Activity_request_a_quote
+  node Gateway_wait_for_the_quote
+  node Activity_offer_received
+  node Activity_choose_speed_and_extras
+  node Activity_place_order
+  node Gateway_wait_for_the_provider
+  node Activity_order_confirmed
+  node Activity_order_declined
+  node Event_order_not_accepted
+  node Activity_no_service_at_the_address
+  node Event_not_available
+  node Activity_installation_date
+  node Activity_router_arrives
+  node Activity_installation_done
+  node Activity_welcome_pack
+  node Event_online
+  Event_wants_faster_broadband -> Activity_request_a_quote
+  Activity_request_a_quote -> Gateway_wait_for_the_quote
+  Gateway_wait_for_the_quote -> Activity_offer_received
+  Activity_offer_received -> Activity_choose_speed_and_extras
+  Activity_choose_speed_and_extras -> Activity_place_order
+  Activity_place_order -> Gateway_wait_for_the_provider
+  Gateway_wait_for_the_provider -> Activity_order_confirmed
+  Gateway_wait_for_the_provider -> Activity_order_declined
+  Activity_order_declined -> Event_order_not_accepted
+  Gateway_wait_for_the_quote -> Activity_no_service_at_the_address
+  Activity_no_service_at_the_address -> Event_not_available
+  Activity_order_confirmed -> Activity_installation_date
+  Activity_installation_date -> Activity_router_arrives
+  Activity_router_arrives -> Activity_installation_done
+  Activity_installation_done -> Activity_welcome_pack
+  Activity_welcome_pack -> Event_online
+pool Participant_courier (collapsed)
+pool Participant_cityfibre
+  node Event_cityfibre_availability_request
+  node Activity_check_cityfibre_coverage
+  node Activity_return_cityfibre_availability
+  node Event_cityfibre_answered
+  node Event_cityfibre_order_received
+  node Activity_validate_cityfibre_order
+  node Gateway_cityfibre_order_valid
+  node Activity_reject_cityfibre_order
+  node Event_cityfibre_rejected
+  node Activity_book_installer
+  node Activity_commit_cityfibre_date
+  node Activity_install_cityfibre_connection
+  node Activity_send_cityfibre_completion
+  node Event_cityfibre_order_complete
+  Event_cityfibre_availability_request -> Activity_check_cityfibre_coverage
+  Activity_check_cityfibre_coverage -> Activity_return_cityfibre_availability
+  Activity_return_cityfibre_availability -> Event_cityfibre_answered
+  Event_cityfibre_order_received -> Activity_validate_cityfibre_order
+  Activity_validate_cityfibre_order -> Gateway_cityfibre_order_valid
+  Gateway_cityfibre_order_valid -> Activity_reject_cityfibre_order [no]
+  Activity_reject_cityfibre_order -> Event_cityfibre_rejected
+  Gateway_cityfibre_order_valid -> Activity_book_installer [yes]
+  Activity_book_installer -> Activity_commit_cityfibre_date
+  Activity_commit_cityfibre_date -> Activity_install_cityfibre_connection
+  Activity_install_cityfibre_connection -> Activity_send_cityfibre_completion
+  Activity_send_cityfibre_completion -> Event_cityfibre_order_complete
+pool Participant_brightwave_broadband
+  node Event_quote_requested in Lane_sales
+  node Activity_find_address_key in Lane_sales
+  node Gateway_check_both_networks in Lane_sales
+  node Activity_ask_openreach_for_availability in Lane_sales
+  node Activity_openreach_availability in Lane_sales
+  node Activity_ask_cityfibre_for_availability in Lane_sales
+  node Activity_cityfibre_availability in Lane_sales
+  node Gateway_any_full_fibre_available in Lane_sales
+  node Gateway_join_after_any_full_fibre_available in Lane_sales
+  node Activity_build_offer in Lane_sales
+  node Activity_send_offer in Lane_sales
+  node Activity_customer_order_received in Lane_sales
+  node Gateway_new_line_or_transfer in Lane_sales
+  node Activity_request_switch_match in Lane_sales
+  node Activity_switch_match_received in Lane_sales
+  node Activity_tell_customer_no_service in Lane_sales
+  node Event_no_service in Lane_sales
+  node Activity_run_credit_check in Lane_credit_and_fraud
+  node Activity_credit_result in Lane_credit_and_fraud
+  node Gateway_credit_decision in Lane_credit_and_fraud
+  node Activity_review_application_manually in Lane_credit_and_fraud
+  node Gateway_approved_on_review in Lane_credit_and_fraud
+  node Activity_decline_order in Lane_credit_and_fraud
+  node Event_declined in Lane_credit_and_fraud
+  node Activity_confirm_order in Lane_sales
+  node Activity_place_wholesale_order in Lane_order_management
+  node Gateway_which_network in Lane_order_management
+  node Activity_order_from_openreach in Lane_order_management
+  node Activity_order_from_cityfibre in Lane_order_management
+  node Gateway_wait_for_the_network in Lane_order_management
+  node Gateway_join_after_wait_for_the_network in Lane_order_management
+  node Activity_committed_date_received in Lane_order_management
+  node Activity_order_rejected in Lane_order_management
+  node Activity_correct_order_details in Lane_order_management
+  node Event_2_working_days in Lane_order_management
+  node Activity_chase_the_network in Lane_order_management
+  node Activity_tell_customer_the_date in Lane_order_management
+  node Activity_reserve_ip_and_service_id in Lane_network_provisioning
+  node Activity_configure_radius_and_speed_profile in Lane_network_provisioning
+  node Gateway_digital_voice_ordered in Lane_voice
+  node Activity_set_up_digital_voice_line in Lane_voice
+  node Gateway_keep_current_number in Lane_voice
+  node Activity_port_phone_number in Lane_voice
+  node Activity_allocate_new_number in Lane_voice
+  node Activity_dispatch_router in Lane_logistics
+  node Activity_delivery_confirmed in Lane_logistics
+  node Activity_create_billing_account in Lane_billing
+  node Activity_completion_notice in Lane_order_management
+  node Gateway_join_after_completion_notice in Lane_order_management
+  node Gateway_join_after_join_after_completion_notice in Lane_order_management
+  node Gateway_join_after_join_after_join_after_completion_notice in Lane_order_management
+  node Activity_confirm_installation in Lane_order_management
+  node Activity_activate_service in Lane_network_provisioning
+  node Event_activation_failed_2 in Lane_network_provisioning on Activity_activate_service
+  node Activity_troubleshoot_with_the_customer in Lane_customer_care
+  node Activity_start_billing in Lane_billing
+  node Activity_send_welcome_pack in Lane_customer_care
+  node Event_customer_live in Lane_customer_care
+  node Event_14_days_after_go_live in Lane_customer_care
+  node Activity_satisfaction_call in Lane_customer_care
+  node Gateway_customer_happy in Lane_customer_care
+  node Event_case_closed in Lane_customer_care
+  node Activity_raise_service_ticket in Lane_customer_care
+  node Event_ticket_raised in Lane_customer_care
+  Event_quote_requested -> Activity_find_address_key
+  Activity_find_address_key -> Gateway_check_both_networks
+  Gateway_check_both_networks -> Activity_ask_openreach_for_availability
+  Activity_ask_openreach_for_availability -> Activity_openreach_availability
+  Gateway_check_both_networks -> Activity_ask_cityfibre_for_availability
+  Activity_ask_cityfibre_for_availability -> Activity_cityfibre_availability
+  Activity_openreach_availability -> Gateway_join_after_any_full_fibre_available
+  Activity_cityfibre_availability -> Gateway_join_after_any_full_fibre_available
+  Gateway_join_after_any_full_fibre_available -> Gateway_any_full_fibre_available
+  Gateway_any_full_fibre_available -> Activity_build_offer [yes]
+  Activity_build_offer -> Activity_send_offer
+  Activity_send_offer -> Activity_customer_order_received
+  Activity_customer_order_received -> Gateway_new_line_or_transfer
+  Gateway_new_line_or_transfer -> Activity_request_switch_match [transfer]
+  Activity_request_switch_match -> Activity_switch_match_received
+  Gateway_any_full_fibre_available -> Activity_tell_customer_no_service [no]
+  Activity_tell_customer_no_service -> Event_no_service
+  Activity_run_credit_check -> Activity_credit_result
+  Activity_credit_result -> Gateway_credit_decision
+  Gateway_credit_decision -> Activity_review_application_manually [refer]
+  Activity_review_application_manually -> Gateway_approved_on_review
+  Activity_decline_order -> Event_declined
+  Activity_confirm_order -> Activity_place_wholesale_order
+  Activity_place_wholesale_order -> Gateway_which_network
+  Gateway_which_network -> Activity_order_from_openreach [openreach]
+  Gateway_which_network -> Activity_order_from_cityfibre [cityfibre]
+  Activity_order_from_openreach -> Gateway_join_after_wait_for_the_network
+  Activity_order_from_cityfibre -> Gateway_join_after_wait_for_the_network
+  Gateway_join_after_wait_for_the_network -> Gateway_wait_for_the_network
+  Gateway_wait_for_the_network -> Activity_committed_date_received
+  Gateway_wait_for_the_network -> Activity_order_rejected
+  Activity_order_rejected -> Activity_correct_order_details
+  Gateway_wait_for_the_network -> Event_2_working_days
+  Event_2_working_days -> Activity_chase_the_network
+  Activity_committed_date_received -> Activity_tell_customer_the_date
+  Activity_tell_customer_the_date -> Activity_reserve_ip_and_service_id
+  Activity_reserve_ip_and_service_id -> Activity_configure_radius_and_speed_profile
+  Activity_tell_customer_the_date -> Gateway_digital_voice_ordered
+  Gateway_digital_voice_ordered -> Activity_set_up_digital_voice_line [yes]
+  Activity_set_up_digital_voice_line -> Gateway_keep_current_number
+  Gateway_keep_current_number -> Activity_port_phone_number [yes]
+  Gateway_keep_current_number -> Activity_allocate_new_number [no]
+  Activity_tell_customer_the_date -> Activity_dispatch_router
+  Activity_dispatch_router -> Activity_delivery_confirmed
+  Activity_tell_customer_the_date -> Activity_create_billing_account
+  Activity_configure_radius_and_speed_profile -> Gateway_join_after_completion_notice
+  Activity_port_phone_number -> Gateway_join_after_join_after_join_after_completion_notice
+  Activity_allocate_new_number -> Gateway_join_after_join_after_join_after_completion_notice
+  Gateway_join_after_join_after_join_after_completion_notice -> Gateway_join_after_join_after_completion_notice
+  Gateway_digital_voice_ordered -> Gateway_join_after_join_after_completion_notice [no]
+  Gateway_join_after_join_after_completion_notice -> Gateway_join_after_completion_notice
+  Activity_delivery_confirmed -> Gateway_join_after_completion_notice
+  Activity_create_billing_account -> Gateway_join_after_completion_notice
+  Gateway_join_after_completion_notice -> Activity_completion_notice
+  Activity_completion_notice -> Activity_confirm_installation
+  Activity_confirm_installation -> Activity_activate_service
+  Event_activation_failed_2 -> Activity_troubleshoot_with_the_customer
+  Activity_activate_service -> Activity_start_billing
+  Activity_start_billing -> Activity_send_welcome_pack
+  Activity_send_welcome_pack -> Event_customer_live
+  Event_14_days_after_go_live -> Activity_satisfaction_call
+  Activity_satisfaction_call -> Gateway_customer_happy
+  Gateway_customer_happy -> Event_case_closed [yes]
+  Gateway_customer_happy -> Activity_raise_service_ticket [no]
+  Activity_raise_service_ticket -> Event_ticket_raised
+  Gateway_new_line_or_transfer -> Activity_run_credit_check [new line]
+  Activity_switch_match_received -> Activity_run_credit_check
+  Gateway_credit_decision -> Activity_confirm_order [pass]
+  Gateway_approved_on_review -> Activity_confirm_order [yes]
+  Gateway_approved_on_review -> Activity_decline_order [no]
+  Gateway_credit_decision -> Activity_decline_order [fail]
+  Activity_correct_order_details -> Activity_place_wholesale_order
+  Activity_chase_the_network -> Gateway_wait_for_the_network
+  Activity_troubleshoot_with_the_customer -> Activity_activate_service
+  Activity_activate_service:
+    Event_activate_service_start_1 -> Activity_bind_service_id_to_the_ont
+    Activity_bind_service_id_to_the_ont -> Activity_push_configuration
+    Activity_push_configuration -> Activity_run_line_tests
+    Activity_run_line_tests -> Gateway_tests_pass
+    Gateway_tests_pass -> Event_service_active [yes]
+    Gateway_tests_pass -> Event_activation_failed [no]
+pool Participant_openreach
+  node Event_openreach_availability_request in Lane_order_handling
+  node Activity_check_openreach_line_plant in Lane_order_handling
+  node Activity_return_openreach_availability in Lane_order_handling
+  node Event_openreach_answered in Lane_order_handling
+  node Event_openreach_order_received in Lane_order_handling
+  node Activity_validate_openreach_order in Lane_order_handling
+  node Gateway_openreach_order_valid in Lane_order_handling
+  node Activity_reject_openreach_order in Lane_order_handling
+  node Event_openreach_rejected in Lane_order_handling
+  node Gateway_order_type in Lane_order_handling
+  node Activity_survey_and_plan_route in Lane_planning
+  node Activity_book_engineer_appointment in Lane_planning
+  node Activity_commit_openreach_date in Lane_planning
+  node Activity_install_fibre_and_ont in Lane_field_engineering
+  node Event_appointment_missed in Lane_field_engineering on Activity_install_fibre_and_ont
+  node Activity_notify_delay in Lane_field_engineering
+  node Event_delay_notified in Lane_field_engineering
+  node Activity_schedule_remote_switch_over in Lane_order_handling
+  node Activity_commit_switch_date in Lane_order_handling
+  node Activity_switch_over_remotely in Lane_order_handling
+  node Activity_close_openreach_work_order in Lane_order_handling
+  node Gateway_join_after_close_openreach_work_order in Lane_order_handling
+  node Activity_send_openreach_completion in Lane_order_handling
+  node Event_openreach_order_complete in Lane_order_handling
+  Event_openreach_availability_request -> Activity_check_openreach_line_plant
+  Activity_check_openreach_line_plant -> Activity_return_openreach_availability
+  Activity_return_openreach_availability -> Event_openreach_answered
+  Event_openreach_order_received -> Activity_validate_openreach_order
+  Activity_validate_openreach_order -> Gateway_openreach_order_valid
+  Gateway_openreach_order_valid -> Activity_reject_openreach_order [no]
+  Activity_reject_openreach_order -> Event_openreach_rejected
+  Gateway_openreach_order_valid -> Gateway_order_type [yes]
+  Gateway_order_type -> Activity_survey_and_plan_route [new provide]
+  Activity_survey_and_plan_route -> Activity_book_engineer_appointment
+  Activity_book_engineer_appointment -> Activity_commit_openreach_date
+  Activity_commit_openreach_date -> Activity_install_fibre_and_ont
+  Event_appointment_missed -> Activity_notify_delay
+  Activity_notify_delay -> Event_delay_notified
+  Gateway_order_type -> Activity_schedule_remote_switch_over [transfer]
+  Activity_schedule_remote_switch_over -> Activity_commit_switch_date
+  Activity_commit_switch_date -> Activity_switch_over_remotely
+  Activity_install_fibre_and_ont -> Gateway_join_after_close_openreach_work_order
+  Activity_switch_over_remotely -> Gateway_join_after_close_openreach_work_order
+  Gateway_join_after_close_openreach_work_order -> Activity_close_openreach_work_order
+  Activity_close_openreach_work_order -> Activity_send_openreach_completion
+  Activity_send_openreach_completion -> Event_openreach_order_complete
+pool Participant_credit_agency (collapsed)
+pool Participant_one_touch_switch_hub (collapsed)
+message Activity_request_a_quote ~> Event_quote_requested
+message Activity_place_order ~> Activity_customer_order_received
+message Participant_courier ~> Activity_router_arrives
+message Participant_courier ~> Activity_delivery_confirmed
+message Activity_return_cityfibre_availability ~> Activity_cityfibre_availability
+message Activity_reject_cityfibre_order ~> Activity_order_rejected
+message Activity_commit_cityfibre_date ~> Activity_committed_date_received
+message Activity_send_cityfibre_completion ~> Activity_completion_notice
+message Activity_ask_openreach_for_availability ~> Event_openreach_availability_request
+message Activity_ask_cityfibre_for_availability ~> Event_cityfibre_availability_request
+message Activity_send_offer ~> Activity_offer_received
+message Activity_request_switch_match ~> Participant_one_touch_switch_hub [name, address, current provider]
+message Activity_tell_customer_no_service ~> Activity_no_service_at_the_address
+message Activity_run_credit_check ~> Participant_credit_agency [applicant details]
+message Activity_decline_order ~> Activity_order_declined
+message Activity_confirm_order ~> Activity_order_confirmed
+message Activity_order_from_openreach ~> Event_openreach_order_received
+message Activity_order_from_cityfibre ~> Event_cityfibre_order_received
+message Activity_tell_customer_the_date ~> Activity_installation_date
+message Activity_port_phone_number ~> Participant_one_touch_switch_hub
+message Activity_dispatch_router ~> Participant_courier [shipping order]
+message Activity_confirm_installation ~> Activity_installation_done
+message Activity_send_welcome_pack ~> Activity_welcome_pack
+message Activity_return_openreach_availability ~> Activity_openreach_availability
+message Activity_reject_openreach_order ~> Activity_order_rejected
+message Activity_commit_openreach_date ~> Activity_committed_date_received
+message Activity_notify_delay ~> Participant_brightwave_broadband
+message Activity_commit_switch_date ~> Activity_committed_date_received
+message Activity_send_openreach_completion ~> Activity_completion_notice
+message Participant_credit_agency ~> Activity_credit_result
+message Participant_one_touch_switch_hub ~> Activity_switch_match_received
