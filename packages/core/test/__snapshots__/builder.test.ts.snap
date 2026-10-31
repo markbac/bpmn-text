@@ -207,7 +207,7 @@ exports[`check() on the corpus > examples/02-gateways.bpmnt has no errors or war
           {
             "id": "Flow_extra_channels__record_audio_version",
             "name": "podcast",
-            "source": "23:15-23:40",
+            "source": "23:12-23:37",
             "sourceRef": "Gateway_extra_channels",
             "targetRef": "Activity_record_audio_version",
           },
@@ -364,7 +364,7 @@ exports[`check() on the corpus > examples/02-gateways.bpmnt has no errors or war
             "id": "Activity_record_audio_version",
             "kind": "task",
             "name": "Record audio version",
-            "source": "23:15-23:40",
+            "source": "23:12-23:37",
           },
           {
             "attributeRanges": {},

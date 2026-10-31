@@ -1,0 +1,305 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`bpmn-text check > prints code frames for BT001-unclosed-attributes.bpmnt 1`] = `
+"error[BT001]: This attribute list is never closed.
+ --> test/fixtures/diagnostics/BT001-unclosed-attributes.bpmnt:4:18
+  |
+4 | task Check order [loop
+  |                  ^
+
+test/fixtures/diagnostics/BT001-unclosed-attributes.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT002-tab-indent.bpmnt 1`] = `
+"error[BT002]: Use spaces for indentation, not tabs.
+ --> test/fixtures/diagnostics/BT002-tab-indent.bpmnt:4:1
+  |
+4 |   start
+  | ^^
+  = help: Replace the tab with two spaces
+
+test/fixtures/diagnostics/BT002-tab-indent.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT003-inconsistent-dedent.bpmnt 1`] = `
+"error[BT003]: This line is indented less than the block it is in, but more than the enclosing block.
+ --> test/fixtures/diagnostics/BT003-inconsistent-dedent.bpmnt:6:3
+  |
+6 |   end
+  |   ^
+
+test/fixtures/diagnostics/BT003-inconsistent-dedent.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT004-unterminated-string.bpmnt 1`] = `
+"error[BT004]: This string has no closing quote.
+ --> test/fixtures/diagnostics/BT004-unterminated-string.bpmnt:4:6
+  |
+4 | task "Check order
+  |      ^
+  = help: Add the closing quote
+
+test/fixtures/diagnostics/BT004-unterminated-string.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT101-unknown-keyword.bpmnt 1`] = `
+"error[BT101]: Unknown keyword \`taks\`. Did you mean \`task\`?
+ --> test/fixtures/diagnostics/BT101-unknown-keyword.bpmnt:4:1
+  |
+4 | taks Check order
+  | ^^^^
+  = help: Change to \`task\`
+
+test/fixtures/diagnostics/BT101-unknown-keyword.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT102-start-terminate.bpmnt 1`] = `
+"error[BT102]: \`start terminate\` is not allowed. Event types for \`start\`: message, timer, signal, conditional.
+ --> test/fixtures/diagnostics/BT102-start-terminate.bpmnt:3:7
+  |
+3 | start terminate
+  |       ^^^^^^^^^
+
+test/fixtures/diagnostics/BT102-start-terminate.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT103-unknown-attribute.bpmnt 1`] = `
+"warning[BT103]: Unknown attribute \`urgent\`; it is kept but has no effect.
+ --> test/fixtures/diagnostics/BT103-unknown-attribute.bpmnt:4:19
+  |
+4 | task Check order [urgent]
+  |                   ^^^^^^
+
+test/fixtures/diagnostics/BT103-unknown-attribute.bpmnt: 1 warning
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT104-invalid-colour.bpmnt 1`] = `
+"test/fixtures/diagnostics/BT104-invalid-colour.bpmnt: ok
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT201-ambiguous-reference.bpmnt 1`] = `
+"error[BT201]: \`Review\` is ambiguous: 2 elements have this name (lines 4, 5). Give the one you mean an @id and refer to it by that.
+ --> test/fixtures/diagnostics/BT201-ambiguous-reference.bpmnt:9:8
+  |
+9 |     -> Review
+  |        ^^^^^^
+  = note: \`Review\` is declared here (test/fixtures/diagnostics/BT201-ambiguous-reference.bpmnt:4:1)
+  = note: \`Review\` is declared here (test/fixtures/diagnostics/BT201-ambiguous-reference.bpmnt:5:1)
+
+test/fixtures/diagnostics/BT201-ambiguous-reference.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT202-unknown-reference.bpmnt 1`] = `
+"error[BT202]: Nothing is called \`Chek order\`. Did you mean \`Check order\`?
+ --> test/fixtures/diagnostics/BT202-unknown-reference.bpmnt:8:8
+  |
+8 |     -> Chek order
+  |        ^^^^^^^^^^
+  = help: Change to \`Check order\`
+
+test/fixtures/diagnostics/BT202-unknown-reference.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT203-duplicate-id.bpmnt 1`] = `
+"error[BT203]: The ID \`check\` is already used on line 4.
+ --> test/fixtures/diagnostics/BT203-duplicate-id.bpmnt:5:17
+  |
+5 | task Ship order @check
+  |                 ^^^^^^
+  = note: First use (test/fixtures/diagnostics/BT203-duplicate-id.bpmnt:4:18)
+
+test/fixtures/diagnostics/BT203-duplicate-id.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT210-sequence-flow-across-pools.bpmnt 1`] = `
+"error[BT210]: A sequence flow cannot cross pools. Use a message flow (\`~>\`) instead.
+ --> test/fixtures/diagnostics/BT210-sequence-flow-across-pools.bpmnt:7:10
+  |
+7 |       -> Receive order
+  |          ^^^^^^^^^^^^^
+
+test/fixtures/diagnostics/BT210-sequence-flow-across-pools.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT211-message-flow-within-pool.bpmnt 1`] = `
+"error[BT211]: A message flow must connect two different pools.
+ --> test/fixtures/diagnostics/BT211-message-flow-within-pool.bpmnt:5:25
+  |
+5 |   task Prepare order ~> Ship order
+  |                         ^^^^^^^^^^
+
+test/fixtures/diagnostics/BT211-message-flow-within-pool.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT212-flow-across-subprocess.bpmnt 1`] = `
+"error[BT212]: A sequence flow cannot cross a subprocess boundary.
+  --> test/fixtures/diagnostics/BT212-flow-across-subprocess.bpmnt:10:10
+   |
+10 |       -> Notify customer
+   |          ^^^^^^^^^^^^^^^
+
+test/fixtures/diagnostics/BT212-flow-across-subprocess.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT220-event-gateway-branch.bpmnt 1`] = `
+"error[BT220]: Each branch of an event-based gateway must start with a catch event (\`catch …\` or \`wait …\`) or a receive task.
+ --> test/fixtures/diagnostics/BT220-event-gateway-branch.bpmnt:6:5
+  |
+6 |   - task Send reminder
+  |     ^^^^
+
+test/fixtures/diagnostics/BT220-event-gateway-branch.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT221-else-on-parallel.bpmnt 1`] = `
+"error[BT221]: \`else:\` has no meaning on a parallel gateway; every branch is taken.
+ --> test/fixtures/diagnostics/BT221-else-on-parallel.bpmnt:6:3
+  |
+6 |   else: task Print invoice
+  |   ^^^^
+
+test/fixtures/diagnostics/BT221-else-on-parallel.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT222-single-branch.bpmnt 1`] = `
+"warning[BT222]: This gateway has a single branch, so it decides nothing. Remove it or add a branch.
+ --> test/fixtures/diagnostics/BT222-single-branch.bpmnt:4:1
+  |
+4 | xor Approved?
+  | ^
+
+test/fixtures/diagnostics/BT222-single-branch.bpmnt: 1 warning
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT224-fork-after-end.bpmnt 1`] = `
+"error[BT224]: \`fork\` needs an element to fan out from, but the previous element ends the flow.
+ --> test/fixtures/diagnostics/BT224-fork-after-end.bpmnt:8:1
+  |
+8 | fork
+  | ^^^^
+
+warning[BT301]: Nothing flows into this element, so it can never be reached.
+ --> test/fixtures/diagnostics/BT224-fork-after-end.bpmnt:9:5
+  |
+9 |   - task Update billing
+  |     ^
+
+warning[BT301]: Nothing flows into this element, so it can never be reached.
+  --> test/fixtures/diagnostics/BT224-fork-after-end.bpmnt:10:5
+   |
+10 |   - task Update CRM
+   |     ^
+
+test/fixtures/diagnostics/BT224-fork-after-end.bpmnt: 1 error, 2 warnings
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT230-element-before-lane.bpmnt 1`] = `
+"error[BT230]: This pool uses lanes, but no lane is chosen yet. Add a \`lane\` line above this element.
+ --> test/fixtures/diagnostics/BT230-element-before-lane.bpmnt:4:3
+  |
+4 |   start
+  |   ^^^^^
+
+test/fixtures/diagnostics/BT230-element-before-lane.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT240-non-interrupting-error.bpmnt 1`] = `
+"error[BT240]: A boundary error event always interrupts the activity; remove \`non-interrupting\`.
+ --> test/fixtures/diagnostics/BT240-non-interrupting-error.bpmnt:5:27
+  |
+5 |   on error Card declined [non-interrupting] -> end Payment failed
+  |                           ^^^^^^^^^^^^^^^^
+
+test/fixtures/diagnostics/BT240-non-interrupting-error.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT241-open-non-interrupting-chain.bpmnt 1`] = `
+"warning[BT241]: This non-interrupting boundary chain ends open. End it with \`end\` or a jump: merging it back would duplicate the token.
+ --> test/fixtures/diagnostics/BT241-open-non-interrupting-chain.bpmnt:5:41
+  |
+5 |   on timer 2 days [non-interrupting] -> task Send reminder
+  |                                         ^
+
+test/fixtures/diagnostics/BT241-open-non-interrupting-chain.bpmnt: 1 warning
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT250-nested-group.bpmnt 1`] = `
+"error[BT250]: Groups cannot be nested.
+ --> test/fixtures/diagnostics/BT250-nested-group.bpmnt:6:5
+  |
+6 |     group Packing
+  |     ^^^^^^^^^^^^^
+
+test/fixtures/diagnostics/BT250-nested-group.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT251-conflicting-lane-colour.bpmnt 1`] = `
+"test/fixtures/diagnostics/BT251-conflicting-lane-colour.bpmnt: ok
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT301-unreachable.bpmnt 1`] = `
+"warning[BT301]: Nothing flows into this element, so it can never be reached.
+ --> test/fixtures/diagnostics/BT301-unreachable.bpmnt:6:1
+  |
+6 | task Archive order
+  | ^
+
+test/fixtures/diagnostics/BT301-unreachable.bpmnt: 1 warning
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT302-dead-end.bpmnt 1`] = `
+"warning[BT302]: Nothing flows out of this element. End the chain with \`end\`, or jump somewhere with \`->\`.
+ --> test/fixtures/diagnostics/BT302-dead-end.bpmnt:4:1
+  |
+4 | task Check order
+  | ^
+
+test/fixtures/diagnostics/BT302-dead-end.bpmnt: 1 warning
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT303-no-end-event.bpmnt 1`] = `
+"info[BT303]: The process has no end event.
+ --> test/fixtures/diagnostics/BT303-no-end-event.bpmnt:3:1
+  |
+3 | start
+  | ^
+
+test/fixtures/diagnostics/BT303-no-end-event.bpmnt: 1 info
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT304-send-without-message-flow.bpmnt 1`] = `
+"info[BT304]: This task sends a message, but has no message flow (\`~>\`).
+ --> test/fixtures/diagnostics/BT304-send-without-message-flow.bpmnt:4:1
+  |
+4 | send Notify customer
+  | ^
+
+test/fixtures/diagnostics/BT304-send-without-message-flow.bpmnt: 1 info
+"
+`;

@@ -33,13 +33,35 @@ pool Company
 You write the process in the order it happens. Sequence flows, join
 gateways, lane placement and the whole diagram layout are inferred.
 
-> **Status: in development.** The compiler library (`compile()`) produces
+> **Status: in development.** The CLI and the compiler library produce
 > laid-out BPMN for the core notation: events, tasks, gateways, pools,
 > lanes and message flows. Subprocess bodies, data, annotations, groups and
-> colours are laid out in milestone M4; the CLI follows in M3. Work is
-> tracked in [issues](../../issues) and [milestones](../../milestones).
+> colours are laid out in milestone M4. Work is tracked in
+> [issues](../../issues) and [milestones](../../milestones).
 
-## Usage
+## Command line
+
+```bash
+bpmn-text build order.bpmnt -o order.bpmn          # or to stdout without -o
+bpmn-text build "examples/*.bpmnt" -o out/         # several files into a directory
+bpmn-text build order.bpmnt -f svg -o order.svg    # svg, or png with --scale 2
+bpmn-text build order.bpmnt -o order.bpmn --watch  # rebuild on every change
+bpmn-text check "**/*.bpmnt"                       # code frames; --format json
+bpmn-text fmt order.bpmnt                          # rewrite in canonical style
+bpmn-text fmt --check "**/*.bpmnt"                 # list unformatted files
+cat order.bpmnt | bpmn-text build > order.bpmn     # stdin to stdout
+```
+
+Exit codes: 0 when everything is fine (warnings allowed), 1 when an input
+has errors (or, with `fmt --check`, needs formatting), 2 for usage errors.
+Colours are used on a terminal unless `NO_COLOR` is set.
+
+SVG and PNG are drawn by bpmn-js in headless Chromium, exactly as the
+editors draw them. They need the optional `playwright-core` package and a
+browser: `npx playwright-core install chromium`. `.bpmn` output works
+without them.
+
+## Library
 
 ```ts
 import { compile } from 'bpmn-text';
