@@ -45,8 +45,9 @@ gateways, lane placement and the whole diagram layout are inferred.
 
 A live split-view editor runs entirely in the browser: type on the left and
 see the diagram on the right, with inline errors, completion, selection
-sync, downloads and share links. See [apps/editor](apps/editor/README.md)
-to run or self-host it.
+sync, downloads and share links. See [Deployment](docs/deployment.md) to
+run it on your PC or a server, in Docker or not, and keep it up to date
+with `scripts/update.sh` or `scripts/update.ps1`.
 
 ## Command line
 
@@ -113,6 +114,7 @@ Web Worker.
 
 | Document | Contents |
 |---|---|
+| [Deployment](docs/deployment.md) | Running the editor and CLI on a PC or server, Docker images, the update scripts |
 | [Tutorial](docs/tutorial.md) | Your first diagram in 15 minutes, step by step |
 | [Cookbook](docs/cookbook.md) | Recipes for common patterns, and common errors with their fixes |
 | [Functionality](docs/functionality.md) | Purpose, scope, functional and non-functional requirements |

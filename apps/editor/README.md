@@ -29,6 +29,12 @@ npm run preview -w apps/editor    # serve the bundle
 
 ## Self-host
 
+[docs/deployment.md](../../docs/deployment.md) covers running the editor on
+a PC or a server, with or without Docker, and keeping it up to date. In
+short, on a server with Docker: `scripts/update.sh --docker --serve`.
+
+### By hand
+
 The build is a static site: `index.html` and an `assets/` folder, with
 relative paths, so it works from any directory of any static web server.
 There is no server-side code and no configuration.

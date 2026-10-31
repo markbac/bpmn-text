@@ -5,6 +5,8 @@
 //   Install it with `npm install -g ./bpmn-text-<version>.tgz`.
 // - bpmn-text-editor-<version>.zip: the static web editor.
 // - the VS Code extension's .vsix, once apps/vscode has a `package` script.
+//
+// `--cli-only` makes only the CLI tarball, as the Docker build does.
 import { execFileSync } from 'node:child_process';
 import {
   cpSync,
@@ -87,6 +89,8 @@ writeFileSync(
 cpSync('README.md', join(staging, 'README.md'));
 run('npm', ['pack', '--pack-destination', out], staging);
 rmSync(staging, { recursive: true, force: true });
+
+if (process.argv.includes('--cli-only')) process.exit(0);
 
 // The web editor's static bundle.
 const editor = 'apps/editor/dist';

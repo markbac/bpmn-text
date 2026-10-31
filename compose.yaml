@@ -1,0 +1,11 @@
+# The web editor on this machine's port 8080 (BPMN_TEXT_PORT to change it).
+# `scripts/update.sh --docker --serve` builds and (re)starts it.
+services:
+  editor:
+    build:
+      context: .
+      target: editor
+    image: bpmn-text-editor:latest
+    ports:
+      - '${BPMN_TEXT_PORT:-8080}:80'
+    restart: unless-stopped
