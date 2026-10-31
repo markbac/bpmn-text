@@ -40,12 +40,6 @@ interface Page {
   viewer: {
     importXML(xml: string): Promise<{ warnings: Error[] }>;
     saveSVG(): Promise<{ svg: string }>;
-    get(name: 'canvas'): {
-      viewbox(box?: object): {
-        inner: { x: number; y: number; width: number; height: number };
-      };
-      resized(): void;
-    };
   };
   BpmnJS: new (options: { container: string }) => Page['viewer'];
 }
@@ -75,51 +69,40 @@ export async function createRenderer(): Promise<Renderer> {
         '<div id="canvas" style="width:100vw;height:100vh"></div>',
     );
     await page.addScriptTag({ path: viewer });
-    const box = await page.evaluate(async (source) => {
+    const svg = await page.evaluate(async (source) => {
       const page = globalThis as unknown as Page;
       page.viewer = new page.BpmnJS({ container: '#canvas' });
       await page.viewer.importXML(source);
-      const { x, y, width, height } = page.viewer.get('canvas').viewbox().inner;
-      return { x, y, width, height };
+      return (await page.viewer.saveSVG()).svg;
     }, xml);
-    return { page, box };
+    return { page, svg };
   }
 
   return {
     async svg(xml) {
-      const { page } = await open(xml, 1);
-      try {
-        return await page.evaluate(async () => {
-          const { svg } = await (
-            globalThis as unknown as Page
-          ).viewer.saveSVG();
-          return svg;
-        });
-      } finally {
-        await page.close();
-      }
+      const { page, svg } = await open(xml, 1);
+      await page.close();
+      return svg;
     },
 
+    // Drawn from the exported SVG, as the editors export images, rather
+    // than a screenshot of the viewer: the viewer shows the bpmn.io
+    // watermark, which belongs to the live viewer, not to exported images.
     async png(xml, { scale = 1 } = {}) {
-      const { page, box } = await open(xml, scale);
+      const { page, svg } = await open(xml, scale);
       try {
-        const width = Math.ceil(box.width + 2 * MARGIN);
-        const height = Math.ceil(box.height + 2 * MARGIN);
-        await page.setViewportSize({ width, height });
-        await page.evaluate(
-          ({ box, width, height, margin }) => {
-            const canvas = (globalThis as unknown as Page).viewer.get('canvas');
-            canvas.resized();
-            canvas.viewbox({
-              x: box.x - margin,
-              y: box.y - margin,
-              width,
-              height,
-            });
-          },
-          { box, width, height, margin: MARGIN },
+        const size = (name: string) =>
+          Number(new RegExp(`<svg[^>]* ${name}="([\\d.]+)"`).exec(svg)?.[1]);
+        await page.setViewportSize({
+          width: Math.ceil(size('width') + 2 * MARGIN),
+          height: Math.ceil(size('height') + 2 * MARGIN),
+        });
+        await page.setContent(
+          '<style>html,body{margin:0;background:#fff}' +
+            `#image{display:inline-block;padding:${MARGIN}px;line-height:0}</style>` +
+            `<div id="image">${svg.replace(/^<\?xml[^>]*>/, '')}</div>`,
         );
-        return await page.screenshot({ type: 'png' });
+        return await page.locator('#image').screenshot({ type: 'png' });
       } finally {
         await page.close();
       }
