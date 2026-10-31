@@ -15,12 +15,23 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup --config ../../tsup.config.ts"
+    "build": "tsup --config ../../tsup.config.ts src/index.ts src/cli.ts"
   },
   "dependencies": {
+    "@bpmn-text/bpmn": "0.0.0",
     "@bpmn-text/core": "0.0.0",
     "@bpmn-text/layout": "0.0.0",
-    "@bpmn-text/bpmn": "0.0.0",
-    "@bpmn-text/render": "0.0.0"
+    "@bpmn-text/render": "0.0.0",
+    "chokidar": "^5.0.0",
+    "commander": "^14.0.3",
+    "tinyglobby": "^0.2.17"
+  },
+  "devDependencies": {
+    "@bpmn-text/test-utils": "0.0.0",
+    "esbuild": "^0.27.2",
+    "playwright-core": "1.63.0"
+  },
+  "bin": {
+    "bpmn-text": "./dist/cli.js"
   }
 }

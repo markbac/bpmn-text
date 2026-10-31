@@ -7,6 +7,9 @@
   "references": [
     {
       "path": "../bpmn"
+    },
+    {
+      "path": "../test-utils"
     }
   ]
 }

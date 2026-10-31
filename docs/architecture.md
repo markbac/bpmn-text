@@ -272,6 +272,10 @@ that the flow crosses. The engine therefore uses ELK for what it does well
 interface LayoutEngine {
   layout(model: Model, options?: LayoutOptions): Promise<LayoutResult>;
 }
+interface LayoutOptions {
+  elk?: Elk;              // e.g. new ELK({ workerUrl }); default: bundled elkjs
+  nodeSpacing?: number;   // space between columns before edge tracks (50)
+}
 interface LayoutResult {
   shapes: Map<string, Bounds & { label?: Bounds }>;   // pools, lanes, nodes, data, annotations
   edges:  Map<string, { waypoints: Point[]; label?: Bounds }>;
@@ -280,6 +284,10 @@ interface LayoutResult {
 
 The interface is asynchronous because elkjs runs in a worker in the browser.
 
+Until milestone M4, subprocesses are drawn at task size with their body
+left out of the diagram, boundary events are spread along their host's
+bottom border, and data, annotations and groups have no shapes.
+
 ### 6.2 Phases
 
 | # | Phase | Description |
@@ -287,7 +295,7 @@ The interface is asynchronous because elkjs runs in a worker in the browser.
 | 0 | **Sizing** | Standard BPMN sizes: task 100×80, event 36×36, gateway 50×50, data object 36×50, data store 50×50. Label sizes are estimated from text length (with a font-metrics table, so the result is the same in Node and the browser). |
 | 1 | **Subprocesses** | Expanded subprocesses are laid out bottom-up, recursively running the whole engine on their body. The result fixes their size. Collapsed ones get task size and a separate diagram plane. |
 | 2 | **Global layering** | All flow nodes of **all pools** go into one ELK `layered` graph (direction RIGHT). Edges are sequence flows (high priority) and message flows (low priority, used only to align columns across pools, FR-25). `considerModelOrder` keeps the model order, and model-order cycle breaking makes loops show as back edges. The model order is a **story order across pools**: each pool's document order, merged so that a message flow's target comes after its source (document order breaks ties and cycles). Listing pools one after another instead makes message flows to an earlier pool look like loops, and ELK reverses them. Boundary events are folded into their host. **Groups** use ELK *partitioning* (`elk.partitioning.activate`): each node gets a partition index from its group's document order, with ungrouped nodes between groups getting their own partitions. All columns of group *i* therefore come before those of group *i+1* and are never shared (FR-29). Output: a **layer** (column) and in-layer order for each node. ELK reports coordinates rather than layer indices, so columns are recovered by grouping nodes whose x ranges overlap. |
-| 3 | **Band assignment** | For each pool and each lane, the nodes in each layer are stacked into **rows**, ordered by the ELK order with a barycentre pass to reduce crossings. The *main path* (first branch of each split) is kept on row 0 so the happy path is a straight line. Lane height = rows × row height + padding, plus extra rows reserved for boundary chains and data objects. |
+| 3 | **Band assignment** | For each pool and each lane, the nodes in each layer are stacked into **rows**, column by column: a node follows the row of its predecessor, and the branches of a split are ordered by how many steps they lead to, then by the order their flows were written, then by ELK's order. The branch that leads furthest is the *main path* and stays on the split's row, so the happy path is a straight line. (An empty first branch has no position of its own in the model, so written order alone cannot find it.) Nodes reached only through boundary events go below the main path. Lane height = rows × row height + padding, plus extra rows reserved for boundary chains and data objects. |
 | 4 | **Coordinates** | Column x positions are shared across all pools. Each gap between columns is widened to fit the number of edge tracks routed through it. Lane y positions are stacked within the pool, and pools are stacked with a fixed gap. Every lane is stretched to the pool width, and every pool to the widest pool (FR-21/22). |
 | 5 | **Sequence-flow routing** | Orthogonal routing through the **channels** between columns and the **gutters** between rows. Each edge segment in a channel gets its own track, so parallel segments do not overlap. BPMN conventions apply: gateways exit from their top or bottom side towards branches above or below, and back edges leave from the bottom and run along the lane gutter. Long edges that skip columns use virtual points through free row space. Each edge's shape is chosen by checking for obstacles: a gateway corner exit or join entry is used only when its vertical leg is clear, otherwise the edge turns in a channel, and a same-row edge with shapes in between detours through the gap between rows. Channel widths come from a first routing pass that only counts tracks; the second pass routes on the widened geometry. |
 | 6 | **Message flows** | Routed vertically between pools. If the endpoint x positions differ, an elbow is placed in the gap between the pools. Collapsed pools are thin bands, and their flows attach at the other endpoint's x position. A flow whose vertical would cut through shapes in other lanes leaves its shape with a short stub and turns into the column channel first. |

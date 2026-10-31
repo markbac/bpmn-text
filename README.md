@@ -33,9 +33,56 @@ pool Company
 You write the process in the order it happens. Sequence flows, join
 gateways, lane placement and the whole diagram layout are inferred.
 
-> **Status: design phase.** No code yet. The specification and plan are
-> below, and work is tracked in [issues](../../issues) and
-> [milestones](../../milestones).
+> **Status: in development.** The CLI and the compiler library produce
+> laid-out BPMN for the core notation: events, tasks, gateways, pools,
+> lanes and message flows. Subprocess bodies, data, annotations, groups and
+> colours are laid out in milestone M4. Work is tracked in
+> [issues](../../issues) and [milestones](../../milestones).
+
+## Command line
+
+```bash
+bpmn-text build order.bpmnt -o order.bpmn          # or to stdout without -o
+bpmn-text build "examples/*.bpmnt" -o out/         # several files into a directory
+bpmn-text build order.bpmnt -f svg -o order.svg    # svg, or png with --scale 2
+bpmn-text build order.bpmnt -o order.bpmn --watch  # rebuild on every change
+bpmn-text check "**/*.bpmnt"                       # code frames; --format json
+bpmn-text fmt order.bpmnt                          # rewrite in canonical style
+bpmn-text fmt --check "**/*.bpmnt"                 # list unformatted files
+cat order.bpmnt | bpmn-text build > order.bpmn     # stdin to stdout
+```
+
+Exit codes: 0 when everything is fine (warnings allowed), 1 when an input
+has errors (or, with `fmt --check`, needs formatting), 2 for usage errors.
+Colours are used on a terminal unless `NO_COLOR` is set.
+
+SVG and PNG are drawn by bpmn-js in headless Chromium, exactly as the
+editors draw them. They need the optional `playwright-core` package and a
+browser: `npx playwright-core install chromium`. `.bpmn` output works
+without them.
+
+## Library
+
+```ts
+import { compile } from 'bpmn-text';
+
+const { xml, diagnostics, sourceMap } = await compile(source, {
+  layout: { nodeSpacing: 60 }, // space between columns, default 50
+  xorJoin: 'direct', // default for `option xor-join`
+});
+```
+
+| Function | Returns |
+|---|---|
+| `compile(source, options?)` | `{ xml, model, layout, diagnostics, sourceMap }`. Never rejects on errors in the source; `xml` then shows what could be built. |
+| `check(source, options?)` | `{ model, diagnostics }`, without layout. |
+| `parse(source)` | `{ ast, diagnostics }` |
+| `format(source)` | The source in canonical style. |
+
+`sourceMap` maps every BPMN element ID to the source range it was written
+at. The library has no Node-only dependencies, so it also runs in the
+browser; pass `layout: { elk: new ELK({ workerUrl }) }` to run elkjs in a
+Web Worker.
 
 ## Planned deliverables
 
@@ -96,6 +143,12 @@ Workspaces import each other through the `source` export condition, so
 type checking and tests run against TypeScript sources without a prior
 build. The allowed dependencies between workspaces (architecture §2) are
 defined in `eslint.config.js` and enforced by `npm run lint`.
+
+The examples `examples/01` to `04` have golden `.bpmn` files next to their
+source. After an intended change to the output, accept the new files with
+`npx vitest run test/golden.test.ts -u`. Layout quality metrics of every
+example are stored in `test/fixtures/layout/`; tests fail if a layout gets
+worse, and `npm run test:update-baselines` stores new baselines on purpose.
 
 `@bpmn-text/test-utils` (private) provides `expectSchemaValid`,
 `expectModdleImport` and `expectBpmnJsImport` for asserting that generated

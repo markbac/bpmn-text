@@ -36,9 +36,14 @@ export interface BuildResult {
   diagnostics: Diagnostic[];
 }
 
+export interface BuildOptions {
+  /** The default for `option xor-join`; the directive overrides it. */
+  xorJoin?: Model['xorJoin'];
+}
+
 /** Builds the process model from an AST (architecture §4). Never throws. */
-export function build(ast: Document): BuildResult {
-  return new Builder(ast).run();
+export function build(ast: Document, options: BuildOptions = {}): BuildResult {
+  return new Builder(ast, options).run();
 }
 
 const NODE_KIND: Record<ElementKind, NodeKind> = {
@@ -197,9 +202,13 @@ class Builder {
   /** Explicit `@id`s, with where each was first written. */
   private readonly explicitIds = new Map<string, Range>();
 
-  constructor(private readonly ast: Document) {}
+  constructor(
+    private readonly ast: Document,
+    private readonly options: BuildOptions,
+  ) {}
 
   run(): BuildResult {
+    if (this.options.xorJoin) this.model.xorJoin = this.options.xorJoin;
     this.directives();
     const body = this.ast.body;
     if (body.some((s) => s.type === 'pool')) {

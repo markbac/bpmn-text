@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" name="Leave request" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-text">
+  <bpmn:collaboration id="Collaboration_1">
+    <bpmn:participant id="Participant_hr_department" name="HR department" processRef="Process_hr_department" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_hr_department" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Process_hr_department">
+      <bpmn:lane id="Lane_employee" name="Employee">
+        <bpmn:flowNodeRef>Event_leave_needed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_submit_leave_request</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_read_rejection_reason</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_request_rejected</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_leave_booked</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_manager" name="Manager">
+        <bpmn:flowNodeRef>Activity_review_request</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_approved</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_inform_team</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_hr" name="HR">
+        <bpmn:flowNodeRef>Activity_update_leave_balance</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Event_leave_needed" name="Leave needed">
+      <bpmn:outgoing>Flow_leave_needed__submit_leave_request</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Activity_submit_leave_request" name="Submit leave request">
+      <bpmn:incoming>Flow_leave_needed__submit_leave_request</bpmn:incoming>
+      <bpmn:outgoing>Flow_submit_leave_request__review_request</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_review_request" name="Review request">
+      <bpmn:incoming>Flow_submit_leave_request__review_request</bpmn:incoming>
+      <bpmn:outgoing>Flow_review_request__approved</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_approved" name="Approved?">
+      <bpmn:incoming>Flow_review_request__approved</bpmn:incoming>
+      <bpmn:outgoing>Flow_approved__update_leave_balance</bpmn:outgoing>
+      <bpmn:outgoing>Flow_approved__read_rejection_reason</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Activity_update_leave_balance" name="Update leave balance">
+      <bpmn:incoming>Flow_approved__update_leave_balance</bpmn:incoming>
+      <bpmn:outgoing>Flow_update_leave_balance__inform_team</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Activity_read_rejection_reason" name="Read rejection reason">
+      <bpmn:incoming>Flow_approved__read_rejection_reason</bpmn:incoming>
+      <bpmn:outgoing>Flow_read_rejection_reason__request_rejected</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_request_rejected" name="Request rejected">
+      <bpmn:incoming>Flow_read_rejection_reason__request_rejected</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Activity_inform_team" name="Inform team">
+      <bpmn:incoming>Flow_update_leave_balance__inform_team</bpmn:incoming>
+      <bpmn:outgoing>Flow_inform_team__leave_booked</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_leave_booked" name="Leave booked">
+      <bpmn:incoming>Flow_inform_team__leave_booked</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_leave_needed__submit_leave_request" sourceRef="Event_leave_needed" targetRef="Activity_submit_leave_request" />
+    <bpmn:sequenceFlow id="Flow_submit_leave_request__review_request" sourceRef="Activity_submit_leave_request" targetRef="Activity_review_request" />
+    <bpmn:sequenceFlow id="Flow_review_request__approved" sourceRef="Activity_review_request" targetRef="Gateway_approved" />
+    <bpmn:sequenceFlow id="Flow_approved__update_leave_balance" name="yes" sourceRef="Gateway_approved" targetRef="Activity_update_leave_balance" />
+    <bpmn:sequenceFlow id="Flow_approved__read_rejection_reason" name="no" sourceRef="Gateway_approved" targetRef="Activity_read_rejection_reason" />
+    <bpmn:sequenceFlow id="Flow_read_rejection_reason__request_rejected" sourceRef="Activity_read_rejection_reason" targetRef="Event_request_rejected" />
+    <bpmn:sequenceFlow id="Flow_update_leave_balance__inform_team" sourceRef="Activity_update_leave_balance" targetRef="Activity_inform_team" />
+    <bpmn:sequenceFlow id="Flow_inform_team__leave_booked" sourceRef="Activity_inform_team" targetRef="Event_leave_booked" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+      <bpmndi:BPMNShape id="Participant_hr_department_di" bpmnElement="Participant_hr_department" isHorizontal="true">
+        <dc:Bounds x="0" y="0" width="998" height="480" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_employee_di" bpmnElement="Lane_employee" isHorizontal="true">
+        <dc:Bounds x="30" y="0" width="968" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_manager_di" bpmnElement="Lane_manager" isHorizontal="true">
+        <dc:Bounds x="30" y="160" width="968" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_hr_di" bpmnElement="Lane_hr" isHorizontal="true">
+        <dc:Bounds x="30" y="320" width="968" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_leave_needed_di" bpmnElement="Event_leave_needed">
+        <dc:Bounds x="100" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="83" y="103" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_submit_leave_request_di" bpmnElement="Activity_submit_leave_request">
+        <dc:Bounds x="186" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_review_request_di" bpmnElement="Activity_review_request">
+        <dc:Bounds x="348" y="200" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_approved_di" bpmnElement="Gateway_approved">
+        <dc:Bounds x="498" y="215" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="439" y="196" width="54" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_update_leave_balance_di" bpmnElement="Activity_update_leave_balance">
+        <dc:Bounds x="598" y="360" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_read_rejection_reason_di" bpmnElement="Activity_read_rejection_reason">
+        <dc:Bounds x="598" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_request_rejected_di" bpmnElement="Event_request_rejected">
+        <dc:Bounds x="792" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="768" y="103" width="84" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_inform_team_di" bpmnElement="Activity_inform_team">
+        <dc:Bounds x="760" y="200" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_leave_booked_di" bpmnElement="Event_leave_booked">
+        <dc:Bounds x="922" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="905" y="103" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_leave_needed__submit_leave_request_di" bpmnElement="Flow_leave_needed__submit_leave_request">
+        <di:waypoint x="136" y="80" />
+        <di:waypoint x="186" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_submit_leave_request__review_request_di" bpmnElement="Flow_submit_leave_request__review_request">
+        <di:waypoint x="286" y="80" />
+        <di:waypoint x="311" y="80" />
+        <di:waypoint x="311" y="240" />
+        <di:waypoint x="348" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_review_request__approved_di" bpmnElement="Flow_review_request__approved">
+        <di:waypoint x="448" y="240" />
+        <di:waypoint x="498" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_approved__update_leave_balance_di" bpmnElement="Flow_approved__update_leave_balance">
+        <di:waypoint x="523" y="265" />
+        <di:waypoint x="523" y="400" />
+        <di:waypoint x="598" y="400" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="528" y="326" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_approved__read_rejection_reason_di" bpmnElement="Flow_approved__read_rejection_reason">
+        <di:waypoint x="523" y="215" />
+        <di:waypoint x="523" y="80" />
+        <di:waypoint x="598" y="80" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="528" y="141" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_read_rejection_reason__request_rejected_di" bpmnElement="Flow_read_rejection_reason__request_rejected">
+        <di:waypoint x="698" y="80" />
+        <di:waypoint x="792" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_update_leave_balance__inform_team_di" bpmnElement="Flow_update_leave_balance__inform_team">
+        <di:waypoint x="698" y="400" />
+        <di:waypoint x="723" y="400" />
+        <di:waypoint x="723" y="240" />
+        <di:waypoint x="760" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_inform_team__leave_booked_di" bpmnElement="Flow_inform_team__leave_booked">
+        <di:waypoint x="860" y="240" />
+        <di:waypoint x="885" y="240" />
+        <di:waypoint x="885" y="80" />
+        <di:waypoint x="922" y="80" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
+

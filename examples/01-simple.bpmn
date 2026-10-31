@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" name="Expense claim" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-text">
+  <bpmn:process id="Process_expense_claim" name="Expense claim" isExecutable="false">
+    <bpmn:startEvent id="Event_receipt_collected" name="Receipt collected">
+      <bpmn:outgoing>Flow_receipt_collected__fill_in_claim_form</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Activity_fill_in_claim_form" name="Fill in claim form">
+      <bpmn:incoming>Flow_receipt_collected__fill_in_claim_form</bpmn:incoming>
+      <bpmn:outgoing>Flow_fill_in_claim_form__submit_to_finance_system</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Activity_submit_to_finance_system" name="Submit to finance system">
+      <bpmn:incoming>Flow_fill_in_claim_form__submit_to_finance_system</bpmn:incoming>
+      <bpmn:outgoing>Flow_submit_to_finance_system__5_days</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateCatchEvent id="Event_5_days" name="5 days">
+      <bpmn:incoming>Flow_submit_to_finance_system__5_days</bpmn:incoming>
+      <bpmn:outgoing>Flow_5_days__check_reimbursement</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="Event_5_days_definition" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:userTask id="Activity_check_reimbursement" name="Check reimbursement">
+      <bpmn:incoming>Flow_5_days__check_reimbursement</bpmn:incoming>
+      <bpmn:outgoing>Flow_check_reimbursement__claim_complete</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_claim_complete" name="Claim complete">
+      <bpmn:incoming>Flow_check_reimbursement__claim_complete</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_receipt_collected__fill_in_claim_form" sourceRef="Event_receipt_collected" targetRef="Activity_fill_in_claim_form" />
+    <bpmn:sequenceFlow id="Flow_fill_in_claim_form__submit_to_finance_system" sourceRef="Activity_fill_in_claim_form" targetRef="Activity_submit_to_finance_system" />
+    <bpmn:sequenceFlow id="Flow_submit_to_finance_system__5_days" sourceRef="Activity_submit_to_finance_system" targetRef="Event_5_days" />
+    <bpmn:sequenceFlow id="Flow_5_days__check_reimbursement" sourceRef="Event_5_days" targetRef="Activity_check_reimbursement" />
+    <bpmn:sequenceFlow id="Flow_check_reimbursement__claim_complete" sourceRef="Activity_check_reimbursement" targetRef="Event_claim_complete" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_expense_claim">
+      <bpmndi:BPMNShape id="Event_receipt_collected_di" bpmnElement="Event_receipt_collected">
+        <dc:Bounds x="100" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="76" y="103" width="84" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_fill_in_claim_form_di" bpmnElement="Activity_fill_in_claim_form">
+        <dc:Bounds x="186" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_submit_to_finance_system_di" bpmnElement="Activity_submit_to_finance_system">
+        <dc:Bounds x="336" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_5_days_di" bpmnElement="Event_5_days">
+        <dc:Bounds x="486" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="488" y="103" width="33" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_check_reimbursement_di" bpmnElement="Activity_check_reimbursement">
+        <dc:Bounds x="572" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_claim_complete_di" bpmnElement="Event_claim_complete">
+        <dc:Bounds x="722" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="702" y="103" width="76" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_receipt_collected__fill_in_claim_form_di" bpmnElement="Flow_receipt_collected__fill_in_claim_form">
+        <di:waypoint x="136" y="80" />
+        <di:waypoint x="186" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_fill_in_claim_form__submit_to_finance_system_di" bpmnElement="Flow_fill_in_claim_form__submit_to_finance_system">
+        <di:waypoint x="286" y="80" />
+        <di:waypoint x="336" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_submit_to_finance_system__5_days_di" bpmnElement="Flow_submit_to_finance_system__5_days">
+        <di:waypoint x="436" y="80" />
+        <di:waypoint x="486" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_days__check_reimbursement_di" bpmnElement="Flow_5_days__check_reimbursement">
+        <di:waypoint x="522" y="80" />
+        <di:waypoint x="572" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_check_reimbursement__claim_complete_di" bpmnElement="Flow_check_reimbursement__claim_complete">
+        <di:waypoint x="672" y="80" />
+        <di:waypoint x="722" y="80" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
+

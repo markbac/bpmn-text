@@ -19,6 +19,10 @@
   },
   "dependencies": {
     "@bpmn-text/core": "0.0.0",
-    "@bpmn-text/layout": "0.0.0"
+    "@bpmn-text/layout": "0.0.0",
+    "bpmn-moddle": "^10.3.1"
+  },
+  "devDependencies": {
+    "@bpmn-text/test-utils": "0.0.0"
   }
 }

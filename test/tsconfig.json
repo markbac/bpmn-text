@@ -4,5 +4,16 @@
     "outDir": "../build/test-types",
     "types": ["node"]
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts"],
+  "references": [
+    {
+      "path": "../packages/cli"
+    },
+    {
+      "path": "../packages/layout"
+    },
+    {
+      "path": "../packages/test-utils"
+    }
+  ]
 }

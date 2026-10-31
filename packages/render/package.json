@@ -15,9 +15,16 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup --config ../../tsup.config.ts"
+    "build": "tsup --config ../../tsup.config.ts --external playwright-core"
   },
   "dependencies": {
-    "@bpmn-text/bpmn": "0.0.0"
+    "@bpmn-text/bpmn": "0.0.0",
+    "bpmn-js": "^18.31.1"
+  },
+  "optionalDependencies": {
+    "playwright-core": "1.63.0"
+  },
+  "devDependencies": {
+    "@bpmn-text/test-utils": "0.0.0"
   }
 }
