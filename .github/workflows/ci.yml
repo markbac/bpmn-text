@@ -38,3 +38,6 @@ jobs:
         with:
           name: editor
           path: apps/editor/dist
+      - name: Benchmarks (warn on a regression of more than 20%)
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 22
+        run: npm run bench

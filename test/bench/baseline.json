@@ -1,0 +1,38 @@
+{
+  "50 nodes, 1 pools, 1 lanes": {
+    "parse": 0.5,
+    "check": 1.1,
+    "layout": 51.4,
+    "generate": 12
+  },
+  "100 nodes, 1 pools, 3 lanes": {
+    "parse": 0.8,
+    "check": 1.9,
+    "layout": 75.9,
+    "generate": 21.6
+  },
+  "100 nodes, 2 pools, 2 lanes": {
+    "parse": 0.6,
+    "check": 1.7,
+    "layout": 71.2,
+    "generate": 23.1
+  },
+  "200 nodes, 4 pools, 3 lanes": {
+    "parse": 1.4,
+    "check": 5.5,
+    "layout": 89,
+    "generate": 34.6
+  },
+  "200 nodes, 1 pools, 5 lanes": {
+    "parse": 0.6,
+    "check": 4.1,
+    "layout": 107.4,
+    "generate": 31.9
+  },
+  "500 nodes, 4 pools, 5 lanes": {
+    "parse": 2.8,
+    "check": 10.5,
+    "layout": 262.7,
+    "generate": 75.5
+  }
+}

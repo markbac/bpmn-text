@@ -114,7 +114,7 @@ Level 4 (code) is covered by the type sketches in §3–§7.
 
 ## 2. Repository layout (npm workspaces monorepo)
 
-```
+```text
 bpmn-text/
 ├─ packages/
 │  ├─ core/              @bpmn-text/core      lexer, parser, AST, model builder, validator, formatter, diagnostics
@@ -134,7 +134,7 @@ bpmn-text/
 
 Dependency direction (no cycles):
 
-```
+```text
 core ← layout ← bpmn ← cli
 core ← language-server ← apps/vscode
 core, layout, bpmn ← apps/editor

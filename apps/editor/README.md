@@ -34,8 +34,8 @@ relative paths, so it works from any directory of any static web server.
 There is no server-side code and no configuration.
 
 1. Get the bundle: run `npm ci && npm run build -w apps/editor`, or download
-   the `editor` artifact of a CI run, or `bpmn-text-editor.zip` from a
-   release.
+   the `editor` artifact of a CI run, or `bpmn-text-editor-<version>.zip`
+   from a release.
 1. Copy the contents of `apps/editor/dist` to the web server, for example:
 
     ```bash
