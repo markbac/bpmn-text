@@ -18,9 +18,13 @@
     "build": "tsup --config ../../tsup.config.ts"
   },
   "dependencies": {
+    "@bpmn-text/bpmn": "0.0.0",
     "@bpmn-text/core": "0.0.0",
     "@bpmn-text/layout": "0.0.0",
-    "@bpmn-text/bpmn": "0.0.0",
     "@bpmn-text/render": "0.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.2",
+    "playwright-core": "1.63.0"
   }
 }
