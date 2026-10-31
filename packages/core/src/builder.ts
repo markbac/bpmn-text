@@ -125,6 +125,8 @@ interface End {
 interface Open {
   kind?: SplitKind;
   items: (End | Open)[];
+  /** The split statement, which an inserted join maps back to. */
+  source?: Range;
 }
 const isEnd = (x: End | Open): x is End => 'node' in x;
 const none = (): Open => ({ items: [] });
@@ -731,7 +733,9 @@ class Builder {
       }
     }
     // Open interrupting chains merge into the host's successor (notation §10).
-    return merges.length ? { kind: 'xor', items: [open, ...merges] } : open;
+    return merges.length
+      ? { kind: 'xor', items: [open, ...merges], source: host.source }
+      : open;
   }
 
   // Gateways, forks and groups
@@ -749,21 +753,22 @@ class Builder {
       if (b.form === 'else') end.isDefault = true;
       return this.branch(b, ctx, { items: [end] }, g);
     });
-    return [{ kind, items }, g];
+    return [{ kind, items, source: g.source }, g];
   }
 
   private fork(s: ForkStmt, ctx: Ctx, open: Open, last: Documented): Open {
     const base = this.materialize(open, ctx);
+    const start = s.range.start;
+    const forkKeyword = {
+      start,
+      end: { ...start, col: start.col + 4, offset: start.offset + 4 },
+    };
     if (!base.length) {
-      const start = s.range.start;
       this.diagnostics.push(
         diagnostic(
           'BT224',
           '`fork` needs an element to fan out from, but the previous element ends the flow.',
-          {
-            start,
-            end: { ...start, col: start.col + 4, offset: start.offset + 4 },
-          },
+          forkKeyword,
         ),
       );
     }
@@ -779,7 +784,7 @@ class Builder {
         last,
       ),
     );
-    return { kind: 'fork', items };
+    return { kind: 'fork', items, source: forkKeyword };
   }
 
   private branch(b: Branch, ctx: Ctx, open: Open, docTarget: Documented): Open {
@@ -1018,6 +1023,7 @@ class Builder {
       next?.source ?? ctx.pool.pool.source,
     );
     gateway.generated = 'join';
+    if (open.source) gateway.cause = open.source;
     if (next) this.info.get(gateway)!.joinTarget = next;
     for (const i of items) {
       for (const e of isEnd(i) ? [i] : this.materialize(i, ctx, gateway)) {

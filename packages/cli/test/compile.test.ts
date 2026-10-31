@@ -21,6 +21,29 @@ describe('compile', () => {
     }
   });
 
+  it('maps every drawn element of example 06 and 07 to its source (#40)', async () => {
+    const { readFileSync } = await import('node:fs');
+    for (const name of ['06-subprocess-data', '07-multi-phase']) {
+      const source = readFileSync(
+        new URL(`../../../examples/${name}.bpmnt`, import.meta.url),
+        'utf8',
+      );
+      const result = await compile(source);
+      for (const id of [
+        ...result.layout.shapes.keys(),
+        ...result.layout.edges.keys(),
+      ])
+        expect(result.sourceMap, id).toHaveProperty([id]);
+    }
+  });
+
+  it('maps an inserted join to the gateway that caused it (#40)', async () => {
+    const { sourceMap } = await compile(
+      'start\nand Split\n  - task A\n  - task B\nend\n',
+    );
+    expect(sourceMap.Gateway_join_after_end_1?.start.line).toBe(2);
+  });
+
   it('reports errors and still returns a diagram', async () => {
     const { diagnostics, xml } = await compile('start\ntask A -> Nowhere\n');
     expect(diagnostics.map((d) => d.code)).toContain('BT202');

@@ -1,8 +1,8 @@
 import { generate } from '@bpmn-text/bpmn';
 import {
   check,
+  sourceMap,
   type CheckOptions,
-  type Container,
   type Diagnostic,
   type Model,
   type Range,
@@ -13,7 +13,7 @@ import {
   type LayoutResult,
 } from '@bpmn-text/layout';
 
-export { check, format, parse } from '@bpmn-text/core';
+export { check, format, parse, sourceMap } from '@bpmn-text/core';
 export type {
   CheckOptions,
   CheckResult,
@@ -59,31 +59,4 @@ export async function compile(
   const layout = await layOut(model, options.layout);
   const xml = await generate(model, layout);
   return { xml, model, layout, diagnostics, sourceMap: sourceMap(model) };
-}
-
-/** Every element of `model` with an ID, mapped to its source range. */
-export function sourceMap(model: Model): Record<string, Range> {
-  const map: Record<string, Range> = {};
-  const add = (e: { id: string; source: Range }) => (map[e.id] = e.source);
-  const container = (c: Container) => {
-    for (const n of c.nodes) {
-      add(n);
-      if (n.children) container(n.children);
-    }
-    c.flows.forEach(add);
-    c.annotations.forEach(add);
-  };
-  for (const p of model.pools) {
-    add(p);
-    p.lanes.forEach(add);
-    if (p.process) {
-      map[p.process.id] = p.source;
-      container(p.process);
-      p.process.dataObjects.forEach(add);
-    }
-  }
-  model.messageFlows.forEach(add);
-  model.dataStores.forEach(add);
-  model.groups.forEach(add);
-  return map;
 }

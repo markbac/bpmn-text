@@ -116,6 +116,8 @@ export interface FlowNode {
   documentation?: string;
   /** Set on join gateways the compiler inserted. */
   generated?: 'join';
+  /** Inserted joins: the split (gateway, fork or boundary host) they merge. */
+  cause?: Range;
   /**
    * Set on the last element of a non-interrupting boundary chain that ends
    * open: it was reported as BT241, so it is not also a dead end (BT302).

@@ -344,6 +344,7 @@ exports[`check() on the corpus > examples/02-gateways.bpmnt has no errors or war
           },
           {
             "attributeRanges": {},
+            "cause": "16:1-16:4",
             "extra": {},
             "generated": "join",
             "id": "Gateway_join_after_extra_channels",
@@ -376,6 +377,7 @@ exports[`check() on the corpus > examples/02-gateways.bpmnt has no errors or war
           },
           {
             "attributeRanges": {},
+            "cause": "21:1-21:19",
             "extra": {},
             "generated": "join",
             "id": "Gateway_join_after_publish",
@@ -854,6 +856,7 @@ exports[`check() on the corpus > examples/04-collaboration.bpmnt has no errors o
           },
           {
             "attributeRanges": {},
+            "cause": "15:3-15:17",
             "extra": {},
             "generated": "join",
             "id": "Gateway_join_after_issue_invoice",
@@ -1106,6 +1109,7 @@ exports[`check() on the corpus > examples/05-events.bpmnt has no errors or warni
           },
           {
             "attributeRanges": {},
+            "cause": "8:1-8:20",
             "extra": {},
             "generated": "join",
             "id": "Gateway_join_after_ask_customer_to_confirm",
@@ -1158,6 +1162,7 @@ exports[`check() on the corpus > examples/05-events.bpmnt has no errors or warni
           },
           {
             "attributeRanges": {},
+            "cause": "13:1-13:24",
             "extra": {},
             "generated": "join",
             "id": "Gateway_join_after_ticket_closed",
@@ -1933,6 +1938,7 @@ exports[`check() on the corpus > examples/07-multi-phase.bpmnt has no errors or 
           },
           {
             "attributeRanges": {},
+            "cause": "23:5-23:87",
             "extra": {},
             "generated": "join",
             "groupId": "Group_fulfilment",
@@ -1981,6 +1987,7 @@ exports[`check() on the corpus > examples/07-multi-phase.bpmnt has no errors or 
           },
           {
             "attributeRanges": {},
+            "cause": "37:5-37:9",
             "extra": {},
             "generated": "join",
             "groupId": "Group_fulfilment",
@@ -2133,6 +2140,7 @@ exports[`check() on the corpus > examples/07-multi-phase.bpmnt has no errors or 
           },
           {
             "attributeRanges": {},
+            "cause": "69:5-69:74",
             "extra": {},
             "generated": "join",
             "groupId": "Group_after_sales",
