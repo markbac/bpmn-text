@@ -11,6 +11,8 @@ written. The [notation reference](notation.md) has the full rules.
 Jump back with `-> Name`. A line that ends with a jump does not continue to
 the next line.
 
+<!-- screenshot: cookbook-rework -->
+
 ```bpmnt
 start
 user Write draft
@@ -22,10 +24,14 @@ xor Approved?
     -> Review draft
 ```
 
+![Rework until done](images/cookbook-rework.png)
+
 ### A repeated activity
 
 When the repetition is a detail of one activity, a marker is clearer than
 a loop: `[loop]`, or `[parallel]` / `[sequential]` for multi-instance.
+
+<!-- screenshot: cookbook-markers -->
 
 ```bpmnt
 start
@@ -34,9 +40,13 @@ user Approve each line item [parallel]
 end
 ```
 
+![Loop and multi-instance markers](images/cookbook-markers.png)
+
 ## Skipping ahead
 
 A branch can jump forward past steps the other branch needs.
+
+<!-- screenshot: cookbook-skip -->
 
 ```bpmnt
 start
@@ -50,11 +60,15 @@ task Ship parcel
 end
 ```
 
+![Skipping ahead](images/cookbook-skip.png)
+
 ## Merges that are not well structured
 
 Automatic joins handle branches that end open at the end of the gateway
 block. For anything else, declare a gateway with an `@id` and jump to it
 from wherever you need.
+
+<!-- screenshot: cookbook-merge -->
 
 ```bpmnt
 start
@@ -75,10 +89,14 @@ task Take payment
 end
 ```
 
+![An explicit merge gateway](images/cookbook-merge.png)
+
 ## Parallel work
 
 `and` runs all branches; the open ones are joined by an inserted parallel
 gateway before the next step.
+
+<!-- screenshot: cookbook-parallel -->
 
 ```bpmnt
 start Order paid
@@ -90,11 +108,15 @@ task Ship parcel
 end
 ```
 
+![Parallel work](images/cookbook-parallel.png)
+
 ### Without a gateway
 
 `fork` splits like `and` but draws no split gateway: each branch starts
 with a flow straight from the previous step. Use it to transcribe diagrams
 that have several outgoing flows from one task.
+
+<!-- screenshot: cookbook-fork -->
 
 ```bpmnt
 start
@@ -105,12 +127,16 @@ fork
 end Synced
 ```
 
+![Fan-out without a gateway](images/cookbook-fork.png)
+
 ## Escalations and timeouts
 
 Boundary events go in an indented block under their activity. An
 interrupting one stops the activity; its chain merges back after it if it
 ends open. A non-interrupting one runs alongside, and must end with an
 `end` or a jump.
+
+<!-- screenshot: cookbook-escalation -->
 
 ```bpmnt
 start
@@ -121,9 +147,13 @@ task Notify requester
 end
 ```
 
+![Escalations and timeouts](images/cookbook-escalation.png)
+
 ### Waiting for the first of several events
 
 An event-based gateway waits for whichever event comes first.
+
+<!-- screenshot: cookbook-event-gateway -->
 
 ```bpmnt
 start
@@ -135,12 +165,16 @@ event Wait for answer
 end Ordered
 ```
 
+![Waiting for the first of several events](images/cookbook-event-gateway.png)
+
 ## Several parties
 
 ### Request and response
 
 Each party is a pool; `~>` connects their steps. Write the pools in the
 order the conversation starts.
+
+<!-- screenshot: cookbook-request-response -->
 
 ```bpmnt
 pool Customer
@@ -156,10 +190,14 @@ pool Supplier
   end
 ```
 
+![Request and response](images/cookbook-request-response.png)
+
 ### A partner you do not model
 
 A collapsed pool is a black box. Message flows can attach to the pool
 itself.
+
+<!-- screenshot: cookbook-black-box -->
 
 ```bpmnt
 pool Shop
@@ -172,10 +210,14 @@ pool Payment provider [collapsed]
 Payment provider ~> Payment confirmed
 ```
 
+![A black-box partner](images/cookbook-black-box.png)
+
 ## Phases
 
 Groups mark phases of a process. They do not change the flow; layout gives
 each group its own columns and draws a dashed box around them.
+
+<!-- screenshot: cookbook-phases -->
 
 ```bpmnt
 pool Company
@@ -190,11 +232,15 @@ pool Company
     end
 ```
 
+![Phases as groups](images/cookbook-phases.png)
+
 ## Data and notes
 
 `[reads: …]` and `[writes: …]` draw data associations; data objects are
 created on first use, and `store` declares a data store. `note` attaches a
 text annotation and `doc` adds documentation to the step before it.
+
+<!-- screenshot: cookbook-data -->
 
 ```bpmnt
 store Customer database
@@ -205,6 +251,8 @@ task Decide [reads: Credit report]
 doc Approve when the score is above 600.
 end
 ```
+
+![Data and notes](images/cookbook-data.png)
 
 ## Common errors and how to fix them
 

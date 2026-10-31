@@ -43,6 +43,8 @@ gateways, lane placement and the whole diagram layout are inferred.
 
 ## Web editor
 
+![The web editor](docs/images/editor.png)
+
 A live split-view editor runs entirely in the browser: type on the left and
 see the diagram on the right, with inline errors, completion, selection
 sync, downloads and share links. See [Deployment](docs/deployment.md) to
@@ -179,7 +181,8 @@ bpmn-js running in headless Chromium.
 Every ```` ```bpmnt ```` block in the README and `docs/` is compiled by
 `test/docs-snippets.test.ts` and must have no errors. Put
 `<!-- expect-error BTxxx -->` before a block that shows a mistake, or
-`<!-- fragment -->` before an excerpt that only has to parse.
+`<!-- fragment -->` before an excerpt that only has to parse. Every
+```` ```mermaid ```` diagram there must parse too (`test/docs-diagrams.test.ts`).
 `npm run screenshots` (after `npm run build`) renders the examples and the
 blocks marked `<!-- screenshot: name -->` to `docs/images/`.
 

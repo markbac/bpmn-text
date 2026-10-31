@@ -30,6 +30,7 @@
     "@vitest/coverage-v8": "^4.1.12",
     "eslint": "^9.39.0",
     "eslint-config-prettier": "^10.1.0",
+    "mermaid": "^11.17.2",
     "prettier": "^3.6.0",
     "tsup": "^8.5.0",
     "typescript": "~5.9.3",

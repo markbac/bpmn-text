@@ -11,6 +11,22 @@ bpmn-text has two parts to run:
 Both can run on a user's own PC or on a server, from a checkout of this
 repository, kept up to date by one script.
 
+```mermaid
+flowchart TB
+  subgraph pc[User's PC]
+    direction LR
+    co[Checkout] -->|update script| cmd[bpmn-text on the PATH]
+    co -->|--serve| lp[localhost:8080] --> br[Browser: editor]
+  end
+  subgraph srv[Server with Docker]
+    direction LR
+    co2[Checkout] -->|update script --docker --serve| ctr[bpmn-text-editor container]
+    rp[Reverse proxy, HTTPS] --> ctr
+  end
+  users([Users' browsers]) --> rp
+  img[bpmn-text CLI image] -. docker run .-> files[(.bpmnt → .bpmn, .svg, .png)]
+```
+
 ## The update script
 
 `scripts/update.sh` (Linux and macOS) and `scripts/update.ps1` (Windows)
@@ -27,6 +43,35 @@ It pulls, installs the npm packages and Chromium, builds everything, puts
 step prints `ok` or `FAIL` with what to do, and it stops at the first
 failure. When a pull changes the script itself, the new version takes
 over.
+
+```mermaid
+flowchart LR
+  c[1 Code<br/>git pull] --> n[2 Node] --> p[3 Packages<br/>npm ci] --> ch[4 Chromium] --> b[5 Build]
+  b --> l[6 Command<br/>npm link] --> dk[7 Docker<br/>--docker] --> dr[8 Doctor] --> t[9 Tests<br/>--test] --> sv[10 Serve<br/>--serve]
+  c -. script changed .-> c
+```
+
+A run looks like this:
+
+```text
+[1] Code
+    ok    main at 8d1b7c5 Add Docker images, update scripts and a deployment guide
+[2] Node
+    ok    Node.js 22.23.4, npm 10.9.9
+[3] Packages
+    ok    up to date with package-lock.json
+[4] Chromium
+    ok    Chromium for SVG and PNG output
+[5] Build
+    ok    bpmn-text 0.0.0, and the web editor in apps/editor/dist
+[6] Command
+    ok    bpmn-text on the PATH is this checkout (/usr/local/bin/bpmn-text)
+[7] Doctor
+    ok    examples/01-simple.bpmnt → .bpmn
+    ok    examples/01-simple.bpmnt → .png
+
+bpmn-text 0.0.0 is up to date.
+```
 
 | `update.sh` | `update.ps1` | Effect |
 |---|---|---|

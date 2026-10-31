@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { compile, parse } from 'bpmn-text';
 import { describe, expect, it } from 'vitest';
@@ -11,9 +11,9 @@ import { describe, expect, it } from 'vitest';
 const root = join(import.meta.dirname, '..');
 const files = [
   'README.md',
-  'docs/notation.md',
-  'docs/tutorial.md',
-  'docs/cookbook.md',
+  ...readdirSync(join(root, 'docs'))
+    .filter((f) => f.endsWith('.md'))
+    .map((f) => `docs/${f}`),
 ];
 
 interface Snippet {

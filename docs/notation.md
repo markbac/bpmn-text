@@ -7,6 +7,8 @@ collaboration and process diagrams. You describe a process **in the order it
 happens**. The compiler infers sequence flows, inserts join gateways, assigns
 steps to lanes and computes the diagram layout.
 
+<!-- screenshot: notation-intro -->
+
 ```bpmnt
 title "Order fulfilment"
 
@@ -35,6 +37,8 @@ pool Company
   send Send confirmation ~> Confirmation
   end Shipped
 ```
+
+![The order-fulfilment example](images/notation-intro.png)
 
 ---
 
@@ -171,11 +175,15 @@ Gateways are always followed by a block of branches (§7).
 | `[reads: A, B]` on an activity | Data input associations from A, B |
 | `[writes: C]` on an activity | Data output association to C |
 
+<!-- screenshot: notation-data -->
+
 ```bpmnt
 store Inventory
 task Check stock [reads: Inventory, writes: Stock report]
 note Uses the nightly snapshot, not live stock
 ```
+
+![A data store, a data object and a note](images/notation-data.png)
 
 ### 4.5 Attributes
 
@@ -243,11 +251,15 @@ doc Checks every order line against the product catalogue and rejects unknown it
 `[color: …]` sets the fill and `[stroke: …]` sets the border and text
 colour. They can be used on elements, pools, lanes and groups.
 
+<!-- screenshot: notation-colours -->
+
 ```bpmnt
 lanes Sales [color: #1F4E79], Warehouse [color: green]
 lane Sales
 task Escalate [color: #FFE0E0, stroke: red]
 ```
+
+![Coloured lanes and a task](images/notation-colours.png)
 
 * **Values:** `#RRGGBB`, `#RGB`, or a named colour from the bpmn-js palette
   (`blue`, `orange`, `green`, `red`, `purple`) or CSS names. An invalid value
@@ -274,12 +286,16 @@ check"*. Use `call` instead if it refers to a reusable process.
 Within a block (a pool body, a branch or a subprocess body), **each flow node
 is connected to the next flow node in the same block**.
 
+<!-- screenshot: notation-implicit-flow -->
+
 ```bpmnt
 start Order received
 task Check order          # Order received -> Check order
 task Ship                 # Check order -> Ship
 end Done                  # Ship -> Done
 ```
+
+![Implicit flow](images/notation-implicit-flow.png)
 
 Implicit flow **does not** leave:
 
@@ -295,6 +311,8 @@ the middle of a block begins a new, independent chain. If the element before
 it is still open (not an end event, jump or gateway), that element gets
 warning **BT302 dead end**. Close it with an `end` or a jump.
 
+<!-- screenshot: notation-start-chains -->
+
 ```bpmnt
 pool Company
   lane Sales
@@ -305,6 +323,8 @@ pool Company
   start timer Visit day           # new chain; nothing flows into it
   user Install equipment
 ```
+
+![Two independent start chains in one pool](images/notation-start-chains.png)
 
 **End of a block.** Open ends left at the end of a pool or `sub` body are
 dead ends (BT302). Open ends at the end of a branch are open branches (§7.1).
@@ -331,11 +351,15 @@ is an end event or a reference.
 If the right-hand side does **not** start with a keyword, it is a **reference**
 to an existing element, which may be declared before or after:
 
+<!-- screenshot: notation-jump -->
+
 ```bpmnt
 task Check order
 task Fix order
 -> Check order            # loop back; nothing flows implicitly to the next line
 ```
+
+![A jump back to an earlier step](images/notation-jump.png)
 
 A line made of only `-> Target` creates a flow from the previous element to
 `Target`.
@@ -407,6 +431,8 @@ A gateway is followed by an indented block of **branches**:
 A branch is either **inline**, with a chain on the same line, or a **block**
 on the following lines. It can also be both:
 
+<!-- screenshot: notation-branches -->
+
 ```bpmnt
 xor Approved?
   yes: task Ship -> end Shipped          # inline
@@ -414,6 +440,8 @@ xor Approved?
     task Notify customer
     end Rejected
 ```
+
+![Inline and block branches](images/notation-branches.png)
 
 ### 7.1 Automatic joins
 
@@ -434,6 +462,8 @@ statement after the block**:
 
 The inserted join is placed in the lane of the next statement.
 
+<!-- screenshot: notation-and-join -->
+
 ```bpmnt
 and
   - task Pick items
@@ -441,16 +471,22 @@ and
 task Ship                    # AND-join inserted before "Ship"
 ```
 
+![An inserted parallel join](images/notation-and-join.png)
+
 ### 7.2 Event-based gateways
 
 Every branch of `event` must start with a catch event or a receive task
 (error **BT220** otherwise):
+
+<!-- screenshot: notation-event-gateway -->
 
 ```bpmnt
 event Wait for reply
   - catch message Payment received -> task Ship
   - wait 14 days -> end Cancelled
 ```
+
+![An event-based gateway](images/notation-event-gateway.png)
 
 ### 7.3 Explicit gateways
 
@@ -470,6 +506,8 @@ and implicit flow continues out of it.
 Each branch starts with a flow straight from the preceding element. This is
 an *uncontrolled split*: all branches run in parallel.
 
+<!-- screenshot: notation-fork -->
+
 ```bpmnt
 lane Orders
 service Publish order
@@ -485,6 +523,8 @@ fork
 xor Sync done
 ```
 
+![Fan-out without a gateway](images/notation-fork.png)
+
 * Branches may be unlabelled (`-`) or labelled. A label goes on the flow,
   but there are no conditions and no `else:` (BT221).
 * **Joins.** Open `fork` branches join like `and` branches (§7.1), with an
@@ -499,6 +539,8 @@ xor Sync done
 
 ## 8. Subprocesses
 
+<!-- screenshot: notation-subprocess -->
+
 ```bpmnt
 sub Handle payment
   start
@@ -507,6 +549,8 @@ sub Handle payment
     yes: end Paid
     no:  end error Payment failed
 ```
+
+![An embedded subprocess](images/notation-subprocess.png)
 
 * The block is the subprocess body, with its own implicit flow scope.
 * `sub Handle payment [collapsed]` draws a collapsed subprocess. The body is
@@ -524,6 +568,8 @@ Inside a pool, `lane <name>` **switches the current lane**. Every following
 element is placed in that lane until the next switch. Implicit flow continues
 across lane switches, so a process reads as one story.
 
+<!-- screenshot: notation-lanes -->
+
 ```bpmnt
 pool Company
   lane Sales
@@ -532,6 +578,8 @@ pool Company
   lane Warehouse
   task Pick items             # Warehouse; Check credit -> Pick items
 ```
+
+![Lane switches](images/notation-lanes.png)
 
 **Rules**
 

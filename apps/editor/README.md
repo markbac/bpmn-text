@@ -4,6 +4,8 @@ A live, split-view editor for bpmn-text that runs entirely in the browser:
 type on the left, see the laid-out diagram on the right. Nothing is sent to
 a server.
 
+![The web editor with example 07](../../docs/images/editor.png)
+
 - **Live compile** in a Web Worker, 150 ms after you stop typing, with
   errors and warnings underlined in the text. While there are errors, the
   last diagram without errors stays on screen, and zoom and scroll are kept

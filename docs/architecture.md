@@ -29,6 +29,44 @@ flowchart LR
 The pipeline stages are pure functions over plain data, so each one can be
 tested on its own, run in a Web Worker and cached.
 
+### A worked example
+
+Five lines of source go through every stage:
+
+<!-- screenshot: architecture-example -->
+
+```bpmnt
+start Order received
+xor In stock?
+  yes: task Ship
+  no: task Back-order
+end Done
+```
+
+| Stage | Result |
+|---|---|
+| Lexer | `start` `Order received` NEWLINE `xor` `In stock?` NEWLINE INDENT `yes` `:` `task` `Ship` … |
+| Parser | An `element-stmt` (start), a `gateway` with two labelled branches, an `element-stmt` (end) |
+| Builder | 6 flow nodes, including an inserted exclusive join `Gateway_join_after_done`, and 6 sequence flows |
+| Validator | No diagnostics |
+| Layout | Columns start, split, tasks, join, end; `Ship` on the split's row, `Back-order` below |
+| Generator | `bpmn:process` with the nodes and flows, and a `BPMNDiagram` with their shapes and edges |
+
+![The worked example](images/architecture-example.png)
+
+The builder's part, as a graph (the inserted join is dashed):
+
+```mermaid
+flowchart LR
+  s((Order received)) --> x{In stock?}
+  x -- yes --> a[Ship]
+  x -- no --> b[Back-order]
+  a --> j{" "}
+  b --> j
+  j --> e(((Done)))
+  style j stroke-dasharray: 4 3
+```
+
 ## 1a. C4 model
 
 The C4 diagrams below are written in Mermaid C4 syntax, which GitHub
@@ -111,6 +149,40 @@ C4Component
 ```
 
 Level 4 (code) is covered by the type sketches in §3–§7.
+
+### Deployment
+
+The web editor is static files, so it runs the same on a user's PC and on a
+server; [deployment.md](deployment.md) has the steps.
+
+```mermaid
+C4Deployment
+  title Deployment – bpmn-text
+  Deployment_Node(pc, "User's PC", "Windows, macOS or Linux") {
+    Deployment_Node(browser, "Web browser") {
+      Container(editor, "Web editor", "JavaScript, Web Worker", "Compiles in the browser; nothing leaves the PC")
+    }
+    Deployment_Node(checkout, "Checkout of the repository", "Node.js 22, kept current by scripts/update.sh or update.ps1") {
+      Container(cli, "CLI", "bpmn-text on the PATH")
+      Container(chromium, "Headless Chromium", "Playwright's copy, for SVG and PNG")
+      Container(preview, "Local server", "vite preview on :8080 (--serve)")
+    }
+  }
+  Deployment_Node(server, "Server", "Linux with Docker") {
+    Deployment_Node(proxy, "Reverse proxy", "nginx, Caddy …: HTTPS and host name") {
+      Container(rp, "Proxy")
+    }
+    Deployment_Node(container, "bpmn-text-editor container", "nginx:alpine, compose.yaml") {
+      Container(static, "Editor files", "index.html and assets/")
+    }
+  }
+  Deployment_Node(ci, "Docker on any machine or CI") {
+    Container(cliimg, "bpmn-text image", "Node.js, the CLI and Chromium")
+  }
+  Rel(preview, editor, "Serves")
+  Rel(rp, static, "HTTP")
+  Rel(static, editor, "Downloaded into the browser")
+```
 
 ## 2. Repository layout (npm workspaces monorepo)
 
@@ -210,18 +282,51 @@ interface Style   { fill?: string; stroke?: string }      // normalised #RRGGBB
 interface Group   { id; name; fit: boolean; style?: Style; documentation?: string;
                     members: string[] /* flow node ids, across pools */ }
 interface Pool    { id; name; collapsed: boolean; implicit: boolean; style?: Style;
-                    documentation?: string; lanes: Lane[]; process?: Container }
-interface Container {            // a process or a subprocess
+                    documentation?: string; lanes: Lane[]; process?: Process }
+interface Container {            // a process or a subprocess body
   nodes: FlowNode[];            // events, tasks, gateways, subprocesses
   flows: SequenceFlow[];
-  dataObjects: DataObject[];
-  annotations: Annotation[];
+  annotations: Annotation[];    // each with the ID of its association
+}
+interface Process extends Container {
+  id;
+  dataObjects: DataObject[];    // { id, reference, container? }: one reference each
+  dataStoreReferences: DataStoreReference[];   // the stores this process uses
 }
 interface FlowNode { id; kind; eventType?; name?; laneId?; groupId?; markers;
-                     boundaries: BoundaryEvent[]; children?: Container;
+                     attachedTo?; boundaries: string[]; children?: Container;
+                     reads: DataAssociation[]; writes: DataAssociation[];
                      style?: Style; documentation?: string;
                      generated?: 'join';        // inserted join gateway
+                     cause?: Range;             // joins: the split they merge
                      source: Range }            // source map for editor/LSP
+```
+
+A data reference sits in the container where its data is first used
+(`container` names that subprocess), which is where it is drawn. Every ID
+the layout and the generator share, such as those of associations, is
+assigned here, so the two never have to agree on a naming rule.
+
+```mermaid
+classDiagram
+  direction LR
+  Model "1" *-- "1..*" Pool
+  Model "1" *-- "*" MessageFlow
+  Model "1" *-- "*" Group
+  Model "1" *-- "*" DataStore
+  Pool "1" *-- "*" Lane
+  Pool "1" *-- "0..1" Process
+  Process --|> Container
+  Process "1" *-- "*" DataObject
+  Process "1" *-- "*" DataStoreReference
+  Container "1" *-- "*" FlowNode
+  Container "1" *-- "*" SequenceFlow
+  Container "1" *-- "*" Annotation
+  FlowNode "1" *-- "0..1" Container : children
+  FlowNode ..> Lane : laneId
+  FlowNode ..> Group : groupId
+  FlowNode ..> DataObject : reads, writes
+  DataStoreReference ..> DataStore
 ```
 
 The builder runs in passes:
@@ -243,8 +348,36 @@ The builder runs in passes:
    no gateway node. Multi-target jumps create one flow per target.
 4. **IDs.** Assign deterministic IDs (§8).
 
+```mermaid
+flowchart LR
+  ast[(AST)] --> declare["Declare<br/>nodes, lanes, groups,<br/>data, docs, colours"]
+  declare --> resolve["Resolve<br/>@id, then name"]
+  resolve --> connect["Connect<br/>implicit flow, joins,<br/>fork, jumps"]
+  connect --> ids["IDs<br/>deterministic"]
+  ids --> ir[(IR)]
+  declare -. BT1xx, BT230, BT250 .-> d[(Diagnostics)]
+  resolve -. BT201, BT202, BT21x .-> d
+  connect -. BT224, BT241, BT302 .-> d
+```
+
 Each pass reports diagnostics and still returns a best-effort model, so the
 editor can draw a diagram while errors are present.
+
+How open ends become joins: each gateway block returns its branches' open
+ends as a group; the next statement merges them, inserting a join of the
+split's kind when two or more are open.
+
+```mermaid
+stateDiagram-v2
+  direction LR
+  [*] --> Open: element (not end)
+  Open --> Open: next element (flow added)
+  Open --> Closed: end event or jump
+  Open --> Branches: gateway or fork block
+  Branches --> Open: next statement (join inserted if ≥ 2 open)
+  Branches --> Closed: no branch open
+  Closed --> Open: start (new chain)
+```
 
 ## 5. Validator
 
@@ -288,6 +421,26 @@ A message flow to or from an element inside an expanded subprocess is
 drawn to the subprocess's border.
 
 ### 6.2 Phases
+
+```mermaid
+flowchart TD
+  m[(IR)] --> p0[0 Sizing]
+  p0 --> p1[1 Subprocesses]
+  p1 -- each body --> m2[(Body as a model)] --> rec[[layout, recursively]] --> p1
+  p1 --> p2[2 Layering: ELK, partitions per group]
+  p2 --> p3[3 Rows per lane, attachment strips]
+  p3 --> p4[4 Coordinates]
+  p4 --> p5[5 Sequence flows]
+  p5 --> p6[6 Message flows]
+  p6 -- tracks used --> p4
+  p6 --> p7[7 Attachments: boundary events, data, annotations]
+  p7 --> p8[8 Labels]
+  p8 --> p9[9 Group boxes]
+  p9 --> r[(LayoutResult)]
+```
+
+Phases 4 to 6 run twice or more: the first routing only counts the edge
+tracks each channel needs, and the channels are then widened to fit them.
 
 | # | Phase | Description |
 |---|---|---|
@@ -337,6 +490,17 @@ tests and benchmarks. It reports:
   for pools and lanes, and `isExpanded` for subprocesses), `BPMNEdge` with
   waypoints, and `BPMNLabel` bounds.
 * The XML is serialised with stable attribute order and formatting.
+
+```mermaid
+flowchart TD
+  defs[bpmn:definitions] --> cat[bpmn:category<br/>one value per group]
+  defs --> collab[bpmn:collaboration<br/>participants, message flows, groups]
+  defs --> store[bpmn:dataStore]
+  defs --> proc[bpmn:process, one per expanded pool<br/>laneSet, flow nodes, sequence flows,<br/>data objects and references, annotations]
+  proc --> sub[bpmn:subProcess<br/>its own flow elements and artifacts]
+  defs --> d1[bpmndi:BPMNDiagram, main plane<br/>shapes, edges, labels, colours]
+  defs --> d2[bpmndi:BPMNDiagram<br/>one per collapsed subprocess]
+```
 
 ## 8. Deterministic IDs
 
@@ -403,7 +567,33 @@ is in [decisions.md](decisions.md) ADR-005.
 * The diagram is drawn with the bpmn-js `NavigatedViewer`. The viewport
   (zoom and scroll) is kept between updates.
 * Two-way selection sync through the `sourceMap`.
-* Static build, deployable anywhere (GitHub Pages, Netlify, an intranet).
+* Static build, deployable anywhere: see [deployment.md](deployment.md).
+
+```mermaid
+sequenceDiagram
+  actor U as Author
+  participant E as CodeMirror
+  participant C as Compiler (main thread)
+  participant W as Web Worker
+  participant V as bpmn-js viewer
+  U->>E: types
+  E->>C: update(text)
+  Note over C: waits 150 ms after the last key
+  C->>W: compile(text)
+  U->>E: types again (compile still running)
+  E->>C: update(text 2)
+  Note over C: text 2 waits, and any older waiting text is dropped
+  W-->>C: xml, diagnostics, sourceMap
+  C->>E: lint ranges (if the text is still current)
+  alt no errors, or no diagram yet
+    C->>V: importXML, keeping zoom and scroll
+  else errors
+    Note over V: keeps the last diagram without errors
+  end
+  C->>W: compile(text 2)
+  U->>V: clicks a shape
+  V->>E: select its source range
+```
 
 ### 11.4 Language server and VS Code (`packages/language-server`, `apps/vscode`)
 
@@ -425,7 +615,10 @@ is in [decisions.md](decisions.md) ADR-005.
 | Import | Generated XML imported by bpmn-moddle (no warnings) and by bpmn-js in headless Chromium (no warnings) | Vitest + Playwright |
 | Layout quality | `checkLayout` invariants plus baseline metrics | Vitest |
 | Property | `parse(format(x)) ≡ parse(x)`. The parser never throws on random input. | fast-check |
-| E2E | CLI commands on fixtures. Editor smoke test (type → diagram updates). | Vitest, Playwright |
+| E2E | CLI commands on fixtures. The built editor in headless Chromium: typing, errors, completion, selection sync, share links, downloads. | Vitest, Playwright |
+| Docs | Every `bpmnt` snippet in the docs compiles | Vitest |
+| Performance | Synthetic diagrams of 50–500 nodes; a 200-node collaboration in under 1 s | Vitest, `npm run bench` |
+| Deployment | The update scripts on Ubuntu (with the Docker images) and Windows | GitHub Actions |
 
 ## 13. Tooling
 
