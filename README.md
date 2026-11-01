@@ -109,8 +109,9 @@ Colours are used on a terminal unless `NO_COLOR` is set.
 
 SVG and PNG are drawn by bpmn-js in headless Chromium, exactly as the
 editors draw them. They need the optional `playwright-core` package and a
-browser: `npx playwright-core install chromium`. `.bpmn` output works
-without them.
+browser: `npx playwright-core install chromium`, or set `BPMN_TEXT_CHROMIUM`
+to a Chromium already installed, such as `/usr/bin/chromium`. `.bpmn`
+output works without them.
 
 ## Library
 

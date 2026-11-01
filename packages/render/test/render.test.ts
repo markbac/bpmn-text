@@ -47,3 +47,16 @@ describe('renderer', () => {
     ]);
   });
 });
+
+describe('BPMN_TEXT_CHROMIUM', () => {
+  it('launches the browser it names', async () => {
+    const before = process.env.BPMN_TEXT_CHROMIUM;
+    process.env.BPMN_TEXT_CHROMIUM = '/no/such/chromium';
+    try {
+      await expect(createRenderer()).rejects.toThrow(/\/no\/such\/chromium/);
+    } finally {
+      if (before === undefined) delete process.env.BPMN_TEXT_CHROMIUM;
+      else process.env.BPMN_TEXT_CHROMIUM = before;
+    }
+  });
+});

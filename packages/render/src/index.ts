@@ -44,12 +44,17 @@ interface Page {
   BpmnJS: new (options: { container: string }) => Page['viewer'];
 }
 
-/** Starts headless Chromium, or throws a `RenderUnavailableError`. */
+/**
+ * Starts headless Chromium, or throws a `RenderUnavailableError`. The
+ * browser is Playwright's own, or the one `BPMN_TEXT_CHROMIUM` names, such
+ * as a Chromium already installed in a container.
+ */
 export async function createRenderer(): Promise<Renderer> {
   let browser: Browser;
   try {
     const { chromium } = await import('playwright-core');
-    browser = await chromium.launch();
+    const executablePath = process.env.BPMN_TEXT_CHROMIUM;
+    browser = await chromium.launch(executablePath ? { executablePath } : {});
   } catch (error) {
     throw new RenderUnavailableError(
       `${setup}\n\nCause: ${String(error).split('\n')[0]}`,
