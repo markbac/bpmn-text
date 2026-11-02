@@ -42,7 +42,12 @@ const keyword = (n: FlowNode): Range => ({
   start: n.source.start,
   end: n.source.start,
 });
-const isLink = (n: FlowNode) => n.eventType === 'link';
+const isLinkThrow = (n: FlowNode) =>
+  n.kind === 'intermediateThrowEvent' && n.eventType === 'link';
+const isLinkCatch = (n: FlowNode) =>
+  n.kind === 'intermediateCatchEvent' && n.eventType === 'link';
+const normalise = (name: string) =>
+  name.trim().replace(/\s+/g, ' ').toLowerCase();
 
 const counts = new WeakMap<Container, ReturnType<typeof countFlows>>();
 function flowCounts(c: Container) {
@@ -101,6 +106,70 @@ export const rules: Rule[] = [
     },
   },
   {
+    code: 'BT260',
+    check(model) {
+      const out: Diagnostic[] = [];
+      for (const [n] of modelNodes(model)) {
+        if (!isLinkThrow(n) || n.linkTarget) continue;
+        out.push(
+          diagnostic(
+            'BT260',
+            n.name
+              ? `No \`catch link ${n.name}\` in this process level, so flow stops here.`
+              : 'A link throw event needs a name: it pairs with the `catch link` of the same name.',
+            keyword(n),
+          ),
+        );
+      }
+      return out;
+    },
+  },
+  {
+    code: 'BT261',
+    check(model) {
+      const out: Diagnostic[] = [];
+      for (const [n] of modelNodes(model)) {
+        if (!isLinkCatch(n) || n.linkSources?.length) continue;
+        out.push(
+          diagnostic(
+            'BT261',
+            n.name
+              ? `No \`throw link ${n.name}\` in this process level, so this can never be reached.`
+              : 'A link catch event needs a name: it pairs with the `throw link` of the same name.',
+            keyword(n),
+          ),
+        );
+      }
+      return out;
+    },
+  },
+  {
+    code: 'BT262',
+    check(model) {
+      const out: Diagnostic[] = [];
+      const seen = new Map<Container, Map<string, FlowNode>>();
+      for (const [n, c] of modelNodes(model)) {
+        if (!isLinkCatch(n) || !n.name) continue;
+        const names = seen.get(c) ?? new Map<string, FlowNode>();
+        seen.set(c, names);
+        const first = names.get(normalise(n.name));
+        if (!first) {
+          names.set(normalise(n.name), n);
+          continue;
+        }
+        out.push(
+          diagnostic(
+            'BT262',
+            `This process level already has a \`catch link ${n.name}\` on line ${first.source.start.line}: a throw event must lead to one place.`,
+            keyword(n),
+            { related: [{ message: 'First catch', range: first.source }] },
+          ),
+        );
+      }
+      return out;
+    },
+  },
+  {
     code: 'BT301',
     check(model) {
       const messageTargets = new Set(
@@ -108,7 +177,11 @@ export const rules: Rule[] = [
       );
       const out: Diagnostic[] = [];
       for (const [n, c] of modelNodes(model)) {
-        if (n.kind === 'startEvent' || n.kind === 'boundaryEvent' || isLink(n))
+        if (
+          n.kind === 'startEvent' ||
+          n.kind === 'boundaryEvent' ||
+          isLinkCatch(n)
+        )
           continue;
         if (flowCounts(c).incoming.has(n.id) || messageTargets.has(n.id))
           continue;
@@ -128,7 +201,7 @@ export const rules: Rule[] = [
     check(model) {
       const out: Diagnostic[] = [];
       for (const [n, c] of modelNodes(model)) {
-        if (n.kind === 'endEvent' || n.endsOpenBoundaryChain || isLink(n))
+        if (n.kind === 'endEvent' || n.endsOpenBoundaryChain || isLinkThrow(n))
           continue;
         if (flowCounts(c).outgoing.has(n.id)) continue;
         out.push(

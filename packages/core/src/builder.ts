@@ -130,9 +130,15 @@ interface Open {
 }
 const isEnd = (x: End | Open): x is End => 'node' in x;
 const none = (): Open => ({ items: [] });
-/** Flow continues from `node` unless it is an end event. */
+const isLinkThrow = (n: FlowNode) =>
+  n.kind === 'intermediateThrowEvent' && n.eventType === 'link';
+const isLinkCatch = (n: FlowNode) =>
+  n.kind === 'intermediateCatchEvent' && n.eventType === 'link';
+/** Flow continues from `node` unless it is an end event or a link throw. */
 const from = (node: FlowNode): Open =>
-  node.kind === 'endEvent' ? none() : { items: [{ node }] };
+  node.kind === 'endEvent' || isLinkThrow(node)
+    ? none()
+    : { items: [{ node }] };
 const ends = (o: Open): End[] =>
   o.items.flatMap((i) => (isEnd(i) ? [i] : ends(i)));
 
@@ -268,6 +274,7 @@ class Builder {
     }
     this.resolve();
     this.assignIds();
+    this.pairLinks();
     this.model.groups = [...this.groups.values()];
     this.model.dataStores = [...this.stores.values()];
     return { model: this.model, diagnostics: this.diagnostics };
@@ -524,9 +531,21 @@ class Builder {
     return open;
   }
 
-  /** Implicit flow into `node`: never into a start event (notation §5). */
+  /** Implicit flow into `node`: never into a start or link catch (notation §5). */
   private enter(open: Open, node: FlowNode, ctx: Ctx) {
-    if (node.kind !== 'startEvent') this.connect(open, node, ctx);
+    if (node.kind !== 'startEvent' && !isLinkCatch(node))
+      this.connect(open, node, ctx);
+  }
+
+  /** Reports an explicit flow that a link event does not allow (BT263). */
+  private linkFlow(from: FlowNode, to: FlowNode, range: Range): boolean {
+    const message = isLinkThrow(from)
+      ? 'A link throw event has no outgoing flow: flow continues at its link catch event.'
+      : isLinkCatch(to)
+        ? 'A link catch event has no incoming flow: flow arrives through its link throw event.'
+        : undefined;
+    if (message) this.diagnostics.push(diagnostic('BT263', message, range));
+    return message !== undefined;
   }
 
   private createNode(
@@ -678,8 +697,10 @@ class Builder {
       }
       const labelled = sources.map((e) => (label ? { ...e, label } : e));
       if (target) {
-        for (const e of labelled)
-          this.flow(e.node, target, step.range, e.label, e.isDefault);
+        for (const e of labelled) {
+          if (!this.linkFlow(e.node, target, first!.range))
+            this.flow(e.node, target, step.range, e.label, e.isDefault);
+        }
         current = target;
         continue;
       }
@@ -1125,7 +1146,7 @@ class Builder {
             p.ref.range,
           ),
         );
-      } else {
+      } else if (!this.linkFlow(p.from, to, p.ref.range)) {
         if (p.from.generated) a.joinTarget ??= to;
         this.flow(p.from, to, p.ref.range, p.label, p.isDefault);
       }
@@ -1155,6 +1176,32 @@ class Builder {
       };
       this.model.messageFlows.push(flow);
       this.messageEnds.set(flow, [from, to]);
+    }
+  }
+
+  /**
+   * Pairs link events by name within one process level: the body of a
+   * process or a subprocess, which sequence flow cannot leave either.
+   */
+  private pairLinks() {
+    const catches = new Map<Container, Map<string, FlowNode[]>>();
+    for (const n of this.nodes) {
+      if (!isLinkCatch(n) || !n.name) continue;
+      const { container } = this.info.get(n)!;
+      const byName = catches.get(container) ?? new Map<string, FlowNode[]>();
+      catches.set(container, byName);
+      const key = normalise(n.name);
+      byName.set(key, [...(byName.get(key) ?? []), n]);
+    }
+    for (const n of this.nodes) {
+      if (!isLinkThrow(n) || !n.name) continue;
+      const targets = catches
+        .get(this.info.get(n)!.container)
+        ?.get(normalise(n.name));
+      if (!targets) continue;
+      // A second catch of the same name is BT262; the first one is the target.
+      n.linkTarget = targets[0]!.id;
+      for (const t of targets) (t.linkSources ??= []).push(n.id);
     }
   }
 

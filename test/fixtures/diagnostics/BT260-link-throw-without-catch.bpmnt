@@ -1,0 +1,6 @@
+# BT260: Nothing catches this link.
+# expect: BT260 @ 5:8
+start
+xor Go on?
+  yes: throw link Nowhere
+  no: end

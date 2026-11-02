@@ -70,6 +70,19 @@ export const diagnosticCodes = {
     meaning: 'Nested group, element in two groups, or group inside a `sub`',
   },
   BT251: { severity: 'warning', meaning: 'Conflicting lane attributes' },
+  BT260: {
+    severity: 'warning',
+    meaning: 'Link throw event without a matching catch',
+  },
+  BT261: { severity: 'warning', meaning: 'Link catch event without any throw' },
+  BT262: {
+    severity: 'error',
+    meaning: 'Two link catch events with the same name in one process level',
+  },
+  BT263: {
+    severity: 'error',
+    meaning: 'Explicit flow out of a link throw or into a link catch',
+  },
   BT301: {
     severity: 'warning',
     meaning:

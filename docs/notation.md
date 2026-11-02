@@ -129,6 +129,35 @@ Every element statement has the same shape:
 | `throw message\|signal\|escalation\|compensation\|link [name]` | Intermediate throw event |
 | `wait <name>` | Shorthand for `catch timer <name>`, e.g. `wait 3 days` |
 
+**Link events** are an off-page connector: `throw link Name` jumps to `catch
+link Name` without a line across the diagram. Use them when a flow would
+otherwise cross most of a large diagram.
+
+<!-- screenshot: notation-link -->
+
+```bpmnt
+start Order received
+task Check order
+throw link To shipping
+
+catch link To shipping
+task Ship
+end Shipped
+```
+
+![A link instead of a long flow](images/notation-link.png)
+
+* **Pairing.** A throw and a catch pair by name, ignoring case and repeated
+  spaces, within one *process level*: a pool or process body, or one `sub`
+  body. Several throws can lead to one catch, but a name can have only one
+  catch (error **BT262**).
+* **Flow.** Implicit flow stops at a link throw and never enters a link catch
+  (§5). An explicit flow out of a throw or into a catch is error **BT263**.
+* **Unpaired events.** A throw without a catch is warning **BT260**, and a
+  catch without a throw is warning **BT261**.
+* **BPMN output.** Both events get a `linkEventDefinition` with the same
+  `name`, joined by `target` and `source` references.
+
 ### 4.2 Activities
 
 | Notation | BPMN element |
@@ -299,7 +328,7 @@ end Done                  # Ship -> Done
 
 Implicit flow **does not** leave:
 
-* an **end event**;
+* an **end event** or a **link throw event** (§4.1);
 * a line whose last element is a **reference** (a jump, §6.2);
 * a **gateway**, whose outgoing flows are its branches (§7).
 
@@ -309,7 +338,8 @@ blocks (§9.1) and message flows do **not** interrupt implicit flow.
 **Start events.** Implicit flow **never enters a start event**. A `start` in
 the middle of a block begins a new, independent chain. If the element before
 it is still open (not an end event, jump or gateway), that element gets
-warning **BT302 dead end**. Close it with an `end` or a jump.
+warning **BT302 dead end**. Close it with an `end` or a jump. The same holds
+for a **link catch event** (§4.1), which also begins a new chain.
 
 <!-- screenshot: notation-start-chains -->
 
@@ -703,6 +733,10 @@ possible, a quick fix.
 | BT241 | warning | Non-interrupting boundary chain ends open |
 | BT250 | error | Nested group, element in two groups, or group inside a `sub` |
 | BT251 | warning | Conflicting lane attributes |
+| BT260 | warning | Link throw event without a matching catch |
+| BT261 | warning | Link catch event without any throw |
+| BT262 | error | Two link catch events with the same name in one process level |
+| BT263 | error | Explicit flow out of a link throw or into a link catch |
 | BT301 | warning | Unreachable element (no incoming sequence or message flow, not a start event) |
 | BT302 | warning | Dead end (non-end element with no outgoing flow) |
 | BT303 | info | Process has no start or no end event |

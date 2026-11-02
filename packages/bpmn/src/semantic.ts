@@ -47,6 +47,8 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
   const named = (name: string | undefined) => (name ? { name } : {});
   /** The current process's data references, by subprocess ID. */
   const dataRefs = new Map<string | undefined, ModdleElement[]>();
+  /** Link event definitions by event ID, linked once they all exist. */
+  const linkDefinitions = new Map<string, [FlowNode, ModdleElement]>();
   const documented = (text: string | undefined) =>
     text
       ? {
@@ -72,9 +74,9 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
         definition.condition = moddle.create('bpmn:FormalExpression');
       }
       if (n.eventType === 'link') definition.name = n.name ?? '';
-      attrs.eventDefinitions = [
-        moddle.create(definitionType[n.eventType], definition),
-      ];
+      const element = moddle.create(definitionType[n.eventType], definition);
+      if (n.eventType === 'link') linkDefinitions.set(n.id, [n, element]);
+      attrs.eventDefinitions = [element];
     }
     if (n.interrupting === false) attrs.cancelActivity = false;
     const marker = n.markers[0];
@@ -244,6 +246,13 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
     create('bpmn:DataStore', { id: s.id, name: s.name }),
   );
   const processes = model.pools.filter((p) => p.process).map(process);
+  for (const [n, definition] of linkDefinitions.values()) {
+    if (n.linkTarget) definition.target = linkDefinitions.get(n.linkTarget)![1];
+    if (n.linkSources)
+      definition.source = n.linkSources.map(
+        (id) => linkDefinitions.get(id)![1],
+      );
+  }
   const rootElements = [...stores, ...processes];
   let root = processes[0]!;
 

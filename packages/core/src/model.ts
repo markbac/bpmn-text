@@ -95,6 +95,10 @@ export interface FlowNode {
   laneId?: string;
   groupId?: string;
   markers: Marker[];
+  /** Link throw events: the ID of the catch event with the same name. */
+  linkTarget?: string;
+  /** Link catch events: the IDs of the throw events with the same name. */
+  linkSources?: string[];
   /** Boundary events: the activity they are attached to. */
   attachedTo?: string;
   /** Boundary events: false for `[non-interrupting]`. */
