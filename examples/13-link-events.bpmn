@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" name="Returns" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-text">
+  <bpmn:process id="Process_returns" name="Returns" isExecutable="false">
+    <bpmn:startEvent id="Event_parcel_returned" name="Parcel returned">
+      <bpmn:outgoing>Flow_parcel_returned__inspect_parcel</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_inspect_parcel" name="Inspect parcel">
+      <bpmn:incoming>Flow_parcel_returned__inspect_parcel</bpmn:incoming>
+      <bpmn:outgoing>Flow_inspect_parcel__condition</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_condition" name="Condition?" default="Flow_condition__rejected">
+      <bpmn:incoming>Flow_inspect_parcel__condition</bpmn:incoming>
+      <bpmn:outgoing>Flow_condition__restock_items</bpmn:outgoing>
+      <bpmn:outgoing>Flow_condition__write_off_items</bpmn:outgoing>
+      <bpmn:outgoing>Flow_condition__rejected</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Activity_restock_items" name="Restock items">
+      <bpmn:incoming>Flow_condition__restock_items</bpmn:incoming>
+      <bpmn:outgoing>Flow_restock_items__refund</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:intermediateThrowEvent id="Event_refund" name="Refund">
+      <bpmn:incoming>Flow_restock_items__refund</bpmn:incoming>
+      <bpmn:linkEventDefinition id="Event_refund_definition" name="Refund">
+        <bpmn:target>Event_refund_3_definition</bpmn:target>
+      </bpmn:linkEventDefinition>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:task id="Activity_write_off_items" name="Write off items">
+      <bpmn:incoming>Flow_condition__write_off_items</bpmn:incoming>
+      <bpmn:outgoing>Flow_write_off_items__refund_2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:intermediateThrowEvent id="Event_refund_2" name="Refund">
+      <bpmn:incoming>Flow_write_off_items__refund_2</bpmn:incoming>
+      <bpmn:linkEventDefinition id="Event_refund_2_definition" name="Refund">
+        <bpmn:target>Event_refund_3_definition</bpmn:target>
+      </bpmn:linkEventDefinition>
+    </bpmn:intermediateThrowEvent>
+    <bpmn:endEvent id="Event_rejected" name="Rejected">
+      <bpmn:incoming>Flow_condition__rejected</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:intermediateCatchEvent id="Event_refund_3" name="Refund">
+      <bpmn:outgoing>Flow_refund_3__refund_customer</bpmn:outgoing>
+      <bpmn:linkEventDefinition id="Event_refund_3_definition" name="Refund">
+        <bpmn:source>Event_refund_definition</bpmn:source>
+        <bpmn:source>Event_refund_2_definition</bpmn:source>
+      </bpmn:linkEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:serviceTask id="Activity_refund_customer" name="Refund customer">
+      <bpmn:incoming>Flow_refund_3__refund_customer</bpmn:incoming>
+      <bpmn:outgoing>Flow_refund_customer__refunded</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_refunded" name="Refunded">
+      <bpmn:incoming>Flow_refund_customer__refunded</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_parcel_returned__inspect_parcel" sourceRef="Event_parcel_returned" targetRef="Activity_inspect_parcel" />
+    <bpmn:sequenceFlow id="Flow_inspect_parcel__condition" sourceRef="Activity_inspect_parcel" targetRef="Gateway_condition" />
+    <bpmn:sequenceFlow id="Flow_condition__restock_items" name="good" sourceRef="Gateway_condition" targetRef="Activity_restock_items" />
+    <bpmn:sequenceFlow id="Flow_restock_items__refund" sourceRef="Activity_restock_items" targetRef="Event_refund" />
+    <bpmn:sequenceFlow id="Flow_condition__write_off_items" name="damaged" sourceRef="Gateway_condition" targetRef="Activity_write_off_items" />
+    <bpmn:sequenceFlow id="Flow_write_off_items__refund_2" sourceRef="Activity_write_off_items" targetRef="Event_refund_2" />
+    <bpmn:sequenceFlow id="Flow_condition__rejected" sourceRef="Gateway_condition" targetRef="Event_rejected" />
+    <bpmn:sequenceFlow id="Flow_refund_3__refund_customer" sourceRef="Event_refund_3" targetRef="Activity_refund_customer" />
+    <bpmn:sequenceFlow id="Flow_refund_customer__refunded" sourceRef="Activity_refund_customer" targetRef="Event_refunded" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_returns">
+      <bpmndi:BPMNShape id="Event_parcel_returned_di" bpmnElement="Event_parcel_returned">
+        <dc:Bounds x="100" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="80" y="103" width="76" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_inspect_parcel_di" bpmnElement="Activity_inspect_parcel">
+        <dc:Bounds x="186" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_condition_di" bpmnElement="Gateway_condition">
+        <dc:Bounds x="336" y="55" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="335" y="36" width="53" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_restock_items_di" bpmnElement="Activity_restock_items">
+        <dc:Bounds x="460" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_refund_di" bpmnElement="Event_refund">
+        <dc:Bounds x="610" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="610" y="103" width="36" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_write_off_items_di" bpmnElement="Activity_write_off_items">
+        <dc:Bounds x="460" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_refund_2_di" bpmnElement="Event_refund_2">
+        <dc:Bounds x="610" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="610" y="213" width="36" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_rejected_di" bpmnElement="Event_rejected">
+        <dc:Bounds x="492" y="282" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="488" y="323" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_refund_3_di" bpmnElement="Event_refund_3">
+        <dc:Bounds x="100" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="100" y="213" width="36" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_refund_customer_di" bpmnElement="Activity_refund_customer">
+        <dc:Bounds x="186" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_refunded_di" bpmnElement="Event_refunded">
+        <dc:Bounds x="343" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="337" y="213" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_parcel_returned__inspect_parcel_di" bpmnElement="Flow_parcel_returned__inspect_parcel">
+        <di:waypoint x="136" y="80" />
+        <di:waypoint x="186" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_inspect_parcel__condition_di" bpmnElement="Flow_inspect_parcel__condition">
+        <di:waypoint x="286" y="80" />
+        <di:waypoint x="336" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_condition__restock_items_di" bpmnElement="Flow_condition__restock_items">
+        <di:waypoint x="386" y="80" />
+        <di:waypoint x="460" y="80" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="391" y="61" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_restock_items__refund_di" bpmnElement="Flow_restock_items__refund">
+        <di:waypoint x="560" y="80" />
+        <di:waypoint x="610" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_condition__write_off_items_di" bpmnElement="Flow_condition__write_off_items">
+        <di:waypoint x="386" y="80" />
+        <di:waypoint x="411" y="80" />
+        <di:waypoint x="411" y="190" />
+        <di:waypoint x="460" y="190" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="391" y="85" width="46" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_write_off_items__refund_2_di" bpmnElement="Flow_write_off_items__refund_2">
+        <di:waypoint x="560" y="190" />
+        <di:waypoint x="610" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_condition__rejected_di" bpmnElement="Flow_condition__rejected">
+        <di:waypoint x="386" y="80" />
+        <di:waypoint x="423" y="80" />
+        <di:waypoint x="423" y="300" />
+        <di:waypoint x="492" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_refund_3__refund_customer_di" bpmnElement="Flow_refund_3__refund_customer">
+        <di:waypoint x="136" y="190" />
+        <di:waypoint x="186" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_refund_customer__refunded_di" bpmnElement="Flow_refund_customer__refunded">
+        <di:waypoint x="286" y="190" />
+        <di:waypoint x="343" y="190" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
+

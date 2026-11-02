@@ -18,7 +18,9 @@ for (const file of readdirSync('docs').filter((f) => f.endsWith('.md'))) {
   }
 }
 
-for (const inputs of ['examples/*.bpmnt', join(snippets, '*.bpmnt')]) {
+// Globs use forward slashes, on Windows too.
+const allSnippets = join(snippets, '*.bpmnt').replaceAll('\\', '/');
+for (const inputs of ['examples/*.bpmnt', allSnippets]) {
   const result = spawnSync(
     'node',
     [cli, 'build', inputs, '-f', 'png', '-o', out],

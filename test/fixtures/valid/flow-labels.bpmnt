@@ -1,5 +1,5 @@
 # Labelled flows in chains that declare elements inline.
-# covers: §6.1, §6.3
+# covers: §6.1, §6.3, §6.5
 title "Printing"
 
 start Draft ready -(author done)-> task Review draft

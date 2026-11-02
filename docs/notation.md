@@ -220,6 +220,22 @@ Activity markers are given as attributes:
 | `[parallel]` | Parallel multi-instance |
 | `[sequential]` | Sequential multi-instance |
 
+Each keyword draws its own task icon, and markers sit at the bottom of the
+shape:
+
+<!-- screenshot: notation-activities -->
+
+```bpmnt
+start
+user Approve order
+service Charge card [loop]
+manual Pack parcel [parallel]
+call Arrange delivery [sequential]
+end
+```
+
+![Activity types and markers](images/notation-activities.png)
+
 ### 4.3 Gateways
 
 | Notation | BPMN element |
@@ -230,7 +246,25 @@ Activity markers are given as attributes:
 | `event [name]` | Event-based gateway |
 | `complex [name]` | Complex gateway (§7.5) |
 
-Gateways are always followed by a block of branches (§7).
+A gateway is usually followed by a block of branches (§7). Without one it is a
+plain node that jumps can target (§7.3).
+
+Gateways can be nested. Each one merges its own open branches first (§7.1):
+
+<!-- screenshot: notation-gateways -->
+
+```bpmnt
+start
+xor Order size?
+  small: task Post parcel
+  large:
+    and
+      - task Book courier
+      - task Print labels
+end
+```
+
+![Nested gateways](images/notation-gateways.png)
 
 `fork` takes the same branch block but draws **no** gateway (§7.4).
 
@@ -285,34 +319,53 @@ end
 ### 4.5 Attributes
 
 Attributes are written in square brackets after the name, separated by commas.
-Flags have no value. Key/value pairs use `:`. A key can take several values
-separated by commas. An item of the form `key:`, or one of the flags below,
-ends that list and starts the next attribute, so `[reads: A, B, loop, writes:
-C]` reads A and B, sets `loop` and writes C. Quote a value that is spelt like
-a flag.
+There are two forms:
+
+* A **flag** has no value: `[collapsed]`.
+* A **key/value** attribute uses `:`, and a key can take several values
+  separated by commas: `[reads: A, B]`.
+
+An item of the form `key:`, or one of the flags in the table below, ends a value
+list and starts the next attribute. So `[reads: A, B, loop, writes: C]` reads A
+and B, sets `loop` and writes C. Quote a value that is spelt like a flag:
+`[reads: "loop"]`.
+
+<!-- screenshot: notation-attributes -->
 
 ```bpmnt
-user Approve order @approve [parallel, reads: Order]
+store Order system
+pool Shop
+  lane Sales
+  start
+  user Approve order @approve [parallel, reads: Order, Order system, writes: Decision, doc: "Two people must agree"]
+  task Audit [lane: Finance, color: orange]
+  end
 ```
 
-| Attribute | Applies to | Meaning |
-|---|---|---|
-| `id: x` | any element | Same as `@x` |
-| `loop`, `parallel`, `sequential` | activities | Markers; on an ad-hoc `sub`, `parallel` and `sequential` set its ordering (§8.2) |
-| `reads: …`, `writes: …` | activities, events | Data associations |
-| `collapsed` | `sub`, `pool` | Collapsed subprocess / black-box pool |
-| `non-interrupting` | `on` (boundary), `start` in an event subprocess | Dashed event, which leaves the activity or parent running |
-| `event` | `sub` | Event subprocess (§8.1) |
-| `rule: …` | `complex` | Activation rule, as documentation (§7.5) |
-| `adhoc` | `sub` | Ad-hoc subprocess (§8.2) |
-| `collection` | `data` | Collection data object |
-| `lane: X` | flow nodes in a pool with lanes | Place this element in lane X without switching (§9) |
-| `doc: "…"` | any element, pool, lane, group | Documentation (§4.6) |
-| `color: c` | any element, pool, lane, group | Fill colour (§4.7) |
-| `stroke: c` | any element, pool, lane, group | Border/line colour (§4.7) |
-| `message: x`, `signal: x`, `error: x`, `escalation: x` | events of that type; `message` also on send and receive tasks | The shared definition this refers to (§4.1) |
+![Markers, data, a lane override and a colour](images/notation-attributes.png)
 
-Unknown attributes produce a warning, not an error.
+| Attribute | Form | Applies to | Meaning |
+|---|---|---|---|
+| `id: x` | key/value | any element | Same as `@x` |
+| `loop` | flag | activities | Standard loop marker |
+| `parallel`, `sequential` | flag | activities | Multi-instance markers; on an ad-hoc `sub`, its ordering (§8.2) |
+| `reads: …`, `writes: …` | key/value | activities, events | Data associations (§4.4) |
+| `collapsed` | flag | `sub`, `pool` | Collapsed subprocess / black-box pool |
+| `event` | flag | `sub` | Event subprocess (§8.1) |
+| `adhoc` | flag | `sub` | Ad-hoc subprocess (§8.2) |
+| `non-interrupting` | flag | `on`, `start` in an event subprocess | Dashed event, which leaves the activity or parent running |
+| `collection` | flag | `data` | Collection data object |
+| `fit` | flag | `group` | The box hugs its members rather than spanning the pool (§9.1) |
+| `lane: X` | key/value | flow nodes in a pool with lanes | Place this element in lane X without switching (§9) |
+| `rule: …` | key/value | `complex` | Activation rule, as documentation (§7.5) |
+| `message: x`, `signal: x`, `error: x`, `escalation: x` | key/value | events of that type; `message` also on send and receive tasks | The shared definition this refers to (§4.1) |
+| `doc: "…"` | key/value | any element, pool, lane, group | Documentation (§4.6) |
+| `color: c` | key/value | any element, pool, lane, group | Fill colour (§4.7) |
+| `stroke: c` | key/value | any element, pool, lane, group | Border/line colour (§4.7) |
+
+Unknown attributes produce warning **BT103**, not an error. They are kept on the
+model for the extension hook ([architecture §9](architecture.md)). A known
+attribute that cannot apply can be warning **BT105**.
 
 ### 4.6 Documentation
 
@@ -347,6 +400,21 @@ doc Checks every order line against the product catalogue and rejects unknown it
 * `[doc: "…"]` is the one-line attribute equivalent.
 * Like notes, `doc` lines do not interrupt implicit flow.
 
+This is the whole of a documented process. `doc` draws nothing, so the diagram
+looks the same with or without it:
+
+<!-- screenshot: notation-doc -->
+
+```bpmnt
+doc Handles orders from the web shop.
+start Order received
+service Validate order
+doc Checks every order line against the product catalogue.
+end Order valid
+```
+
+![doc draws nothing](images/notation-doc.png)
+
 ### 4.7 Colours
 
 `[color: …]` sets the fill and `[stroke: …]` sets the border and text
@@ -379,6 +447,17 @@ task Escalate [color: #FFE0E0, stroke: red]
 `sub <name> [collapsed]` **without a body** is allowed. It draws a collapsed
 subprocess whose detail is documented elsewhere, for example *"Credit
 check"*. Use `call` instead if it refers to a reusable process.
+
+<!-- screenshot: notation-placeholder -->
+
+```bpmnt
+start
+sub Credit check [collapsed]
+call Arrange delivery
+end
+```
+
+![A placeholder and a call activity](images/notation-placeholder.png)
 
 ---
 
@@ -448,6 +527,17 @@ task Pick items -> task Pack parcel -> end Packed
 The last element of a chain continues implicitly to the next line, unless it
 is an end event or a reference.
 
+<!-- screenshot: notation-chain -->
+
+```bpmnt
+start
+task Pick items -> task Pack parcel -> service Book courier
+task Ship
+end
+```
+
+![A chain, continuing on the next line](images/notation-chain.png)
+
 ### 6.2 References (jumps)
 
 If the right-hand side does **not** start with a keyword, it is a **reference**
@@ -492,6 +582,58 @@ order*, use `fork` (§7.4).
    `-> "end of month run"`.
 5. Sequence flows cannot cross pools (error **BT210**). Use a message flow.
 
+**In practice**
+
+Forward references work: the target can be declared later in the file, as `Ship
+parcel` is here. On a branch line, a name that does not start with a keyword is a
+jump.
+
+<!-- screenshot: notation-forward-reference -->
+
+```bpmnt
+start
+xor Ready?
+  yes: Ship parcel
+  no: task Prepare parcel
+task Ship parcel
+end
+```
+
+![A jump forward](images/notation-forward-reference.png)
+
+* **Names are forgiving.** Case and repeated spaces do not matter, so
+  `-> check  order` finds `task Check order`.
+* **`@id` settles duplicates.** Give the element you mean an `@id`, then refer to
+  it. An `@id` can contain letters, digits, `_`, `-` and `.`.
+
+  ```bpmnt
+  start
+  task Check order @first_check
+  task Fix order
+  task Check order
+  xor Good?
+    yes: end
+    no: @first_check
+  ```
+
+* **Quote what would be misread.** A reference is quoted when its first word is a
+  keyword (`-> "end of month run"`), or when it contains a terminator (§2). In a
+  multi-target jump, a name containing a comma is quoted too:
+  `-> "Bill, then ship", Notify`.
+
+**Messages and quick fixes.** When a name matches several elements, you get:
+
+```text
+error[BT201]: `Review` is ambiguous: 2 elements have this name (lines 4, 5). Give the one you mean an @id and refer to it by that.
+```
+
+When a name matches nothing, the closest one is suggested, and the editors offer
+it as a quick fix titled "Change to `Check order`":
+
+```text
+error[BT202]: Nothing is called `Chek order`. Did you mean `Check order`?
+```
+
 ### 6.3 Flow labels
 
 ```bpmnt
@@ -499,6 +641,16 @@ task A -(after review)-> task B
 ```
 
 Inside gateways, branch labels (§7) are the normal way to label flows.
+
+<!-- screenshot: notation-flow-label -->
+
+```bpmnt
+start
+task Draft -(checked)-> task Publish
+end
+```
+
+![A labelled flow](images/notation-flow-label.png)
 
 ### 6.4 Message flows
 
@@ -516,6 +668,68 @@ Bank ~> Payment received                     # standalone statement: pool → el
 * Either end may be a pool name: the flow attaches to the pool border.
 * Standalone `A ~> B` statements may appear anywhere in a pool body or at the
   top level.
+
+<!-- screenshot: notation-message-flows -->
+
+```bpmnt
+pool Shop
+  start
+  send Request payment ~(card details)~> Bank
+  receive Payment received
+  end
+
+pool Bank [collapsed]
+Bank ~> Payment received
+```
+
+![Message flows to and from a black-box pool](images/notation-message-flows.png)
+
+### 6.5 Generated IDs
+
+You meet IDs in the `.bpmn` output, in `sourceMap` and in tools. They are built
+from names, so the same source always gives the same IDs, and generated files diff
+cleanly.
+
+<!-- screenshot: notation-ids -->
+
+```bpmnt
+start Order received
+task Check order [writes: Order (checked)]
+xor Valid?
+  yes: task Ship
+  no: task Reject
+end
+```
+
+![The diagram these IDs belong to](images/notation-ids.png)
+
+This gives `Event_order_received`, `Activity_check_order`, `Gateway_valid`,
+`Activity_ship`, `Activity_reject`, `Gateway_join_after_end_1`, `Event_end_1`,
+`Flow_order_received__check_order` and `DataObjectReference_order_checked`.
+
+| Element | ID | Example |
+|---|---|---|
+| Event, activity, gateway | Prefix and name | `Event_order_received`, `Activity_check_order`, `Gateway_valid` |
+| Unnamed event or gateway | Prefix, kind and a count | `Event_start_1`, `Gateway_and_1` |
+| Unnamed, inside a `sub` | With the `sub`'s name | `Event_handle_payment_start_1` |
+| Unnamed boundary event | Its host and a count | `Event_approve_request_boundary_1` |
+| Inserted join | What it leads into | `Gateway_join_after_ship` |
+| Sequence flow | Both ends | `Flow_check_order__valid` |
+| Message flow | Both ends | `MessageFlow_place_order__order_received` |
+| Pool and its process | The pool's name | `Participant_company`, `Process_company` |
+| Lane, group | The name | `Lane_sales`, `Group_fulfilment` |
+| Data | The name, and any state | `DataObject_order`, `DataObjectReference_order_checked` |
+| Shared definition | The type and name | `Message_order`, `Error_payment_failed` |
+| Note | Its element | `TextAnnotation_check_order` |
+
+* **The name part** is lower case, with accents removed and everything other than
+  letters and digits turned into `_`.
+* **Clashes.** Elements with one name get `_2`, `_3` and so on in document order.
+  When pools clash, the pool's name goes in on every side, as
+  `Activity_customer_check` and `Activity_shop_check`, so reordering pools changes
+  no IDs.
+* **`@id`** is used unchanged. Renaming an element changes its generated ID, so use
+  `@id` where something outside the file relies on it.
 
 ---
 
@@ -563,7 +777,7 @@ statement after the block**:
 | `xor`, `event` | ≥2 | An inserted **exclusive** join gateway (or direct flows with `option xor-join direct`). |
 | `complex` | ≥2 | An inserted **complex** join gateway, since the compiler does not know the split's rule. |
 
-The inserted join is placed in the lane of the next statement.
+The inserted join is placed in the lane in effect at the next statement (§9).
 
 <!-- screenshot: notation-and-join -->
 
@@ -575,6 +789,143 @@ task Ship                    # AND-join inserted before "Ship"
 ```
 
 ![An inserted parallel join](images/notation-and-join.png)
+
+**One example per row of the table.** No open branches: nothing joins, and the
+next statement needs another incoming flow. Here a jump gives it one. Without the
+jump, `Archive` would be unreachable (BT301).
+
+<!-- screenshot: notation-join-none -->
+
+```bpmnt
+start
+xor Approved?
+  yes:
+    task Ship
+    -> Archive
+  no: end Rejected
+task Archive
+end
+```
+
+![No open branches: the next statement has a jump into it](images/notation-join-none.png)
+
+One open branch: a direct flow, with no join.
+
+<!-- screenshot: notation-join-one -->
+
+```bpmnt
+start
+xor Approved?
+  yes: task Ship
+  no: end Rejected
+end Shipped
+```
+
+![One open branch: a direct flow](images/notation-join-one.png)
+
+Two or more open `or` branches: an inclusive join.
+
+<!-- screenshot: notation-join-or -->
+
+```bpmnt
+start
+or Extras?
+  gift: task Wrap gift
+  card: task Write card
+task Ship
+end
+```
+
+![An inserted inclusive join](images/notation-join-or.png)
+
+Two or more open `xor` branches: an exclusive join.
+
+<!-- screenshot: notation-join-xor -->
+
+```bpmnt
+start
+xor Express?
+  yes: task Book courier
+  no: task Book post
+task Ship
+end
+```
+
+![An inserted exclusive join](images/notation-join-xor.png)
+
+The same, with `option xor-join direct`: both branches flow straight in.
+
+<!-- screenshot: notation-join-direct -->
+
+```bpmnt
+option xor-join direct
+start
+xor Express?
+  yes: task Book courier
+  no: task Book post
+task Ship
+end
+```
+
+![Direct flows, with no join](images/notation-join-direct.png)
+
+The `and` row is shown above, and the `complex` row in §7.5.
+
+**Nested splits.** Joins are built from the innermost split outwards. An `and`
+inside an `xor` branch gets its own parallel join first, and that join is then one
+open end of the `xor`:
+
+<!-- screenshot: notation-join-nested -->
+
+```bpmnt
+start
+xor Express?
+  yes:
+    and
+      - task Pick items
+      - task Book courier
+  no: task Post parcel
+task Send confirmation
+end
+```
+
+![An inner parallel join, then an outer exclusive join](images/notation-join-nested.png)
+
+**Empty branches.** A branch with nothing in it is open, so it runs straight from
+the split to the join:
+
+<!-- screenshot: notation-join-empty -->
+
+```bpmnt
+start
+xor Gift wrapping?
+  yes: task Wrap gift
+  no:
+task Ship
+end
+```
+
+![An empty branch](images/notation-join-empty.png)
+
+**A `start` after a block.** Implicit flow never enters a start event, so open
+branches do not merge into it. Each one is left as a dead end (BT302). End them, or
+move the `start` further down.
+
+<!-- screenshot: notation-join-start -->
+
+```bpmnt
+start Morning
+xor Busy?
+  yes: task Call in help
+  no: task Open alone
+start Evening
+task Count takings
+task Close shop
+task Lock up
+end
+```
+
+![Open branches stop at a start event](images/notation-join-start.png)
 
 ### 7.2 Event-based gateways
 
@@ -602,6 +953,24 @@ xor Merge @m
 
 A gateway with no branch block is a plain node. Jumps (`-> @m`) can target it,
 and implicit flow continues out of it.
+
+<!-- screenshot: notation-explicit-gateway -->
+
+```bpmnt
+start
+xor Customer type?
+  new:
+    task Create account
+    -> @merge
+  existing:
+    task Check details
+    -> @merge
+xor Merge @merge
+task Take payment
+end
+```
+
+![An explicit merge gateway](images/notation-explicit-gateway.png)
 
 ### 7.4 Fan-out without a gateway: `fork`
 
@@ -805,6 +1174,45 @@ pool Company
    lanes in order, which keeps long lane lists readable. Items may carry
    attributes: `lanes Billing [color: green], CRM [color: green]`.
 
+**Lane scoping in practice.** Here both blocks switch lane, and `Confirm order` is
+back in Sales because the switches ended with their blocks. `Audit` visits Finance
+without switching, and the inserted join is in Warehouse, where the story has
+moved to by the time it is needed.
+
+<!-- screenshot: notation-lane-scoping -->
+
+```bpmnt
+pool Company
+  lanes Sales, Manager, Warehouse, Finance
+  lane Sales
+  start
+  task Take order
+    on timer 1 day
+      lane Manager
+      task Chase order
+  task Check stock
+  xor In stock?
+    yes:
+      lane Warehouse
+      task Reserve items
+    no:
+      task Tell customer
+  task Confirm order
+  task Audit [lane: Finance]
+  xor Express?
+    yes: task Book courier
+    no: task Book post
+  lane Warehouse
+  task Ship
+  end
+```
+
+![Lane switches ending with their blocks](images/notation-lane-scoping.png)
+
+**Where an inserted join goes.** A join is placed in the lane in effect at the
+statement after the block. `[lane: X]` on that statement moves only that statement,
+so the join stays in the current lane.
+
 ### 9.1 Groups
 
 A group is a dashed box around related elements, typically a **phase** of
@@ -843,6 +1251,23 @@ pool Company
 * **BPMN output:** a `bpmn:group` with a `categoryValue` (the label), plus a
   DI shape.
 
+<!-- screenshot: notation-groups -->
+
+```bpmnt
+pool Company
+  lanes Sales, Service
+  group Sale
+    lane Sales
+    start
+    user Sign contract
+  group Service [color: #FFF5F5]
+    lane Service
+    user Install
+    end
+```
+
+![A group per phase](images/notation-groups.png)
+
 ---
 
 ## 10. Boundary events
@@ -880,6 +1305,49 @@ on <event-type> [name] [@id] [[attributes]] [flow tail]
   merged, because merging it would duplicate the token on the main path.
 * For a `sub` with a body, `on` lines may appear anywhere in its block. All
   other lines form the body.
+
+**An interrupting chain that merges back.** The timer stops `Approve request`. Its
+chain ends open, so it merges with the main path through an inserted exclusive join.
+
+<!-- screenshot: notation-boundary-merge -->
+
+```bpmnt
+start
+user Approve request
+  on timer 5 days -> user Escalate to manager
+task Notify requester
+end
+```
+
+![An interrupting chain merging back](images/notation-boundary-merge.png)
+
+**A non-interrupting chain that must end.** `Approve request` carries on, so this
+chain ends on its own. Merging it back would run `Notify requester` twice.
+
+<!-- screenshot: notation-boundary-end -->
+
+```bpmnt
+start
+user Approve request
+  on timer 2 days [non-interrupting] -> send Remind approver -> end Reminded
+task Notify requester
+end
+```
+
+![A non-interrupting chain with its own end](images/notation-boundary-end.png)
+
+**BT241.** If that chain ends open, it is reported and stays unconnected. Fix it
+with an `end`, as above, or a jump.
+
+<!-- expect-error BT241 -->
+
+```bpmnt
+start
+user Approve request
+  on timer 2 days [non-interrupting] -> send Remind approver
+task Notify requester
+end
+```
 
 ---
 
@@ -930,6 +1398,737 @@ are BT222, BT240, BT260, BT261, BT262, BT270, BT280 and BT301 to BT306 (see
 | BT304 | info | Send/receive element without a message flow |
 | BT305 | info | Error or escalation boundary event with nothing to catch in its subprocess |
 | BT306 | info | Error or escalation thrown in a subprocess with nothing to catch it |
+
+### 11.1 Each code, with an example and a fix
+
+Each entry links to the test fixture for that code. A fix is shown where it is not
+obvious from the message.
+
+#### BT001
+
+[Fixture](../test/fixtures/diagnostics/BT001-unclosed-attributes.bpmnt). A statement
+cannot be read, here because an attribute list is never closed. The rest of the line
+is skipped.
+
+<!-- expect-error BT001 -->
+
+```bpmnt
+start
+task Check order [loop
+end
+```
+
+Fix: close the list, `task Check order [loop]`.
+
+#### BT002
+
+[Fixture](../test/fixtures/diagnostics/BT002-tab-indent.bpmnt). A tab in the
+indentation. The editors offer a quick fix.
+
+<!-- expect-error BT002 -->
+
+```bpmnt
+pool Company
+	start
+  end
+```
+
+Fix: indent with spaces.
+
+#### BT003
+
+[Fixture](../test/fixtures/diagnostics/BT003-inconsistent-dedent.bpmnt). A line is
+indented less than the block it is in, but not as little as any block around it.
+
+<!-- expect-error BT003 -->
+
+```bpmnt
+pool Company
+    start
+    task Check order
+  end
+```
+
+Fix: line it up with its block.
+
+```bpmnt
+pool Company
+    start
+    task Check order
+    end
+```
+
+#### BT004
+
+[Fixture](../test/fixtures/diagnostics/BT004-unterminated-string.bpmnt). A string has
+no closing quote.
+
+<!-- expect-error BT004 -->
+
+```bpmnt
+start
+task "Check order
+end
+```
+
+Fix: add the quote, `task "Check order"`.
+
+#### BT101
+
+[Fixture](../test/fixtures/diagnostics/BT101-unknown-keyword.bpmnt). A line starts
+with a word that is not a keyword. The closest keyword is suggested, with a quick fix.
+
+<!-- expect-error BT101 -->
+
+```bpmnt
+start
+taks Check order
+end
+```
+
+Fix: `task Check order`.
+
+#### BT102
+
+[Fixture](../test/fixtures/diagnostics/BT102-start-terminate.bpmnt). This keyword does
+not take that event type. §4.1 lists what each one takes.
+
+<!-- expect-error BT102 -->
+
+```bpmnt
+start terminate
+task Check order
+end
+```
+
+Fix: move the type to where it applies.
+
+```bpmnt
+start
+task Check order
+end terminate
+```
+
+#### BT103
+
+[Fixture](../test/fixtures/diagnostics/BT103-unknown-attribute.bpmnt). The notation
+does not define this attribute. It is kept for the extension hook, and otherwise has
+no effect.
+
+<!-- expect-error BT103 -->
+
+```bpmnt
+start
+task Check order [urgent]
+end
+```
+
+Fix: if it should show, use something defined: `task Check order [color: red]`.
+
+#### BT104
+
+[Fixture](../test/fixtures/diagnostics/BT104-invalid-colour.bpmnt). The colour is not
+`#RRGGBB`, `#RGB` or a known name.
+
+<!-- expect-error BT104 -->
+
+```bpmnt
+start
+task Check order [color: #12345]
+end
+```
+
+Fix: `task Check order [color: #123456]`.
+
+#### BT105
+
+[Fixture](../test/fixtures/diagnostics/BT105-attribute-without-effect.bpmnt). This
+attribute exists, but does nothing on this element.
+
+<!-- expect-error BT105 -->
+
+```bpmnt
+start
+task A [message: Order]
+end
+```
+
+Fix: put it where it applies, or remove it: `send A [message: Order]`.
+
+#### BT201
+
+[Fixture](../test/fixtures/diagnostics/BT201-ambiguous-reference.bpmnt). Several
+elements have the name the jump refers to.
+
+<!-- expect-error BT201 -->
+
+```bpmnt
+start
+task Review
+task Review
+xor Approved?
+  yes: end Done
+  no:
+    -> Review
+```
+
+Fix: give the one you mean an `@id`.
+
+```bpmnt
+start
+task Review @first
+task Review
+xor Approved?
+  yes: end Done
+  no:
+    -> @first
+```
+
+#### BT202
+
+[Fixture](../test/fixtures/diagnostics/BT202-unknown-reference.bpmnt). Nothing has
+this name. The closest one is suggested, with a quick fix.
+
+<!-- expect-error BT202 -->
+
+```bpmnt
+start
+task Check order
+xor OK?
+  yes: end Done
+  no:
+    -> Chek order
+```
+
+Fix: `-> Check order`.
+
+#### BT203
+
+[Fixture](../test/fixtures/diagnostics/BT203-duplicate-id.bpmnt). Two elements have
+one `@id`.
+
+<!-- expect-error BT203 -->
+
+```bpmnt
+start
+task Check order @check
+task Ship order @check
+end
+```
+
+Fix: `task Ship order @ship`.
+
+#### BT210
+
+[Fixture](../test/fixtures/diagnostics/BT210-sequence-flow-across-pools.bpmnt). A
+sequence flow goes to another pool. Pools talk with messages.
+
+<!-- expect-error BT210 -->
+
+```bpmnt
+pool Customer
+  start
+  task Order -> Receive order
+
+pool Shop
+  task Receive order
+  end
+```
+
+Fix: use a message flow.
+
+```bpmnt
+pool Customer
+  start
+  send Order ~> Receive order
+  end
+
+pool Shop
+  receive Receive order
+  end
+```
+
+#### BT211
+
+[Fixture](../test/fixtures/diagnostics/BT211-message-flow-within-pool.bpmnt). A message
+flow stays inside one pool.
+
+<!-- expect-error BT211 -->
+
+```bpmnt
+pool Company
+  start
+  task Prepare order ~> Ship order
+  task Ship order
+  end
+```
+
+Fix: inside a pool, implicit flow does this. Remove `~> Ship order`.
+
+#### BT212
+
+[Fixture](../test/fixtures/diagnostics/BT212-flow-across-subprocess.bpmnt). A jump
+leaves or enters a subprocess.
+
+<!-- expect-error BT212 -->
+
+```bpmnt
+start
+sub Handle payment
+  start
+  xor Charged?
+    yes: end Paid
+    no:
+      -> Notify customer
+task Notify customer
+end
+```
+
+Fix: end the subprocess with an error, and catch it on the `sub`.
+
+```bpmnt
+start
+sub Handle payment
+  start
+  xor Charged?
+    yes: end Paid
+    no: end error Not charged
+  on error Not charged -> task Notify customer -> end Refused
+end
+```
+
+#### BT220
+
+[Fixture](../test/fixtures/diagnostics/BT220-event-gateway-branch.bpmnt). A branch of
+`event` does not start with what it waits for.
+
+<!-- expect-error BT220 -->
+
+```bpmnt
+start
+event Wait for reply
+  - catch message Payment received
+  - task Send reminder
+end
+```
+
+Fix: start the branch with a catch event or a receive task.
+
+```bpmnt
+start
+event Wait for reply
+  - catch message Payment received
+  - wait 7 days -> task Send reminder
+end
+```
+
+#### BT221
+
+[Fixture](../test/fixtures/diagnostics/BT221-else-on-parallel.bpmnt). `else:` on a
+split that takes every branch.
+
+<!-- expect-error BT221 -->
+
+```bpmnt
+start
+and
+  - task Pick items
+  else: task Print invoice
+end
+```
+
+Fix: `- task Print invoice`.
+
+#### BT222
+
+[Fixture](../test/fixtures/diagnostics/BT222-single-branch.bpmnt). A gateway with one
+branch decides nothing.
+
+<!-- expect-error BT222 -->
+
+```bpmnt
+start
+xor Approved?
+  yes: task Ship
+end
+```
+
+Fix: add the other branch, or remove the gateway.
+
+```bpmnt
+start
+xor Approved?
+  yes: task Ship
+  no: end Rejected
+end
+```
+
+#### BT224
+
+[Fixture](../test/fixtures/diagnostics/BT224-fork-after-end.bpmnt). `fork` has nothing
+to fan out from.
+
+<!-- expect-error BT224 -->
+
+```bpmnt
+start
+end
+fork
+  - task A
+  - task B
+```
+
+Fix: put it after a step that is still open.
+
+```bpmnt
+start
+task Publish
+fork
+  - task A
+  - task B
+end
+```
+
+#### BT230
+
+[Fixture](../test/fixtures/diagnostics/BT230-element-before-lane.bpmnt). In a pool with
+lanes, this element has no lane yet.
+
+<!-- expect-error BT230 -->
+
+```bpmnt
+pool Company
+  start
+  lane Sales
+  task Check order
+  end
+```
+
+Fix: move `lane Sales` above `start`.
+
+#### BT240
+
+[Fixture](../test/fixtures/diagnostics/BT240-non-interrupting-error.bpmnt). Errors and
+compensation always interrupt, and an event subprocess takes no boundary events.
+
+<!-- expect-error BT240 -->
+
+```bpmnt
+start
+service Charge card
+  on error Card declined [non-interrupting] -> end Payment failed
+end Paid
+```
+
+Fix: remove `[non-interrupting]`.
+
+#### BT241
+
+[Fixture](../test/fixtures/diagnostics/BT241-open-non-interrupting-chain.bpmnt). A
+non-interrupting chain ends open. §10 shows the example and the fix.
+
+<!-- expect-error BT241 -->
+
+```bpmnt
+start
+user Approve request
+  on timer 2 days [non-interrupting] -> task Send reminder
+end Approved
+```
+
+Fix: `… -> task Send reminder -> end Reminded`.
+
+#### BT250
+
+[Fixture](../test/fixtures/diagnostics/BT250-nested-group.bpmnt). Groups cannot nest, or
+be used inside a `sub`.
+
+<!-- expect-error BT250 -->
+
+```bpmnt
+pool Company
+  group Fulfilment
+    start
+    group Packing
+      task Pack parcel
+    end
+```
+
+Fix: make them consecutive.
+
+```bpmnt
+pool Company
+  group Fulfilment
+    start
+  group Packing
+    task Pack parcel
+    end
+```
+
+#### BT251
+
+[Fixture](../test/fixtures/diagnostics/BT251-conflicting-lane-colour.bpmnt). A lane has
+two values for one colour. The last one wins.
+
+<!-- expect-error BT251 -->
+
+```bpmnt
+pool Company
+  lanes Sales [color: green]
+  lane Sales [color: red]
+  start
+  end
+```
+
+Fix: keep one of them.
+
+#### BT260
+
+[Fixture](../test/fixtures/diagnostics/BT260-link-throw-without-catch.bpmnt). Nothing
+catches this link, often because of a misspelt name or a `sub` boundary between them.
+
+<!-- expect-error BT260 -->
+
+```bpmnt
+start
+xor Go on?
+  yes: throw link Nowhere
+  no: end
+```
+
+Fix: add the catch.
+
+```bpmnt
+start
+xor Go on?
+  yes: throw link Next
+  no: end
+catch link Next
+end
+```
+
+#### BT261
+
+[Fixture](../test/fixtures/diagnostics/BT261-link-catch-without-throw.bpmnt). Nothing
+throws to this link, so nothing after it can be reached.
+
+<!-- expect-error BT261 -->
+
+```bpmnt
+start
+end
+catch link Nowhere
+end
+```
+
+Fix: add a `throw link Nowhere`, or remove the catch.
+
+#### BT262
+
+[Fixture](../test/fixtures/diagnostics/BT262-duplicate-link-catch.bpmnt). A throw must
+lead to one place, but this name has two catches.
+
+<!-- expect-error BT262 -->
+
+```bpmnt
+start
+throw link Next
+catch link Next
+end
+catch link Next
+end
+```
+
+Fix: rename one, or remove it.
+
+#### BT263
+
+[Fixture](../test/fixtures/diagnostics/BT263-flow-out-of-link-throw.bpmnt). A flow out of
+a link throw, or into a link catch.
+
+<!-- expect-error BT263 -->
+
+```bpmnt
+start
+throw link Next -> task Skip
+end
+```
+
+Fix: flow goes to the catch event, and on from there.
+
+```bpmnt
+start
+throw link Next
+catch link Next
+task Skip
+end
+```
+
+#### BT270
+
+[Fixture](../test/fixtures/diagnostics/BT270-event-subprocess-without-typed-start.bpmnt).
+An event subprocess needs one typed start event, which is what starts it.
+
+<!-- expect-error BT270 -->
+
+```bpmnt
+start
+end
+sub Untyped [event]
+  start
+  end
+```
+
+Fix: `start message Order cancelled`.
+
+#### BT271
+
+[Fixture](../test/fixtures/diagnostics/BT271-flow-into-event-subprocess.bpmnt). A flow
+into an event subprocess. It runs when its start event fires, not when flow reaches it.
+
+<!-- expect-error BT271 -->
+
+```bpmnt
+start
+-> Handler
+sub Handler [event]
+  start message Ping
+  end
+start
+end
+```
+
+Fix: remove the jump, or remove `[event]` for an ordinary `sub`.
+
+#### BT280
+
+[Fixture](../test/fixtures/diagnostics/BT280-start-in-adhoc.bpmnt). An ad-hoc subprocess
+has no start or end events, and cannot also be an event subprocess.
+
+<!-- expect-error BT280 -->
+
+```bpmnt
+start
+sub Work [adhoc]
+  start
+  task A
+end
+```
+
+Fix: remove `start`.
+
+#### BT301
+
+[Fixture](../test/fixtures/diagnostics/BT301-unreachable.bpmnt). Nothing flows into this
+element. Often it comes after an `end`. See also
+[troubleshooting](troubleshooting.md).
+
+<!-- expect-error BT301 -->
+
+```bpmnt
+start
+task Check order
+end Done
+task Archive order
+end Archived
+```
+
+Fix: move the `end`, or jump to the element from somewhere.
+
+#### BT302
+
+[Fixture](../test/fixtures/diagnostics/BT302-dead-end.bpmnt). Nothing flows out of this
+element, here because implicit flow does not enter the next `start`.
+
+<!-- expect-error BT302 -->
+
+```bpmnt
+start Order received
+task Check order
+start timer Nightly run
+task Archive orders
+end Archived
+```
+
+Fix: end the first chain with `end Checked`.
+
+#### BT303
+
+[Fixture](../test/fixtures/diagnostics/BT303-no-end-event.bpmnt). A process has no start
+event or no end event. This is information only, as a fragment can be useful.
+
+<!-- expect-error BT303 -->
+
+```bpmnt
+start
+task Check order
+task Fix order
+-> Check order
+```
+
+Fix: add an exit, such as a gateway with an `end` on one branch.
+
+#### BT304
+
+[Fixture](../test/fixtures/diagnostics/BT304-send-without-message-flow.bpmnt). A send or
+receive task has no message flow. This is information only: the other party may not be
+drawn.
+
+<!-- expect-error BT304 -->
+
+```bpmnt
+start
+send Notify customer
+end
+```
+
+Fix: draw the customer as a pool.
+
+```bpmnt
+pool Shop
+  start
+  send Notify customer ~> Customer
+  end
+
+pool Customer [collapsed]
+```
+
+#### BT305
+
+[Fixture](../test/fixtures/diagnostics/BT305-boundary-with-nothing-to-catch.bpmnt).
+Nothing inside the `sub` throws what this boundary event catches. This is information
+only.
+
+<!-- expect-error BT305 -->
+
+```bpmnt
+start
+sub Work
+  start
+  task Do it
+  end
+  on error Failed -> end Stopped
+end
+```
+
+Fix: throw it with `end error Failed` inside the `sub`, or check the name.
+
+#### BT306
+
+[Fixture](../test/fixtures/diagnostics/BT306-thrown-with-nothing-to-catch.bpmnt). Nothing
+around the `sub` catches what is thrown. This is information only.
+
+<!-- expect-error BT306 -->
+
+```bpmnt
+start
+sub Work
+  start
+  end error Failed
+end
+```
+
+Fix: add `on error Failed` under the `sub`, as in §4.1.
 
 ---
 
@@ -1000,3 +2199,4 @@ See [`examples/`](../examples) for complete files covering every feature:
 | `10-event-subprocesses.bpmnt` | Interrupting and non-interrupting event subprocesses, in a pool and inside a `sub` |
 | `11-adhoc-subprocesses.bpmnt` | Expanded and collapsed ad-hoc subprocesses, with an ordering constraint |
 | `12-complex-gateway.bpmnt` | A complex split with a stated rule, a default flow and its inserted join |
+| `13-link-events.bpmnt` | Link events in place of long flows, with several throws to one catch |

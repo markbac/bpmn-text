@@ -26,6 +26,7 @@ const examples = [
   '10-event-subprocesses',
   '11-adhoc-subprocesses',
   '12-complex-gateway',
+  '13-link-events',
 ];
 const root = join(import.meta.dirname, '..');
 

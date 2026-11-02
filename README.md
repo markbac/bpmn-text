@@ -151,6 +151,7 @@ Web Worker.
 | [Deployment](docs/deployment.md) | Running the editor and CLI on a PC or server, Docker images, the update scripts |
 | [Tutorial](docs/tutorial.md) | Your first diagram in 15 minutes, step by step |
 | [Cookbook](docs/cookbook.md) | Recipes for common patterns, and common errors with their fixes |
+| [Troubleshooting](docs/troubleshooting.md) | Unexpected flows, extra gateways and unreachable elements |
 | [Functionality](docs/functionality.md) | Purpose, scope, what is not supported, functional and non-functional requirements |
 | [Notation reference](docs/notation.md) | The `.bpmnt` language: elements, flows, gateways, lanes, diagnostics, grammar |
 | [Architecture](docs/architecture.md) | C4 views, pipeline, packages, layout engine, BPMN generation, testing |

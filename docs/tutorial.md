@@ -194,6 +194,9 @@ canonical style.
 ## What next
 
 - The [cookbook](cookbook.md) has recipes for common patterns and errors.
-- The [notation reference](notation.md) describes every statement.
+- The [notation reference](notation.md) describes every statement, with an
+  example and a fix for every diagnostic.
+- [Troubleshooting](troubleshooting.md) explains unexpected flows and extra
+  gateways.
 - The [examples](../examples) show complete processes, from a simple one to
   a [multi-phase process with eight lanes](../examples/07-multi-phase.bpmnt).

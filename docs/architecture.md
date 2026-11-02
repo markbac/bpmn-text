@@ -456,6 +456,12 @@ tracks each channel needs, and the channels are then widened to fit them.
 | 8 | **Labels** | External labels for events (below), gateways (above), and flows (next to the first segment, avoiding shapes). |
 | 9 | **Groups** | Each group box covers its column range (with padding into the column gaps). Vertically it spans the full height of every pool the group occurs in, or with `[fit]` the bounding box of its members. Group labels go at the top centre. Gaps between columns at group boundaries are widened so the dashed borders never touch shapes or labels. |
 
+**Event subprocesses** take no part in layering, since no flow orders them and
+they must not widen a column. Each band has a strip below its rows and any back
+edge gutter, where they sit side by side. **Ad-hoc bodies** are laid out as
+usual, then activities no flow connects are given columns in a compact grid, in
+document order.
+
 ### 6.3 Layout quality checks
 
 `@bpmn-text/layout` exports a `checkLayout(model, result)` function used in

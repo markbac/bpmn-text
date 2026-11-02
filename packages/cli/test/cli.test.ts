@@ -76,6 +76,7 @@ describe('bpmn-text build', () => {
       '10-event-subprocesses.bpmn',
       '11-adhoc-subprocesses.bpmn',
       '12-complex-gateway.bpmn',
+      '13-link-events.bpmn',
     ]);
     for (const f of files) {
       await expectSchemaValid(readFileSync(join(out, f), 'utf8'));

@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { compile, parse } from 'bpmn-text';
 import { describe, expect, it } from 'vitest';
@@ -61,6 +61,55 @@ const all = files.flatMap((file) => {
     return [];
   }
   return snippets(file, text);
+});
+
+describe('documentation pictures (#93)', () => {
+  const pictures = files.flatMap((file) => {
+    const text = readFileSync(join(root, file), 'utf8');
+    return [...text.matchAll(/<!-- screenshot: ([\w-]+) -->\s*```bpmnt/g)].map(
+      (m) => [`${file}: ${m[1]!}`, text, m[1]!] as const,
+    );
+  });
+
+  it.each(pictures)('%s is rendered and shown', (_, text, name) => {
+    expect(existsSync(join(root, `docs/images/${name}.png`))).toBe(true);
+    expect(text).toContain(`images/${name}.png)`);
+  });
+});
+
+describe('notation reference (#93)', () => {
+  const text = readFileSync(join(root, 'docs/notation.md'), 'utf8');
+  const parts = text.split(/^(?=#{2,4} )/m);
+  // Sections 4 to 10, leaving out those with only subsections under them.
+  const leaves = parts.flatMap((part, i) => {
+    const m = /^#{2,3} (\d+)(\.\d+)?\.? /.exec(part);
+    if (!m || Number(m[1]) < 4 || Number(m[1]) > 10) return [];
+    const parent = !m[2] && parts[i + 1]?.startsWith(`### ${m[1]}.1`);
+    return parent && !part.includes('screenshot') ? [] : [[part] as const];
+  });
+
+  it('finds the sections', () => {
+    expect(leaves.length).toBeGreaterThan(20);
+  });
+
+  it.each(leaves)('has a rendered example: %s', (part) => {
+    expect(part).toContain('<!-- screenshot: ');
+  });
+
+  const codes = [...text.matchAll(/^\| (BT\d{3}) \|/gm)].map((m) => m[1]!);
+
+  it.each(codes)('%s has an example, a fix and a fixture', (code) => {
+    const entry = parts.find((p) => p.startsWith(`#### ${code}\n`));
+    expect(entry, 'heading').toBeDefined();
+    expect(entry).toContain(`<!-- expect-error ${code} -->`);
+    expect(entry).toContain('Fix');
+    const fixture = /\]\(\.\.\/(test\/fixtures\/diagnostics\/[^)]+)\)/.exec(
+      entry!,
+    );
+    expect(fixture, 'fixture link').not.toBeNull();
+    expect(fixture![1]).toContain(code);
+    expect(existsSync(join(root, fixture![1]!))).toBe(true);
+  });
 });
 
 describe('documentation snippets', () => {
