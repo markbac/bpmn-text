@@ -67,7 +67,9 @@
 .EXAMPLE
     .\scripts\update.ps1 -Docker -Serve -Port 8081
 #>
-[CmdletBinding()]
+# Options are named only: a stray word such as the "-" of "- Serve" is then reported as itself, rather than
+# taken as the value of -Port.
+[CmdletBinding(PositionalBinding = $false)]
 param(
     [switch]$NoPull,
     [switch]$Test,

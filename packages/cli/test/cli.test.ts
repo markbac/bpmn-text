@@ -71,12 +71,13 @@ describe('bpmn-text build', () => {
       '05-events.bpmn',
       '06-subprocess-data.bpmn',
       '07-multi-phase.bpmn',
-      '08-shared-definitions.bpmn',
-      '09-data-states.bpmn',
-      '10-event-subprocesses.bpmn',
-      '11-adhoc-subprocesses.bpmn',
-      '12-complex-gateway.bpmn',
-      '13-link-events.bpmn',
+      '08-broadband-provisioning.bpmn',
+      '09-shared-definitions.bpmn',
+      '10-data-states.bpmn',
+      '11-event-subprocesses.bpmn',
+      '12-adhoc-subprocesses.bpmn',
+      '13-complex-gateway.bpmn',
+      '14-link-events.bpmn',
     ]);
     for (const f of files) {
       await expectSchemaValid(readFileSync(join(out, f), 'utf8'));

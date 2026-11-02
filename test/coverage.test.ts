@@ -27,7 +27,7 @@ async function valid(source: string) {
 }
 
 describe('complex gateway (#91)', () => {
-  const example = read('examples/12-complex-gateway.bpmnt');
+  const example = read('examples/13-complex-gateway.bpmnt');
 
   it('writes the split, its join, the default flow and the rule', async () => {
     const xml = await valid(example);
@@ -68,7 +68,7 @@ end
 });
 
 describe('ad-hoc subprocesses (#90)', () => {
-  const example = read('examples/11-adhoc-subprocesses.bpmnt');
+  const example = read('examples/12-adhoc-subprocesses.bpmnt');
 
   it('writes adHocSubProcess with its ordering', async () => {
     const xml = await valid(example);
@@ -156,7 +156,7 @@ end
 });
 
 describe('event subprocesses (#87)', () => {
-  const example = read('examples/10-event-subprocesses.bpmnt');
+  const example = read('examples/11-event-subprocesses.bpmnt');
 
   it('writes triggeredByEvent and isInterrupting', async () => {
     const xml = await valid(example);
@@ -304,7 +304,7 @@ end
 });
 
 describe('data object states (#88)', () => {
-  const states = read('examples/09-data-states.bpmnt');
+  const states = read('examples/10-data-states.bpmnt');
 
   it('writes one data object and one reference per state', async () => {
     const xml = await valid(states);

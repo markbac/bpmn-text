@@ -2198,9 +2198,10 @@ See [`examples/`](../examples) for complete files covering every feature:
 | `05-events.bpmnt` | Timers, boundary events, event-based gateway |
 | `06-subprocess-data.bpmnt` | Subprocesses, data objects/stores, notes, markers |
 | `07-multi-phase.bpmnt` | Eight lanes, phase groups, several start chains, `fork`, placeholders, colours, `doc` |
-| `08-shared-definitions.bpmnt` | One error, signal and message shared between events, across pools |
-| `09-data-states.bpmnt` | One data object moving through several states |
-| `10-event-subprocesses.bpmnt` | Interrupting and non-interrupting event subprocesses, in a pool and inside a `sub` |
-| `11-adhoc-subprocesses.bpmnt` | Expanded and collapsed ad-hoc subprocesses, with an ordering constraint |
-| `12-complex-gateway.bpmnt` | A complex split with a stated rule, a default flow and its inserted join |
-| `13-link-events.bpmnt` | Link events in place of long flows, with several throws to one catch |
+| `08-broadband-provisioning.bpmnt` | Seven pools (four expanded), two wholesale networks, new lines and transfers, nested event gateways, a fork with a nested optional branch |
+| `09-shared-definitions.bpmnt` | One error, signal and message shared between events, across pools |
+| `10-data-states.bpmnt` | One data object moving through several states |
+| `11-event-subprocesses.bpmnt` | Interrupting and non-interrupting event subprocesses, in a pool and inside a `sub` |
+| `12-adhoc-subprocesses.bpmnt` | Expanded and collapsed ad-hoc subprocesses, with an ordering constraint |
+| `13-complex-gateway.bpmnt` | A complex split with a stated rule, a default flow and its inserted join |
+| `14-link-events.bpmnt` | Link events in place of long flows, with several throws to one catch |

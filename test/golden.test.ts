@@ -21,12 +21,13 @@ const examples = [
   '05-events',
   '06-subprocess-data',
   '07-multi-phase',
-  '08-shared-definitions',
-  '09-data-states',
-  '10-event-subprocesses',
-  '11-adhoc-subprocesses',
-  '12-complex-gateway',
-  '13-link-events',
+  '08-broadband-provisioning',
+  '09-shared-definitions',
+  '10-data-states',
+  '11-event-subprocesses',
+  '12-adhoc-subprocesses',
+  '13-complex-gateway',
+  '14-link-events',
 ];
 const root = join(import.meta.dirname, '..');
 

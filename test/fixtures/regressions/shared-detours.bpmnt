@@ -1,0 +1,247 @@
+# Regression (layout): the credit decision of example 08 as first written, whose
+# pass, fail and yes flows once ran along one line in the row gap.
+# A retail broadband provider selling full fibre over two wholesale networks,
+# Openreach and CityFibre: availability on both, a quote with speed tiers
+# and extras such as digital voice, new lines and transfers (One Touch
+# Switch), the wholesale order, building the service in its own systems,
+# activation and aftercare. The provider is fictional.
+# covers: §4.1, §4.2, §4.4, §4.6, §4.7, §6.4, §7.2, §7.4, §8, §9, §9.1, §10
+title "Full-fibre broadband provisioning"
+doc From a customer's quote request to a working, billed full-fibre line on Openreach or CityFibre, and the first check-in afterwards.
+
+store Address database
+store Product catalogue
+store OSS inventory
+store Billing system
+
+pool Customer
+  doc A household getting full-fibre broadband, new or switching from another provider.
+  group Quote and order
+    start Wants faster broadband
+    send Request a quote ~> Quote requested
+    event Wait for the quote
+      - receive Offer received
+        user Choose speed and extras
+        doc For example 500 Mbps with digital voice, keeping the current phone number.
+        send Place order ~> Customer order received
+        event Wait for the provider
+          - receive Order confirmed
+          - receive Order declined -> end Order not accepted
+      - receive No service at the address -> end Not available
+  group Build
+    receive Installation date
+    receive Router arrives
+  group Go live
+    receive Installation done
+    receive Welcome pack
+    end Online
+
+pool Courier [collapsed]
+Courier ~> Router arrives
+Courier ~> Delivery confirmed
+
+pool CityFibre
+  doc An alternative wholesale full-fibre network in many towns and cities.
+  group Quote and order
+    start message CityFibre availability request
+    service Check CityFibre coverage
+    send Return CityFibre availability ~> CityFibre availability
+    end CityFibre answered
+  group Build
+    start message CityFibre order received
+    service Validate CityFibre order
+    xor CityFibre order valid?
+      no:
+        send Reject CityFibre order ~> Order rejected
+        end CityFibre rejected
+      yes:
+        user Book installer
+        send Commit CityFibre date ~> Committed date received
+  group Go live
+    user Install CityFibre connection
+    send Send CityFibre completion ~> Completion notice
+    end CityFibre order complete
+
+pool Brightwave Broadband
+  doc The retail provider: sells the service, builds it in its own systems and bills for it.
+  lanes Sales [color: #E3F2FD], Credit and fraud [color: #E3F2FD]
+  lanes Order management [color: #FFF8E1], Network provisioning [color: #E8F5E9]
+  lanes Voice [color: #E8F5E9], Logistics [color: #E8F5E9]
+  lanes Billing [color: #F3E5F5], Customer care [color: #F3E5F5]
+
+  group Quote and order
+    lane Sales
+    start message Quote requested
+    doc Quote requests arrive from the website with the address and, for a transfer, the current provider.
+    service Find address key [reads: Address database]
+    doc Looks up the UPRN and each network's address key for it.
+    and Check both networks
+      -
+        send Ask Openreach for availability ~> Openreach availability request
+        receive Openreach availability
+      -
+        send Ask CityFibre for availability ~> CityFibre availability request
+        receive CityFibre availability
+    xor Any full fibre available?
+      yes:
+        service Build offer [reads: Product catalogue]
+        doc Speed tiers per available network (for example 150, 500 and 900 Mbps, and 2 Gbps on CityFibre), with extras: digital voice, number porting, a mesh Wi-Fi booster.
+        send Send offer ~> Offer received
+        receive Customer order received
+        xor New line or transfer?
+          new line:
+            -> Run credit check
+          transfer:
+            service Request switch match ~(name, address, current provider)~> One Touch Switch hub
+            receive Switch match received
+            doc The hub returns a switch order reference and tells the current provider; their service ends on the switch date.
+            -> Run credit check
+      no:
+        send Tell customer no service ~> No service at the address
+        end No service
+
+    lane Credit and fraud
+    service Run credit check ~(applicant details)~> Credit agency
+    receive Credit result
+    xor Credit decision?
+      pass:
+        -> Confirm order
+      refer:
+        user Review application manually
+        doc Fraud analysts check identity documents within one working day.
+        xor Approved on review?
+          yes:
+            -> Confirm order
+          no:
+            -> Decline order
+      fail:
+        -> Decline order
+    send Decline order ~> Order declined
+    end Declined
+    lane Sales
+    send Confirm order ~> Order confirmed
+    note Confirmation includes the earliest installation window
+
+  group Build
+    lane Order management
+    service Place wholesale order [writes: Wholesale order]
+    doc A new-provide or a transfer order, with the address key, the speed tier and the appointment preference.
+    xor Which network?
+      openreach:
+        send Order from Openreach ~> Openreach order received
+      cityfibre:
+        send Order from CityFibre ~> CityFibre order received
+    event Wait for the network
+      - receive Committed date received
+      - receive Order rejected
+        user Correct order details
+        doc Typical rejections: wrong address key, a tier the line cannot carry, missing access details.
+        -> Place wholesale order
+      - wait 2 working days
+        user Chase the network
+        -> Wait for the network
+    send Tell customer the date ~> Installation date
+    fork
+      -
+        lane Network provisioning
+        service Reserve IP and service ID [writes: OSS inventory]
+        service Configure RADIUS and speed profile
+      -
+        lane Voice
+        xor Digital voice ordered?
+          yes:
+            service Set up digital voice line
+            xor Keep current number?
+              yes: service Port phone number ~> One Touch Switch hub
+              no: service Allocate new number
+          no:
+      -
+        lane Logistics
+        service Dispatch router ~(shipping order)~> Courier
+        receive Delivery confirmed
+      -
+        lane Billing
+        service Create billing account [writes: Billing system]
+        doc The account is created now but stays inactive until the line is live.
+
+  group Go live
+    lane Order management
+    receive Completion notice
+    send Confirm installation ~> Installation done
+    lane Network provisioning
+    sub Activate service
+      start
+      service Bind service ID to the ONT
+      service Push configuration
+      service Run line tests
+      xor Tests pass?
+        yes: end Service active
+        no: end error Activation failed
+      on error Activation failed
+        lane Customer care
+        user Troubleshoot with the customer
+        doc Remote checks first; a second network visit is booked only if the fault is on the network side.
+        -> Activate service
+    lane Billing
+    service Start billing [writes: Billing system]
+    lane Customer care
+    send Send welcome pack ~> Welcome pack
+    end Customer live
+
+  group Aftercare
+    lane Customer care
+    start timer 14 days after go-live
+    user Satisfaction call
+    xor Customer happy?
+      yes: end Case closed
+      no:
+        user Raise service ticket
+        end Ticket raised
+
+pool Openreach
+  doc The national wholesale network that builds and connects the fibre.
+  lanes Order handling [color: #FFF3E0], Planning [color: #FFF3E0], Field engineering [color: #FFE0B2]
+
+  group Quote and order
+    lane Order handling
+    start message Openreach availability request
+    service Check Openreach line plant
+    send Return Openreach availability ~> Openreach availability
+    end Openreach answered
+
+  group Build
+    lane Order handling
+    start message Openreach order received
+    service Validate Openreach order
+    xor Openreach order valid?
+      no:
+        send Reject Openreach order ~> Order rejected
+        end Openreach rejected
+      yes:
+        xor Order type?
+          new provide:
+            lane Planning
+            sub Survey and plan route [collapsed]
+            doc Desk survey of ducts and poles; a site survey when the route is unclear.
+            user Book engineer appointment
+            send Commit Openreach date ~> Committed date received
+            lane Field engineering
+            user Install fibre and ONT [stroke: #E65100]
+              on timer Appointment missed [non-interrupting] -> send Notify delay ~> Brightwave Broadband -> end Delay notified
+          transfer:
+            service Schedule remote switch-over
+            doc The existing fibre and ONT stay; the line moves to the new provider on the switch date.
+            send Commit switch date ~> Committed date received
+            service Switch over remotely
+
+  group Go live
+    lane Order handling
+    service Close Openreach work order
+    send Send Openreach completion ~> Completion notice
+    end Openreach order complete
+
+pool Credit agency [collapsed]
+Credit agency ~> Credit result
+
+pool One Touch Switch hub [collapsed]
+One Touch Switch hub ~> Switch match received
