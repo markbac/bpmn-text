@@ -151,7 +151,7 @@ Web Worker.
 | [Deployment](docs/deployment.md) | Running the editor and CLI on a PC or server, Docker images, the update scripts |
 | [Tutorial](docs/tutorial.md) | Your first diagram in 15 minutes, step by step |
 | [Cookbook](docs/cookbook.md) | Recipes for common patterns, and common errors with their fixes |
-| [Functionality](docs/functionality.md) | Purpose, scope, functional and non-functional requirements |
+| [Functionality](docs/functionality.md) | Purpose, scope, what is not supported, functional and non-functional requirements |
 | [Notation reference](docs/notation.md) | The `.bpmnt` language: elements, flows, gateways, lanes, diagnostics, grammar |
 | [Architecture](docs/architecture.md) | C4 views, pipeline, packages, layout engine, BPMN generation, testing |
 | [Decisions](docs/decisions.md) | Architecture decision records (ADRs) |
@@ -173,6 +173,9 @@ Web Worker.
   diagrams can be transcribed faithfully (ADR-009–011).
 * **Descriptive BPMN first.** Execution attributes (Camunda/Zeebe) are out of
   scope for v1, and an extension hook leaves room for them later.
+
+See [what is not supported](docs/functionality.md#33-not-supported) for the BPMN
+elements the notation cannot produce.
 
 ## Tech stack
 

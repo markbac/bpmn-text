@@ -248,3 +248,46 @@ never leave the user's machine. Containers are a convenience, not a
 requirement. Deploying a change is one command, which can also run from
 cron. See [deployment.md](deployment.md).
 
+---
+
+## ADR-013: Which further BPMN to cover — *Accepted*
+
+**Context.** A review of the BPMN 2.0 element set against the notation
+([#85](https://github.com/markbac/bpmn-text/issues/85)) found gaps. The test for
+adding a feature: does it appear often in descriptive diagrams, and can it be
+written as text and laid out automatically without bending the design (story
+order, automatic layout)?
+
+**Decision.** Add the following, and record the notation chosen for each:
+
+| Feature | Notation | Why this form |
+|---|---|---|
+| Link events | `throw link X`, `catch link X` | Pair by name within one process level, because sequence flow cannot leave a level either. |
+| Shared definitions | Same type and name, or `[message: X]` and its kin | No new syntax for the usual case. A send or receive task takes a message only through the attribute, as its name usually describes the work. |
+| Data states | `Name (state)` in `reads:`, `writes:` and `data` | A `[state: x]` attribute was more explicit, but cannot be used inside `reads:` or `writes:`, which is where states are written. Quotes keep literal brackets. |
+| Event subprocesses | `sub X [event]` | Drawn in a strip below the flow, since they are not part of the story and must not widen its columns. |
+| Ad-hoc subprocesses | `sub X [adhoc]` | `[parallel]` and `[sequential]` set the ordering rather than a marker, as a multi-instance ad-hoc subprocess is too rare to take those words. |
+| Complex gateway | `complex`, `[rule: …]` | The rule is documentation, not an `activationCondition`, as condition expressions are out of scope (ADR-008). |
+
+Severities: an error or escalation with nothing to throw or catch it is
+information (BT305, BT306), because the diagram is valid and may be a fragment.
+An unpaired link event is a warning (BT260, BT261), because flow stops there.
+
+The extension hook promised in ADR-008 is implemented as an option of
+`compile()`, rather than marked as planned, since it is a few lines and is what
+makes that decision true.
+
+**Out of scope, as before:** execution semantics (ADR-008), nested lanes, nested
+or overlapping groups, conversations, choreographies, manual layout hints and
+round-tripping.
+
+**Deferred until someone needs them:** transactions with cancel events,
+compensation handlers, multiple and parallel-multiple events, call activity
+targets and notes on flows. Reverse conversion (`.bpmn` to text) is a candidate
+for a v2 milestone of its own. [functionality.md §3.3](functionality.md) lists
+everything the notation cannot produce.
+
+**Consequences.** `complex` becomes a keyword, so a reference whose first word
+is `complex` must be quoted, and a bare data name ending in brackets now means a
+state. Example 06 and the golden files gain shared definitions, with stable IDs.
+

@@ -1,5 +1,58 @@
+import { expectSchemaValid } from '@bpmn-text/test-utils';
 import { describe, expect, it } from 'vitest';
 import { compile } from '../src/index.js';
+
+describe('compile: the extension hook', () => {
+  it('turns unknown attributes into vendor extension elements', async () => {
+    const { xml } = await compile(
+      'start\nservice Charge [job: charge-card]\nend\n',
+      {
+        extend(node, element, factory) {
+          if (!('extra' in node) || !node.extra.job) return;
+          element.extensionElements = factory.create('bpmn:ExtensionElements', {
+            values: [
+              factory.createAny('acme:job', 'http://acme.example/bpmn', {
+                type: node.extra.job,
+              }),
+            ],
+          });
+        },
+      },
+    );
+    expect(xml).toContain('xmlns:acme="http://acme.example/bpmn"');
+    expect(xml).toContain('<acme:job type="charge-card" />');
+    await expectSchemaValid(xml);
+  });
+
+  it('visits nested nodes, pools, lanes and groups', async () => {
+    const seen: string[] = [];
+    await compile(
+      `pool Shop
+  lane Sales
+  group Phase
+    start
+    sub Work
+      start
+      end
+    end
+`,
+      {
+        extend(node) {
+          seen.push(node.id);
+        },
+      },
+    );
+    expect(seen).toEqual(
+      expect.arrayContaining([
+        'Participant_shop',
+        'Lane_sales',
+        'Group_phase',
+        'Activity_work',
+        'Event_work_start_1',
+      ]),
+    );
+  });
+});
 
 describe('compile', () => {
   it('returns XML, the model, the layout and a source map', async () => {

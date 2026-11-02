@@ -886,7 +886,10 @@ on <event-type> [name] [@id] [[attributes]] [flow tail]
 ## 11. Diagnostics
 
 Every diagnostic has a stable code, a severity, a source range and, where
-possible, a quick fix.
+possible, a quick fix. From code, `check()` and `compile()` can turn checks off:
+`{ rules: { BT304: false } }`. This works for the checks made on the model, which
+are BT222, BT240, BT260, BT261, BT262, BT270, BT280 and BT301 to BT306 (see
+[architecture §10](architecture.md)).
 
 | Code | Severity | Meaning |
 |---|---|---|

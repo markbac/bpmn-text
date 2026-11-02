@@ -1,4 +1,4 @@
-import { generate } from '@bpmn-text/bpmn';
+import { generate, type ExtensionHook } from '@bpmn-text/bpmn';
 import {
   check,
   sourceMap,
@@ -23,10 +23,17 @@ export type {
   Range,
 } from '@bpmn-text/core';
 export type { LayoutOptions, LayoutResult } from '@bpmn-text/layout';
+export type {
+  BpmnElement,
+  ElementFactory,
+  ExtensionHook,
+} from '@bpmn-text/bpmn';
 
 export interface CompileOptions extends CheckOptions {
   /** Layout settings, such as `{ nodeSpacing: 60 }`. */
   layout?: LayoutOptions;
+  /** Turns unknown attributes into vendor extensions (architecture §9). */
+  extend?: ExtensionHook;
 }
 
 export interface CompileResult {
@@ -57,6 +64,10 @@ export async function compile(
 ): Promise<CompileResult> {
   const { model, diagnostics } = check(source, options);
   const layout = await layOut(model, options.layout);
-  const xml = await generate(model, layout);
+  const xml = await generate(
+    model,
+    layout,
+    options.extend ? { extend: options.extend } : {},
+  );
   return { xml, model, layout, diagnostics, sourceMap: sourceMap(model) };
 }
