@@ -430,6 +430,37 @@ end
 
 ![A contract moving through states](images/cookbook-data-states.png)
 
+## Colour and a key
+
+For a diagram that people new to BPMN will read, let the compiler pick the colours,
+highlight what matters yourself, and hand out a key with it.
+
+<!-- screenshot: cookbook-colours -->
+
+```bpmnt
+title "Refunds"
+option colors all
+pool Shop
+  lanes Support, Finance
+  lane Support
+  start message Refund requested
+  user Check claim
+  lane Finance
+  xor Valid?
+    yes: service Pay refund -> end Paid
+    no: task Reject [color: #FFCDD2, stroke: red] -> end Rejected
+```
+
+![Colours by type and lane, with one step picked out](images/cookbook-colours.png)
+
+```bash
+bpmn-text build refunds.bpmnt -f png -o refunds.png --legend
+```
+
+That also writes `refunds.legend.png`, which lists only the symbols this diagram uses
+and shows them in the same colours. [Notation §4.7](notation.md#47-colours) has all the
+rules, and a picture of a key.
+
 ## Documenting a process
 
 `doc` writes text into the `.bpmn` file as `bpmn:documentation`, where modelling tools show

@@ -11,6 +11,8 @@ export interface Model {
   documentation?: string;
   /** How open XOR branches merge (notation §3, `option xor-join`). */
   xorJoin: 'gateway' | 'direct';
+  /** Colours picked by the compiler (notation §4.7, `option colors`). */
+  colors?: ColorScheme;
   /** Whether the output is a collaboration (participants) or a plain process. */
   collaboration: boolean;
   /** Always at least one: a document without `pool` has an implicit one. */
@@ -22,6 +24,8 @@ export interface Model {
   /** In document order, which is also their column order. */
   groups: Group[];
 }
+
+export type ColorScheme = 'none' | 'types' | 'lanes' | 'all';
 
 /** Colours from `[color:]` and `[stroke:]`, normalised to `#RRGGBB`. */
 export interface Style {
@@ -181,6 +185,7 @@ export interface DataObject {
   id: string;
   name: string;
   collection: boolean;
+  style?: Style;
   source: Range;
 }
 
@@ -203,6 +208,7 @@ export interface DataObjectReference {
 export interface DataStore {
   id: string;
   name: string;
+  style?: Style;
   source: Range;
 }
 
@@ -228,6 +234,7 @@ export interface Annotation {
   attachedTo: string;
   /** The ID of the association line to `attachedTo`. */
   association: string;
+  style?: Style;
   source: Range;
 }
 

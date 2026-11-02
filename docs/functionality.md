@@ -79,7 +79,8 @@ pool Support
   * **shared definitions** for messages, signals, errors and escalations;
   * **data object states**;
   * **groups** (phases drawn as dashed boxes);
-  * **colours** on elements, pools, lanes and groups;
+  * **colours** on elements, pools, lanes, groups, data and notes, or picked by
+    type and by lane with `option colors`;
   * **documentation** text on any element (`bpmn:documentation`);
   * **fan-out without gateways** (several outgoing flows, `fork`) and
     uncontrolled merges.
@@ -150,6 +151,7 @@ Conversion in the other direction is also not supported: **reverse conversion**
 | FR-14 | Support fan-out without a gateway (multi-target jumps, `fork`) and uncontrolled merges. |
 | FR-15 | Attach documentation text to elements, pools, lanes, groups and the process, emitted as `bpmn:documentation`. |
 | FR-16 | Apply fill and stroke colours, emitted as both OMG BPMN-in-Color and bpmn-js `bioc` attributes. |
+| FR-16a | `option colors types\|lanes\|all` picks colours by element type and by lane. A colour on a pool looks the same as on a lane, and reaches its lanes. |
 | FR-17 | Support groups: `bpmn:group` with a category value, spanning one or more pools. |
 | FR-18 | Pair link events by name within a process level, with no sequence flow across the link. |
 | FR-19 | Support event subprocesses, ad-hoc subprocesses, complex gateways, data object states and shared event definitions. |
@@ -183,6 +185,7 @@ Conversion in the other direction is also not supported: **reverse conversion**
 | ID | Requirement |
 |---|---|
 | FR-30 | `bpmn-text build <files…>` writes `.bpmn` (default), `.svg` or `.png`, to an `-o` path/directory or to stdout. |
+| FR-30a | `bpmn-text legend <files…>`, and `build --legend`, write a separate image: a key to the BPMN symbols the diagram uses, with what each means. The web editor downloads it too. |
 | FR-31 | `bpmn-text check <files…>` validates only. Exit code 1 on errors. `--format json` gives machine-readable diagnostics. |
 | FR-32 | `bpmn-text fmt <files…>` rewrites files in canonical style. `--check` verifies formatting without writing. |
 | FR-33 | `--watch` rebuilds on change. |
@@ -196,7 +199,7 @@ Conversion in the other direction is also not supported: **reverse conversion**
 | FR-41 | Recompile as you type (debounced). Errors show inline, and the last valid diagram stays visible. |
 | FR-42 | Syntax highlighting, completion of keywords and element names. |
 | FR-43 | Clicking a diagram element highlights its source line, and moving the cursor highlights the element. |
-| FR-44 | Export `.bpmnt`, `.bpmn`, `.svg` and `.png`. Load the bundled examples. Save the current document locally, and share via a URL that holds the compressed source. |
+| FR-44 | Export `.bpmnt`, `.bpmn`, `.svg` and `.png`, and the key to the symbols as `.svg` or `.png`. Load the bundled examples. Save the current document locally, and share via a URL that holds the compressed source. |
 | FR-45 | Runs fully client-side as a static site, with no server. |
 
 ### 4.6 VS Code extension

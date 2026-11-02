@@ -34,8 +34,9 @@ import type {
   SequenceFlow,
   Annotation,
   Style,
+  ColorScheme,
 } from './model.js';
-import { normaliseColour } from './colours.js';
+import { COLOR_SCHEMES, normaliseColour } from './colours.js';
 import { didYouMean } from './suggest.js';
 
 export interface BuildResult {
@@ -283,7 +284,7 @@ class Builder {
         else if (s.type === 'doc' && docTarget)
           this.document(docTarget, s.text);
         else if (s.type === 'data' && s.kind === 'store')
-          this.store(s.name.value, s.range);
+          this.colours(this.store(s.name.value, s.range), s.attrs);
         else
           this.error(
             s.range,
@@ -325,10 +326,15 @@ class Builder {
         (d.value.value === 'gateway' || d.value.value === 'direct')
       ) {
         this.model.xorJoin = d.value.value;
+      } else if (
+        d.key.value === 'colors' &&
+        (COLOR_SCHEMES as readonly string[]).includes(d.value.value)
+      ) {
+        this.model.colors = d.value.value as ColorScheme;
       } else {
         this.error(
           d.range,
-          'Unknown option. Supported: `option xor-join gateway` and `option xor-join direct`.',
+          'Unknown option. Supported: `option xor-join gateway|direct` and `option colors none|types|lanes|all`.',
         );
       }
     }
@@ -350,32 +356,46 @@ class Builder {
       const value = a.values.map((v) => v.value).join(', ');
       if (key === 'doc') this.document(target, value);
       else if (key === 'color' || key === 'stroke') {
-        const written = a.values[0];
-        if (!written) continue;
-        const property = COLOURS[key];
-        const colour = normaliseColour(written.value, property);
-        if (!colour) {
-          this.diagnostics.push(
-            diagnostic(
-              'BT104',
-              `\`${written.value}\` is not a colour. Use #RRGGBB, #RGB, a palette name (blue, orange, green, red, purple) or a CSS colour name.`,
-              written.range,
-            ),
-          );
-          continue;
-        }
-        const before = target.style?.[property];
-        if (conflicts && before && before !== colour) {
-          this.diagnostics.push(
-            diagnostic(
-              'BT251',
-              `This lane already has \`${key}\` ${before}; the last value, ${colour}, is used.`,
-              a.key.range,
-            ),
-          );
-        }
-        target.style = { ...target.style, [property]: colour };
+        this.colour(target, a, conflicts);
       } else if (!HANDLED.has(key)) target.extra[key] = value;
+    }
+  }
+
+  /** Sets the style property of a `[color:]` or `[stroke:]` attribute. */
+  private colour(target: { style?: Style }, a: Attr, conflicts = false) {
+    const key = a.key.value as keyof typeof COLOURS;
+    const written = a.values[0];
+    if (!written) return;
+    const property = COLOURS[key];
+    const colour = normaliseColour(written.value, property);
+    if (!colour) {
+      this.diagnostics.push(
+        diagnostic(
+          'BT104',
+          `\`${written.value}\` is not a colour. Use #RRGGBB, #RGB, a palette name (blue, orange, green, red, purple) or a CSS colour name.`,
+          written.range,
+        ),
+      );
+      return;
+    }
+    const before = target.style?.[property];
+    if (conflicts && before && before !== colour) {
+      this.diagnostics.push(
+        diagnostic(
+          'BT251',
+          `This lane already has \`${key}\` ${before}; the last value, ${colour}, is used.`,
+          a.key.range,
+        ),
+      );
+    }
+    target.style = { ...target.style, [property]: colour };
+  }
+
+  /** The colours on a statement with no other common attributes. */
+  private colours(target: { style?: Style }, attrs: Attr[]) {
+    for (const a of attrs) {
+      if (a.key.value === 'color' || a.key.value === 'stroke')
+        this.colour(target, a);
     }
   }
 
@@ -535,6 +555,7 @@ class Builder {
             association: '',
             source: s.range,
           };
+          this.colours(annotation, s.attrs);
           ctx.container.annotations.push(annotation);
           this.annotationHosts.set(annotation, host);
           break;
@@ -543,7 +564,8 @@ class Builder {
           this.document(last, s.text);
           break;
         case 'data':
-          if (s.kind === 'store') this.store(s.name.value, s.range);
+          if (s.kind === 'store')
+            this.colours(this.store(s.name.value, s.range), s.attrs);
           else {
             const collection = s.attrs.some(
               (a) => a.key.value === 'collection',
@@ -556,6 +578,7 @@ class Builder {
               s.range,
               collection,
             );
+            this.colours(this.refObject.get(ref)!, s.attrs);
             this.placeData(ref, ctx, false);
           }
           break;

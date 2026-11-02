@@ -179,6 +179,7 @@ export interface MessageStmt {
 export interface NoteStmt {
   type: 'note';
   text: Text;
+  attrs: Attr[];
   range: Range;
 }
 

@@ -1,5 +1,9 @@
 import { createRequire } from 'node:module';
-import type { Browser, BrowserContext } from 'playwright-core';
+import type {
+  Browser,
+  BrowserContext,
+  Page as PlaywrightPage,
+} from 'playwright-core';
 
 /** Thrown when headless Chromium cannot be started, with setup steps. */
 export class RenderUnavailableError extends Error {
@@ -19,6 +23,8 @@ export interface PngOptions {
 export interface Renderer {
   svg(xml: string): Promise<string>;
   png(xml: string, options?: PngOptions): Promise<Uint8Array>;
+  /** An SVG this package made, as PNG. */
+  svgToPng(svg: string, options?: PngOptions): Promise<Uint8Array>;
   close(): Promise<void>;
 }
 
@@ -57,13 +63,17 @@ export async function createRenderer(): Promise<Renderer> {
   }
   const contexts = new Map<number, Promise<BrowserContext>>();
 
-  async function open(xml: string, scale: number) {
+  async function newPage(scale: number) {
     let context = contexts.get(scale);
     if (!context) {
       context = browser.newContext({ deviceScaleFactor: scale });
       contexts.set(scale, context);
     }
-    const page = await (await context).newPage();
+    return (await context).newPage();
+  }
+
+  async function open(xml: string, scale: number) {
+    const page = await newPage(scale);
     await page.setContent(
       '<style>html,body{margin:0;background:#fff}</style>' +
         '<div id="canvas" style="width:100vw;height:100vh"></div>',
@@ -76,6 +86,21 @@ export async function createRenderer(): Promise<Renderer> {
       return (await page.viewer.saveSVG()).svg;
     }, xml);
     return { page, svg };
+  }
+
+  async function picture(page: PlaywrightPage, svg: string) {
+    const size = (name: string) =>
+      Number(new RegExp(`<svg[^>]* ${name}="([\\d.]+)"`).exec(svg)?.[1]);
+    await page.setViewportSize({
+      width: Math.ceil(size('width') + 2 * MARGIN),
+      height: Math.ceil(size('height') + 2 * MARGIN),
+    });
+    await page.setContent(
+      '<style>html,body{margin:0;background:#fff}' +
+        `#image{display:inline-block;padding:${MARGIN}px;line-height:0}</style>` +
+        `<div id="image">${svg.replace(/^<\?xml[^>]*>/, '')}</div>`,
+    );
+    return await page.locator('#image').screenshot({ type: 'png' });
   }
 
   return {
@@ -91,18 +116,16 @@ export async function createRenderer(): Promise<Renderer> {
     async png(xml, { scale = 1 } = {}) {
       const { page, svg } = await open(xml, scale);
       try {
-        const size = (name: string) =>
-          Number(new RegExp(`<svg[^>]* ${name}="([\\d.]+)"`).exec(svg)?.[1]);
-        await page.setViewportSize({
-          width: Math.ceil(size('width') + 2 * MARGIN),
-          height: Math.ceil(size('height') + 2 * MARGIN),
-        });
-        await page.setContent(
-          '<style>html,body{margin:0;background:#fff}' +
-            `#image{display:inline-block;padding:${MARGIN}px;line-height:0}</style>` +
-            `<div id="image">${svg.replace(/^<\?xml[^>]*>/, '')}</div>`,
-        );
-        return await page.locator('#image').screenshot({ type: 'png' });
+        return await picture(page, svg);
+      } finally {
+        await page.close();
+      }
+    },
+
+    async svgToPng(svg, { scale = 1 } = {}) {
+      const page = await newPage(scale);
+      try {
+        return await picture(page, svg);
       } finally {
         await page.close();
       }

@@ -193,6 +193,9 @@ canonical style.
 
 ## What next
 
+- Add `option colors all` at the top for a colourful diagram, and run
+  `bpmn-text legend order.bpmnt -f png -o key.png` for a key to its symbols
+  ([recipe](cookbook.md#colour-and-a-key)).
 - The [cookbook](cookbook.md) has recipes for common patterns and errors.
 - The [notation reference](notation.md) describes every statement, with an
   example and a fix for every diagnostic.

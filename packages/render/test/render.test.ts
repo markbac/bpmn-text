@@ -17,6 +17,13 @@ const size = (png: Uint8Array) => {
 };
 
 describe('renderer', () => {
+  it('draws an SVG as PNG, at its size plus the margin', async () => {
+    const r = await renderer;
+    const svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50"><rect width="100" height="50"/></svg>';
+    expect(size(await r.svgToPng(svg, { scale: 2 }))).toEqual([280, 180]);
+  });
+
   it('renders SVG with bpmn-js', async () => {
     const svg = await (await renderer).svg(xml);
     expect(svg).toMatch(/^<\?xml[^>]*>\s*<!-- created with bpmn-js/);

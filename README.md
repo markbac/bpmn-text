@@ -96,12 +96,22 @@ Install it with the [Quick start](#quick-start) command, or from a
 bpmn-text build order.bpmnt -o order.bpmn          # or to stdout without -o
 bpmn-text build "examples/*.bpmnt" -o out/         # several files into a directory
 bpmn-text build order.bpmnt -f svg -o order.svg    # svg, or png with --scale 2
+bpmn-text legend order.bpmnt -f png -o key.png     # a key to the symbols used
 bpmn-text build order.bpmnt -o order.bpmn --watch  # rebuild on every change
 bpmn-text check "**/*.bpmnt"                       # code frames; --format json
 bpmn-text fmt order.bpmnt                          # rewrite in canonical style
 bpmn-text fmt --check "**/*.bpmnt"                 # list unformatted files
 cat order.bpmnt | bpmn-text build > order.bpmn     # stdin to stdout
 ```
+
+### Key to the symbols
+
+`bpmn-text legend` draws a separate image that lists the BPMN symbols a diagram uses
+and says what each means, for readers who do not know BPMN. It lists only what the
+diagram uses. `build --legend` writes one beside the output, as `order.legend.png`
+(or `.svg`), and the web editor has it in its Download menu. The VS Code extension
+does not draw it yet. The key is always an image, so it needs Chromium as described
+below, even beside a `.bpmn` file.
 
 Exit codes: 0 when everything is fine (warnings allowed), 1 when an input
 has errors (or, with `fmt --check`, needs formatting), 2 for usage errors.
@@ -129,6 +139,8 @@ const { xml, diagnostics, sourceMap } = await compile(source, {
 | `check(source, options?)` | `{ model, diagnostics }`, without layout. |
 | `parse(source)` | `{ ast, diagnostics }` |
 | `format(source)` | The source in canonical style. |
+| `legend(model)` | The key to the symbols `model` uses: `entries` lists each `{ section, name, meaning }`, and `xml` holds the symbols for bpmn-js. |
+| `composeLegend(legend, svg)` | The finished key as SVG, from the SVG bpmn-js exports for `legend.xml`. |
 
 `sourceMap` maps every BPMN element ID to the source range it was written
 at. The library has no Node-only dependencies, so it also runs in the
@@ -140,7 +152,7 @@ Web Worker.
 | Deliverable | Description |
 |---|---|
 | **Compiler library** | `parse` / `check` / `compile` / `format`. Runs in Node and the browser. |
-| **CLI** | `bpmn-text build \| check \| fmt`, outputs `.bpmn`, `.svg` and `.png`, with watch mode. |
+| **CLI** | `bpmn-text build \| legend \| check \| fmt`, outputs `.bpmn`, `.svg` and `.png`, with watch mode. |
 | **Web editor** | Text on the left, live diagram on the right, fully client-side. |
 | **VS Code extension** | Highlighting, diagnostics, completion, navigation and live preview. |
 
@@ -170,6 +182,8 @@ Web Worker.
 * **Lane-aware layout.** ELK layered layout for flow ordering, combined with
   custom lane banding and orthogonal routing. This is validated by a spike
   first (ADR-004).
+* **Colours picked for you, and a key to the symbols**, with `option colors` and
+  `bpmn-text legend`, so people new to BPMN can read a diagram.
 * **Groups, colours, documentation, gateway-less fan-out**, so real-world
   diagrams can be transcribed faithfully (ADR-009–011).
 * **Descriptive BPMN first.** Execution attributes (Camunda/Zeebe) are out of

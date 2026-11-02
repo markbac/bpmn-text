@@ -29,6 +29,22 @@ for (const inputs of ['examples/*.bpmnt', allSnippets]) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
+// The key to an example, as shown in the notation reference.
+const key = spawnSync(
+  'node',
+  [
+    cli,
+    'legend',
+    'examples/08-broadband-provisioning.bpmnt',
+    '-f',
+    'png',
+    '-o',
+    out,
+  ],
+  { stdio: 'inherit' },
+);
+if (key.status !== 0) process.exit(key.status ?? 1);
+
 // The web editor, as built, with example 07 open.
 const { preview } = await import('vite');
 const { chromium } = await import('playwright-core');

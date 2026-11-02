@@ -13,6 +13,7 @@ import {
   type LayoutResult,
 } from '@bpmn-text/layout';
 
+export { composeLegend, legend } from '@bpmn-text/bpmn';
 export { check, format, parse, sourceMap } from '@bpmn-text/core';
 export type {
   CheckOptions,
@@ -27,6 +28,9 @@ export type {
   BpmnElement,
   ElementFactory,
   ExtensionHook,
+  Legend,
+  LegendEntry,
+  LegendSection,
 } from '@bpmn-text/bpmn';
 
 export interface CompileOptions extends CheckOptions {

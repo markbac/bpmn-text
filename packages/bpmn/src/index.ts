@@ -11,6 +11,14 @@ import { BpmnModdle } from 'bpmn-moddle';
 import { addDiagrams } from './di.js';
 import { semantic } from './semantic.js';
 
+export {
+  composeLegend,
+  legend,
+  type Legend,
+  type LegendEntry,
+  type LegendSection,
+} from './legend.js';
+
 /** An element of the BPMN model being written, as bpmn-moddle holds it. */
 export type BpmnElement = Record<string, unknown>;
 

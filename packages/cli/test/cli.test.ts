@@ -53,6 +53,60 @@ const diagnosticsFixtures = readdirSync(
 
 describe('bpmn-text build', () => {
   // About 2 s on its own, but with a full parallel suite it can pass 5 s.
+  it(
+    'draws a key to the symbols used (legend)',
+    { timeout: 60_000 },
+    async () => {
+      const out = temp();
+      const file = join(out, 'order.bpmnt');
+      writeFileSync(file, 'start\nuser Check\nend\n');
+      const svg = join(out, 'key.svg');
+      expect((await cli(['legend', file, '-o', svg])).code).toBe(0);
+      const image = readFileSync(svg, 'utf8');
+      expect(image).toContain('User task');
+      expect(image).not.toContain('Service task');
+      expect(image).toMatch(/viewBox="0 0 \d+ \d+"/);
+
+      // A directory, and PNG.
+      const dir = join(out, 'keys');
+      expect(
+        (await cli(['legend', file, '-f', 'png', '-o', `${dir}/`])).code,
+      ).toBe(0);
+      const png = readFileSync(join(dir, 'order.legend.png'));
+      expect([...png.subarray(1, 4)]).toEqual([0x50, 0x4e, 0x47]);
+
+      // Beside a build, in the same image format; SVG beside a .bpmn file.
+      expect(
+        (
+          await cli([
+            'build',
+            file,
+            '-f',
+            'png',
+            '-o',
+            join(out, 'built.png'),
+            '--legend',
+          ])
+        ).code,
+      ).toBe(0);
+      expect(readdirSync(out)).toContain('built.legend.png');
+      expect(
+        (await cli(['build', file, '-o', join(out, 'x.bpmn'), '--legend']))
+          .code,
+      ).toBe(0);
+      expect(readdirSync(out)).toContain('x.legend.svg');
+
+      // No -o to write beside; errors draw nothing.
+      expect((await cli(['build', file, '--legend'])).code).toBe(2);
+      const bad = join(out, 'bad.bpmnt');
+      writeFileSync(bad, 'task A [color: #12345]\n');
+      expect(
+        (await cli(['legend', bad, '-o', join(out, 'bad.svg')])).code,
+      ).toBe(1);
+      expect(readdirSync(out)).not.toContain('bad.svg');
+    },
+  );
+
   it('builds every example into a directory', { timeout: 30_000 }, async () => {
     const out = temp();
     const { code, stderr } = await cli([

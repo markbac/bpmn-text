@@ -1,5 +1,5 @@
 # Fill and stroke colours on a pool, lanes and elements: hex, short hex,
-# bpmn-js palette names and CSS names; repeated lanes lines.
+# bpmn-js palette names and CSS names; repeated lanes lines; data and notes.
 # covers: §4.7, §9
 title "Colours"
 
@@ -14,3 +14,11 @@ pool Company [color: #F0F4FF, stroke: #1F4E79]
   lane Finance
   task Invoice [color: orange]
   end Done [color: purple, stroke: rebeccapurple]
+
+pool Records
+  store Archive [stroke: orange]
+  data Report [color: green]
+  start
+  task File [writes: Report, reads: Archive]
+  note "Keep for a year" [stroke: red]
+  end

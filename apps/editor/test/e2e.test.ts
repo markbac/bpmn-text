@@ -151,19 +151,34 @@ describe('web editor', { timeout: 30_000 }, () => {
   it('downloads source, BPMN, SVG and PNG (#41)', async () => {
     const page = await open();
     const names: string[] = [];
-    for (const format of ['bpmnt', 'bpmn', 'svg', 'png']) {
+    for (const format of [
+      'bpmnt',
+      'bpmn',
+      'svg',
+      'png',
+      'key-svg',
+      'key-png',
+    ]) {
       await page.click('#download');
       const [download] = await Promise.all([
         page.waitForEvent('download'),
         page.click(`[data-format="${format}"]`),
       ]);
       names.push(download.suggestedFilename());
+      if (format === 'key-svg') {
+        const key = readFileSync(await download.path(), 'utf8');
+        expect(key).toContain('Start event');
+        // Symbols that bpmn-js drew, off screen.
+        expect(key).toContain('djs-group');
+      }
     }
     expect(names).toEqual([
       'order-fulfilment.bpmnt',
       'order-fulfilment.bpmn',
       'order-fulfilment.svg',
       'order-fulfilment.png',
+      'order-fulfilment.legend.svg',
+      'order-fulfilment.legend.png',
     ]);
   });
 });

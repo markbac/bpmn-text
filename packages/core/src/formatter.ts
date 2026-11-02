@@ -225,7 +225,12 @@ function statement(s: Statement, indent: number, lines: Line[]) {
       emit(lines, indent, reference(s.source, 'ref') + tail([s.step]), s.range);
       break;
     case 'note':
-      emit(lines, indent, `note ${name(s.text, 'element')}`, s.range);
+      emit(
+        lines,
+        indent,
+        `note ${name(s.text, 'element')}${attrs(s.attrs)}`,
+        s.range,
+      );
       break;
     case 'data':
       emit(

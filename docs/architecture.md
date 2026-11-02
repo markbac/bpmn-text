@@ -277,8 +277,10 @@ interface Model {
   messageFlows: MessageFlow[];
   dataStores: DataStore[];
   groups: Group[];               // document order = column order
+  colors?: 'none' | 'types' | 'lanes' | 'all';  // option colors
 }
 interface Style   { fill?: string; stroke?: string }      // normalised #RRGGBB
+                                 // also on data objects, data stores, annotations
 interface Group   { id; name; fit: boolean; style?: Style; documentation?: string;
                     members: string[] /* flow node ids, across pools */ }
 interface Pool    { id; name; collapsed: boolean; implicit: boolean; style?: Style;
@@ -495,7 +497,10 @@ tests and benchmarks. It reports:
   (`http://www.omg.org/spec/BPMN/non-normative/color/1.0`) and the bpmn-js
   `bioc:` namespace (`http://bpmn.io/schema/bpmn/biocolor/1.0`) on
   `BPMNShape`/`BPMNEdge`. Edges inherit the stroke of their source element
-  only when the source sets one.
+  only when the source sets one in the text. `schemeStyles(model)` gives the colours
+  of `option colors`, under the ones written. The model keeps only what was written,
+  so `check()` and layout never see a scheme. Pools and lanes are adjusted to look
+  alike (ADR-011).
 * **DI part:** one `BPMNDiagram` per plane (main plane plus one per
   collapsed subprocess). It contains `BPMNShape` (with `isHorizontal="true"`
   for pools and lanes, and `isExpanded` for subprocesses), `BPMNEdge` with
@@ -580,6 +585,10 @@ const { xml, diagnostics, model, layout, sourceMap } = await compile(source, {
 * `format(source)` → `string`
 * `sourceMap(model)` maps BPMN element IDs to source ranges, for click-to-source
   in the editors. `compile()` returns the result of calling it.
+* `legend(model)` → `{ entries, xml, width, height, overlay }`, the key to the symbols
+  the model uses (ADR-014). The result is plain data, so the web editor's worker can
+  send it to the page. `composeLegend(legend, svg)` → `string`, the finished SVG, from
+  what bpmn-js exports for `legend.xml`.
 
 `check()` and `compile()` take these options:
 
@@ -594,7 +603,7 @@ const { xml, diagnostics, model, layout, sourceMap } = await compile(source, {
 
 ### 11.1 CLI (`packages/cli`)
 
-Built on `commander`. Commands: `build`, `check`, `fmt`. Watch mode uses
+Built on `commander`. Commands: `build`, `legend`, `check`, `fmt`. Watch mode uses
 `chokidar`. Code frames are printed with `@babel/code-frame`-style
 formatting. Exit codes: 0 ok, 1 errors in input, 2 usage or internal error.
 
@@ -603,6 +612,7 @@ formatting. Exit codes: 0 ok, 1 errors in input, 2 usage or internal error.
 Loads the generated XML into the **bpmn-js** viewer inside headless Chromium
 (`playwright-core`, an *optional* dependency), then exports SVG (`saveSVG`)
 or a PNG screenshot. This gives exactly the same rendering as the editors.
+`svgToPng` does the same for an SVG made elsewhere, which is how the key becomes a PNG.
 If Chromium is unavailable, the CLI explains how to enable it. The reasoning
 is in [decisions.md](decisions.md) ADR-005.
 
@@ -615,6 +625,8 @@ is in [decisions.md](decisions.md) ADR-005.
 * The diagram is drawn with the bpmn-js `NavigatedViewer`. The viewport
   (zoom and scroll) is kept between updates.
 * Two-way selection sync through the `sourceMap`.
+* The Download menu draws the key to the symbols in a second, off-screen viewer, so
+  the diagram on screen stays as it is.
 * Static build, deployable anywhere: see [deployment.md](deployment.md).
 
 ```mermaid
