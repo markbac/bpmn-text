@@ -22,6 +22,8 @@ export default defineConfig({
   ssr: { resolve: { conditions } },
   test: {
     passWithNoTests: true,
+    // Lets timing tests allow for instrumented code.
+    env: process.argv.includes('--coverage') ? { BPMN_TEXT_COVERAGE: '1' } : {},
     coverage: {
       provider: 'v8',
       include: ['packages/*/src/**', 'apps/*/src/**'],

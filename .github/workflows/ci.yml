@@ -28,6 +28,8 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test:coverage
+      - name: Editor speed without coverage (NFR-4)
+        run: npx vitest run --project apps/editor -t "NFR-4"
       - run: npm run build
       - name: Coverage summary
         if: matrix.os == 'ubuntu-latest' && matrix.node == 22

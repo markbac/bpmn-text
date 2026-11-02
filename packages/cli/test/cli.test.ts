@@ -52,7 +52,8 @@ const diagnosticsFixtures = readdirSync(
 ).filter((f) => f.endsWith('.bpmnt'));
 
 describe('bpmn-text build', () => {
-  it('builds every example into a directory', async () => {
+  // About 2 s on its own, but with a full parallel suite it can pass 5 s.
+  it('builds every example into a directory', { timeout: 30_000 }, async () => {
     const out = temp();
     const { code, stderr } = await cli([
       'build',

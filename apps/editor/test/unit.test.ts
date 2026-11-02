@@ -247,6 +247,9 @@ describe('compiler (#38)', () => {
     expect(runs[0]!.diagnostics.filter((d) => d.severity !== 'info')).toEqual(
       [],
     );
-    expect(Math.min(...runs.map((r) => r.ms))).toBeLessThan(200);
+    // Coverage and a full parallel suite together take this past the limit
+    // on their own, so CI checks 200 ms in a step of its own, without coverage.
+    const limit = process.env.BPMN_TEXT_COVERAGE ? 1000 : 200;
+    expect(Math.min(...runs.map((r) => r.ms))).toBeLessThan(limit);
   });
 });
