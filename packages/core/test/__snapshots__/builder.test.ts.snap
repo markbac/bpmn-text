@@ -3481,3 +3481,155 @@ exports[`check() on the corpus > examples/11-adhoc-subprocesses.bpmnt has no err
   "xorJoin": "gateway",
 }
 `;
+
+exports[`check() on the corpus > examples/12-complex-gateway.bpmnt has no errors or warnings, and matches its IR snapshot 1`] = `
+{
+  "collaboration": false,
+  "pools": [
+    {
+      "collapsed": false,
+      "extra": {},
+      "id": "Participant_paper_review",
+      "implicit": true,
+      "name": "Paper review",
+      "process": {
+        "flows": [
+          {
+            "id": "Flow_paper_submitted__enough_reviews",
+            "source": "6:1-6:72",
+            "sourceRef": "Event_paper_submitted",
+            "targetRef": "Gateway_enough_reviews",
+          },
+          {
+            "id": "Flow_enough_reviews__review_by_the_chair",
+            "name": "first",
+            "source": "7:10-7:34",
+            "sourceRef": "Gateway_enough_reviews",
+            "targetRef": "Activity_review_by_the_chair",
+          },
+          {
+            "id": "Flow_enough_reviews__review_by_a_member",
+            "name": "second",
+            "source": "8:11-8:34",
+            "sourceRef": "Gateway_enough_reviews",
+            "targetRef": "Activity_review_by_a_member",
+          },
+          {
+            "id": "Flow_enough_reviews__ask_an_external_reviewer",
+            "isDefault": true,
+            "source": "9:9-9:41",
+            "sourceRef": "Gateway_enough_reviews",
+            "targetRef": "Activity_ask_an_external_reviewer",
+          },
+          {
+            "id": "Flow_review_by_the_chair__join_after_decide",
+            "source": "10:1-10:12",
+            "sourceRef": "Activity_review_by_the_chair",
+            "targetRef": "Gateway_join_after_decide",
+          },
+          {
+            "id": "Flow_review_by_a_member__join_after_decide",
+            "source": "10:1-10:12",
+            "sourceRef": "Activity_review_by_a_member",
+            "targetRef": "Gateway_join_after_decide",
+          },
+          {
+            "id": "Flow_ask_an_external_reviewer__join_after_decide",
+            "source": "10:1-10:12",
+            "sourceRef": "Activity_ask_an_external_reviewer",
+            "targetRef": "Gateway_join_after_decide",
+          },
+          {
+            "id": "Flow_join_after_decide__decide",
+            "source": "10:1-10:12",
+            "sourceRef": "Gateway_join_after_decide",
+            "targetRef": "Activity_decide",
+          },
+          {
+            "id": "Flow_decide__decision_made",
+            "source": "11:1-11:18",
+            "sourceRef": "Activity_decide",
+            "targetRef": "Event_decision_made",
+          },
+        ],
+        "id": "Process_paper_review",
+        "nodes": [
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Event_paper_submitted",
+            "kind": "startEvent",
+            "name": "Paper submitted",
+            "source": "5:1-5:22",
+          },
+          {
+            "attributeRanges": {
+              "rule": "6:26-6:30",
+            },
+            "branches": 3,
+            "default": "Flow_enough_reviews__ask_an_external_reviewer",
+            "documentation": "Continue when 2 of the 3 reviews are in",
+            "extra": {},
+            "id": "Gateway_enough_reviews",
+            "kind": "complexGateway",
+            "name": "Enough reviews?",
+            "source": "6:1-6:72",
+          },
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Activity_review_by_the_chair",
+            "kind": "userTask",
+            "name": "Review by the chair",
+            "source": "7:10-7:34",
+          },
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Activity_review_by_a_member",
+            "kind": "userTask",
+            "name": "Review by a member",
+            "source": "8:11-8:34",
+          },
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Activity_ask_an_external_reviewer",
+            "kind": "serviceTask",
+            "name": "Ask an external reviewer",
+            "source": "9:9-9:41",
+          },
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Activity_decide",
+            "kind": "task",
+            "name": "Decide",
+            "source": "10:1-10:12",
+          },
+          {
+            "attributeRanges": {},
+            "cause": "6:1-6:72",
+            "extra": {},
+            "generated": "join",
+            "id": "Gateway_join_after_decide",
+            "kind": "complexGateway",
+            "source": "10:1-10:12",
+          },
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Event_decision_made",
+            "kind": "endEvent",
+            "name": "Decision made",
+            "source": "11:1-11:18",
+          },
+        ],
+      },
+      "source": "5:1-5:22",
+    },
+  ],
+  "title": "Paper review",
+  "xorJoin": "gateway",
+}
+`;

@@ -67,7 +67,7 @@ pool Support
     signal, error, escalation, conditional, compensation, terminate, link);
   * tasks (abstract, user, service, script, send, receive, manual, business
     rule), call activities;
-  * exclusive, parallel, inclusive and event-based gateways;
+  * exclusive, parallel, inclusive, event-based and complex gateways;
   * sequence flows (implicit and explicit, labelled, default flows);
   * pools (expanded and collapsed), lanes (lane switches) and message flows;
   * embedded subprocesses (expanded and collapsed), event subprocesses and
@@ -111,7 +111,7 @@ pool Support
 |---|---|
 | FR-1 | Parse `.bpmnt` files according to [notation.md](notation.md). |
 | FR-2 | Infer sequence flows from story order (implicit flow), chains and jumps. |
-| FR-3 | Insert join gateways automatically for open gateway branches (AND→AND, OR→OR, XOR/event→XOR, with an option for direct XOR merges). |
+| FR-3 | Insert join gateways automatically for open gateway branches (AND→AND, OR→OR, complex→complex, XOR/event→XOR, with an option for direct XOR merges). |
 | FR-4 | Assign elements to lanes by lane switches, with branch scoping and `[lane: X]` overrides. |
 | FR-5 | Resolve references by `@id` or name (case-insensitive, whitespace-normalised) and report ambiguity. |
 | FR-6 | Report **all** syntax and semantic problems in one run, with stable codes, line/column ranges and, where possible, suggestions ("did you mean …?") and quick fixes. |

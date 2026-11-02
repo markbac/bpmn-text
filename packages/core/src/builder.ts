@@ -73,6 +73,7 @@ const NODE_KIND: Record<ElementKind, NodeKind> = {
   and: 'parallelGateway',
   or: 'inclusiveGateway',
   event: 'eventBasedGateway',
+  complex: 'complexGateway',
 };
 const ACTIVITIES = new Set<NodeKind>([
   'task',
@@ -93,6 +94,7 @@ const JOIN_KIND = {
   and: 'parallelGateway',
   fork: 'parallelGateway',
   or: 'inclusiveGateway',
+  complex: 'complexGateway',
 } as const;
 type SplitKind = keyof typeof JOIN_KIND;
 const MARKERS = new Set(['loop', 'parallel', 'sequential']);
@@ -107,6 +109,7 @@ const HANDLED = new Set([
   ...DEFINITION_TYPES,
   'event',
   'adhoc',
+  'rule',
   'id',
   'loop',
   'parallel',
@@ -662,7 +665,16 @@ class Builder {
         node.adHoc = key === 'parallel' ? 'Parallel' : 'Sequential';
       else if (MARKERS.has(key) && ACTIVITIES.has(kind))
         node.markers.push(key as Marker);
-      else if (key === 'adhoc' && !adHoc)
+      else if (key === 'rule') {
+        // Conditions are out of scope (ADR-008), so the rule is documentation.
+        if (kind !== 'complexGateway')
+          this.noEffect(
+            a.key.range,
+            '`rule` states the activation rule of a `complex` gateway',
+          );
+        else if (first)
+          this.document(node, a.values.map((v) => v.value).join(', '));
+      } else if (key === 'adhoc' && !adHoc)
         this.noEffect(
           a.key.range,
           '`adhoc` declares an ad-hoc subprocess, on a `sub`',
@@ -852,7 +864,7 @@ class Builder {
     const g = this.declare(s.element, ctx);
     this.enter(open, g, ctx);
     if (!s.branches) return [from(g), g];
-    const kind = s.element.kind as 'xor' | 'and' | 'or' | 'event';
+    const kind = s.element.kind as 'xor' | 'and' | 'or' | 'event' | 'complex';
     g.branches = s.branches.length;
     const items = s.branches.map((b) => {
       if (kind === 'event') this.checkEventBranch(b);
@@ -1620,6 +1632,7 @@ const KIND_WORD: Partial<Record<NodeKind, string>> = {
   parallelGateway: 'and',
   inclusiveGateway: 'or',
   eventBasedGateway: 'event',
+  complexGateway: 'complex',
 };
 
 /** Whether a pool body uses lanes: `lane`, `lanes` or `[lane: …]` outside subprocesses. */

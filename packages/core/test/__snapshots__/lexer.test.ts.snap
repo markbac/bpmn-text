@@ -981,3 +981,39 @@ exports[`lexer on the examples > 11-adhoc-subprocesses.bpmnt 1`] = `
   "17:1 eof",
 ]
 `;
+
+exports[`lexer on the examples > 12-complex-gateway.bpmnt 1`] = `
+[
+  "3:1 text "title"",
+  "3:7 string "Paper review"",
+  "3:21 newline",
+  "5:1 text "start Paper submitted"",
+  "5:22 newline",
+  "6:1 text "complex Enough reviews?"",
+  "6:25 op "["",
+  "6:26 text "rule"",
+  "6:30 op ":"",
+  "6:32 text "Continue when 2 of the 3 reviews are in"",
+  "6:71 op "]"",
+  "6:72 newline",
+  "7:3 indent",
+  "7:3 text "first"",
+  "7:8 op ":"",
+  "7:10 text "user Review by the chair"",
+  "7:34 newline",
+  "8:3 text "second"",
+  "8:9 op ":"",
+  "8:11 text "user Review by a member"",
+  "8:34 newline",
+  "9:3 text "else"",
+  "9:7 op ":"",
+  "9:9 text "service Ask an external reviewer"",
+  "9:41 newline",
+  "10:1 dedent",
+  "10:1 text "task Decide"",
+  "10:12 newline",
+  "11:1 text "end Decision made"",
+  "11:18 newline",
+  "12:1 eof",
+]
+`;

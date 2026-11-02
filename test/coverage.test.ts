@@ -26,6 +26,47 @@ async function valid(source: string) {
   return xml;
 }
 
+describe('complex gateway (#91)', () => {
+  const example = read('examples/12-complex-gateway.bpmnt');
+
+  it('writes the split, its join, the default flow and the rule', async () => {
+    const xml = await valid(example);
+    expect(xml.match(/<bpmn:complexGateway /g)).toHaveLength(2);
+    expect(xml).toContain('id="Gateway_join_after_decide"');
+    expect(xml).toMatch(/<bpmn:complexGateway [^>]*default="Flow_/);
+    expect(xml).toContain('Continue when 2 of the 3 reviews are in');
+  });
+
+  it('keeps bullets and a plain node working', async () => {
+    await valid(`start
+complex Enough? [rule: 2 of 3, doc: "Written by the chair"]
+  - user A
+  - user B
+  - user C
+complex Merge @m
+end
+`);
+  });
+
+  it('warns about a rule on anything else', async () => {
+    const { diagnostics } = await compile('start\nxor A [rule: x]\n  - end\n');
+    expect(diagnostics.map((d) => d.code)).toContain('BT105');
+  });
+
+  it('is a keyword, with a suggestion for a typo', async () => {
+    const { diagnostics } = await compile('complx A\n  - end\n');
+    expect(diagnostics[0]!.message).toContain('Did you mean `complex`?');
+  });
+
+  it('formats unchanged', () => {
+    const source = `complex A [rule: 2 of 3]
+  - task B
+  else: task C
+`;
+    expect(format(source)).toBe(source);
+  });
+});
+
 describe('ad-hoc subprocesses (#90)', () => {
   const example = read('examples/11-adhoc-subprocesses.bpmnt');
 

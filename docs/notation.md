@@ -228,6 +228,7 @@ Activity markers are given as attributes:
 | `and [name]` | Parallel gateway |
 | `or [name]` | Inclusive gateway |
 | `event [name]` | Event-based gateway |
+| `complex [name]` | Complex gateway (§7.5) |
 
 Gateways are always followed by a block of branches (§7).
 
@@ -302,6 +303,7 @@ user Approve order @approve [parallel, reads: Order]
 | `collapsed` | `sub`, `pool` | Collapsed subprocess / black-box pool |
 | `non-interrupting` | `on` (boundary), `start` in an event subprocess | Dashed event, which leaves the activity or parent running |
 | `event` | `sub` | Event subprocess (§8.1) |
+| `rule: …` | `complex` | Activation rule, as documentation (§7.5) |
 | `adhoc` | `sub` | Ad-hoc subprocess (§8.2) |
 | `collection` | `data` | Collection data object |
 | `lane: X` | flow nodes in a pool with lanes | Place this element in lane X without switching (§9) |
@@ -526,7 +528,7 @@ A gateway is followed by an indented block of **branches**:
 | `label:` | Labelled branch (condition name on the flow) |
 | `"label with: colon":` | Labelled branch, quoted |
 | `-` | Unlabelled branch (typical for `and`) |
-| `else:` | Default flow (XOR / OR only) |
+| `else:` | Default flow (XOR, OR and complex only) |
 
 A branch is either **inline**, with a chain on the same line, or a **block**
 on the following lines. It can also be both:
@@ -559,6 +561,7 @@ statement after the block**:
 | `and` | ≥2 | An inserted **parallel** join gateway. |
 | `or` | ≥2 | An inserted **inclusive** join gateway. |
 | `xor`, `event` | ≥2 | An inserted **exclusive** join gateway (or direct flows with `option xor-join direct`). |
+| `complex` | ≥2 | An inserted **complex** join gateway, since the compiler does not know the split's rule. |
 
 The inserted join is placed in the lane of the next statement.
 
@@ -634,6 +637,33 @@ xor Sync done
 * A `fork` must follow an element that implicit flow leaves. A `fork` right
   after an end event, a jump, or a gateway block with no open branches is
   error **BT224**.
+
+### 7.5 Complex gateways
+
+`complex` is for a split or merge whose rule is not exclusive, parallel or
+inclusive, such as "continue when 2 of the 3 reviewers have responded". It is
+rare and often discouraged, so state the rule where the reader can see it.
+
+<!-- screenshot: notation-complex -->
+
+```bpmnt
+start
+complex Enough reviews? [rule: Continue when 2 of the 3 reviews are in]
+  - user Review A
+  - user Review B
+  - user Review C
+task Decide
+end
+```
+
+![A complex gateway and its inserted join](images/notation-complex.png)
+
+* **Branches** are written as for `and`: bullets or labels, and `else:` for a
+  default flow.
+* **Joins.** Open branches merge through an inserted **complex** join (§7.1).
+* **The rule.** `[rule: …]` is written as the gateway's `bpmn:documentation`,
+  like `doc`. It is not an `activationCondition`, because condition expressions
+  are out of scope (ADR-008). On any other element it is warning **BT105**.
 
 ---
 
@@ -966,3 +996,4 @@ See [`examples/`](../examples) for complete files covering every feature:
 | `09-data-states.bpmnt` | One data object moving through several states |
 | `10-event-subprocesses.bpmnt` | Interrupting and non-interrupting event subprocesses, in a pool and inside a `sub` |
 | `11-adhoc-subprocesses.bpmnt` | Expanded and collapsed ad-hoc subprocesses, with an ordering constraint |
+| `12-complex-gateway.bpmnt` | A complex split with a stated rule, a default flow and its inserted join |

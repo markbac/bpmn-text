@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" name="Paper review" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-text">
+  <bpmn:process id="Process_paper_review" name="Paper review" isExecutable="false">
+    <bpmn:startEvent id="Event_paper_submitted" name="Paper submitted">
+      <bpmn:outgoing>Flow_paper_submitted__enough_reviews</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:complexGateway id="Gateway_enough_reviews" name="Enough reviews?" default="Flow_enough_reviews__ask_an_external_reviewer">
+      <bpmn:documentation>Continue when 2 of the 3 reviews are in</bpmn:documentation>
+      <bpmn:incoming>Flow_paper_submitted__enough_reviews</bpmn:incoming>
+      <bpmn:outgoing>Flow_enough_reviews__review_by_the_chair</bpmn:outgoing>
+      <bpmn:outgoing>Flow_enough_reviews__review_by_a_member</bpmn:outgoing>
+      <bpmn:outgoing>Flow_enough_reviews__ask_an_external_reviewer</bpmn:outgoing>
+    </bpmn:complexGateway>
+    <bpmn:userTask id="Activity_review_by_the_chair" name="Review by the chair">
+      <bpmn:incoming>Flow_enough_reviews__review_by_the_chair</bpmn:incoming>
+      <bpmn:outgoing>Flow_review_by_the_chair__join_after_decide</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_review_by_a_member" name="Review by a member">
+      <bpmn:incoming>Flow_enough_reviews__review_by_a_member</bpmn:incoming>
+      <bpmn:outgoing>Flow_review_by_a_member__join_after_decide</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Activity_ask_an_external_reviewer" name="Ask an external reviewer">
+      <bpmn:incoming>Flow_enough_reviews__ask_an_external_reviewer</bpmn:incoming>
+      <bpmn:outgoing>Flow_ask_an_external_reviewer__join_after_decide</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:task id="Activity_decide" name="Decide">
+      <bpmn:incoming>Flow_join_after_decide__decide</bpmn:incoming>
+      <bpmn:outgoing>Flow_decide__decision_made</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:complexGateway id="Gateway_join_after_decide">
+      <bpmn:incoming>Flow_review_by_the_chair__join_after_decide</bpmn:incoming>
+      <bpmn:incoming>Flow_review_by_a_member__join_after_decide</bpmn:incoming>
+      <bpmn:incoming>Flow_ask_an_external_reviewer__join_after_decide</bpmn:incoming>
+      <bpmn:outgoing>Flow_join_after_decide__decide</bpmn:outgoing>
+    </bpmn:complexGateway>
+    <bpmn:endEvent id="Event_decision_made" name="Decision made">
+      <bpmn:incoming>Flow_decide__decision_made</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_paper_submitted__enough_reviews" sourceRef="Event_paper_submitted" targetRef="Gateway_enough_reviews" />
+    <bpmn:sequenceFlow id="Flow_enough_reviews__review_by_the_chair" name="first" sourceRef="Gateway_enough_reviews" targetRef="Activity_review_by_the_chair" />
+    <bpmn:sequenceFlow id="Flow_enough_reviews__review_by_a_member" name="second" sourceRef="Gateway_enough_reviews" targetRef="Activity_review_by_a_member" />
+    <bpmn:sequenceFlow id="Flow_enough_reviews__ask_an_external_reviewer" sourceRef="Gateway_enough_reviews" targetRef="Activity_ask_an_external_reviewer" />
+    <bpmn:sequenceFlow id="Flow_review_by_the_chair__join_after_decide" sourceRef="Activity_review_by_the_chair" targetRef="Gateway_join_after_decide" />
+    <bpmn:sequenceFlow id="Flow_review_by_a_member__join_after_decide" sourceRef="Activity_review_by_a_member" targetRef="Gateway_join_after_decide" />
+    <bpmn:sequenceFlow id="Flow_ask_an_external_reviewer__join_after_decide" sourceRef="Activity_ask_an_external_reviewer" targetRef="Gateway_join_after_decide" />
+    <bpmn:sequenceFlow id="Flow_join_after_decide__decide" sourceRef="Gateway_join_after_decide" targetRef="Activity_decide" />
+    <bpmn:sequenceFlow id="Flow_decide__decision_made" sourceRef="Activity_decide" targetRef="Event_decision_made" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_paper_review">
+      <bpmndi:BPMNShape id="Event_paper_submitted_di" bpmnElement="Event_paper_submitted">
+        <dc:Bounds x="100" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="78" y="103" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_enough_reviews_di" bpmnElement="Gateway_enough_reviews">
+        <dc:Bounds x="186" y="55" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="169" y="36" width="85" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_review_by_the_chair_di" bpmnElement="Activity_review_by_the_chair">
+        <dc:Bounds x="286" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_review_by_a_member_di" bpmnElement="Activity_review_by_a_member">
+        <dc:Bounds x="286" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ask_an_external_reviewer_di" bpmnElement="Activity_ask_an_external_reviewer">
+        <dc:Bounds x="286" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_decide_di" bpmnElement="Activity_decide">
+        <dc:Bounds x="536" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_join_after_decide_di" bpmnElement="Gateway_join_after_decide">
+        <dc:Bounds x="436" y="55" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_decision_made_di" bpmnElement="Event_decision_made">
+        <dc:Bounds x="686" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="668" y="103" width="73" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_paper_submitted__enough_reviews_di" bpmnElement="Flow_paper_submitted__enough_reviews">
+        <di:waypoint x="136" y="80" />
+        <di:waypoint x="186" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_enough_reviews__review_by_the_chair_di" bpmnElement="Flow_enough_reviews__review_by_the_chair">
+        <di:waypoint x="236" y="80" />
+        <di:waypoint x="286" y="80" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="241" y="61" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_enough_reviews__review_by_a_member_di" bpmnElement="Flow_enough_reviews__review_by_a_member">
+        <di:waypoint x="211" y="105" />
+        <di:waypoint x="211" y="190" />
+        <di:waypoint x="286" y="190" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="216" y="141" width="36" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_enough_reviews__ask_an_external_reviewer_di" bpmnElement="Flow_enough_reviews__ask_an_external_reviewer">
+        <di:waypoint x="211" y="105" />
+        <di:waypoint x="211" y="300" />
+        <di:waypoint x="286" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_review_by_the_chair__join_after_decide_di" bpmnElement="Flow_review_by_the_chair__join_after_decide">
+        <di:waypoint x="386" y="80" />
+        <di:waypoint x="436" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_review_by_a_member__join_after_decide_di" bpmnElement="Flow_review_by_a_member__join_after_decide">
+        <di:waypoint x="386" y="190" />
+        <di:waypoint x="461" y="190" />
+        <di:waypoint x="461" y="105" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ask_an_external_reviewer__join_after_decide_di" bpmnElement="Flow_ask_an_external_reviewer__join_after_decide">
+        <di:waypoint x="386" y="300" />
+        <di:waypoint x="461" y="300" />
+        <di:waypoint x="461" y="105" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_join_after_decide__decide_di" bpmnElement="Flow_join_after_decide__decide">
+        <di:waypoint x="486" y="80" />
+        <di:waypoint x="536" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_decide__decision_made_di" bpmnElement="Flow_decide__decision_made">
+        <di:waypoint x="636" y="80" />
+        <di:waypoint x="686" y="80" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
+

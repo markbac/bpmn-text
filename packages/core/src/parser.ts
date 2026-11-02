@@ -73,7 +73,7 @@ const ACTIVITIES = [
   'rule',
   'call',
 ];
-const GATEWAYS = ['xor', 'and', 'or', 'event'];
+const GATEWAYS = ['xor', 'and', 'or', 'event', 'complex'];
 /** Keywords that can declare an element inline, after an arrow (§6.1). */
 const INLINE = new Set([
   'start',
@@ -133,6 +133,7 @@ const ATTRIBUTES = new Set([
   'escalation',
   'event',
   'adhoc',
+  'rule',
 ]);
 
 /**

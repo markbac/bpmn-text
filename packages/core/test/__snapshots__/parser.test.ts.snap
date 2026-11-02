@@ -3175,3 +3175,118 @@ exports[`parser on the corpus > examples/11-adhoc-subprocesses.bpmnt 1`] = `
   "type": "document",
 }
 `;
+
+exports[`parser on the corpus > examples/12-complex-gateway.bpmnt 1`] = `
+{
+  "body": [
+    {
+      "element": {
+        "keyword": "start",
+        "kind": "start",
+        "name": "Paper submitted",
+        "range": "5:1-5:22",
+        "type": "element",
+      },
+      "range": "5:1-5:22",
+      "type": "element-stmt",
+    },
+    {
+      "branches": [
+        {
+          "form": "labelled",
+          "inline": {
+            "target": {
+              "keyword": "user",
+              "kind": "user",
+              "name": "Review by the chair",
+              "range": "7:10-7:34",
+              "type": "element",
+            },
+          },
+          "label": "first",
+          "range": "7:3-7:34",
+          "type": "branch",
+        },
+        {
+          "form": "labelled",
+          "inline": {
+            "target": {
+              "keyword": "user",
+              "kind": "user",
+              "name": "Review by a member",
+              "range": "8:11-8:34",
+              "type": "element",
+            },
+          },
+          "label": "second",
+          "range": "8:3-8:34",
+          "type": "branch",
+        },
+        {
+          "form": "else",
+          "inline": {
+            "target": {
+              "keyword": "service",
+              "kind": "service",
+              "name": "Ask an external reviewer",
+              "range": "9:9-9:41",
+              "type": "element",
+            },
+          },
+          "range": "9:3-9:41",
+          "type": "branch",
+        },
+      ],
+      "element": {
+        "attrs": [
+          {
+            "key": "rule",
+            "range": "6:26-6:71",
+            "values": [
+              "Continue when 2 of the 3 reviews are in",
+            ],
+          },
+        ],
+        "keyword": "complex",
+        "kind": "complex",
+        "name": "Enough reviews?",
+        "range": "6:1-6:72",
+        "type": "element",
+      },
+      "range": "6:1-9:41",
+      "type": "gateway",
+    },
+    {
+      "element": {
+        "keyword": "task",
+        "kind": "task",
+        "name": "Decide",
+        "range": "10:1-10:12",
+        "type": "element",
+      },
+      "range": "10:1-10:12",
+      "type": "element-stmt",
+    },
+    {
+      "element": {
+        "keyword": "end",
+        "kind": "end",
+        "name": "Decision made",
+        "range": "11:1-11:18",
+        "type": "element",
+      },
+      "range": "11:1-11:18",
+      "type": "element-stmt",
+    },
+  ],
+  "directives": [
+    {
+      "range": "3:1-3:21",
+      "type": "title",
+      "value": ""Paper review"",
+    },
+  ],
+  "range": "1:1-12:1",
+  "type": "document",
+}
+`;

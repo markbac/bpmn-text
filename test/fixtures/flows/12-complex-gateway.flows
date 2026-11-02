@@ -1,0 +1,18 @@
+pool Participant_paper_review (implicit)
+  node Event_paper_submitted
+  node Gateway_enough_reviews
+  node Activity_review_by_the_chair
+  node Activity_review_by_a_member
+  node Activity_ask_an_external_reviewer
+  node Activity_decide
+  node Gateway_join_after_decide
+  node Event_decision_made
+  Event_paper_submitted -> Gateway_enough_reviews
+  Gateway_enough_reviews -> Activity_review_by_the_chair [first]
+  Gateway_enough_reviews -> Activity_review_by_a_member [second]
+  Gateway_enough_reviews -> Activity_ask_an_external_reviewer (default)
+  Activity_review_by_the_chair -> Gateway_join_after_decide
+  Activity_review_by_a_member -> Gateway_join_after_decide
+  Activity_ask_an_external_reviewer -> Gateway_join_after_decide
+  Gateway_join_after_decide -> Activity_decide
+  Activity_decide -> Event_decision_made

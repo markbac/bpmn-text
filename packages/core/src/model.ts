@@ -89,7 +89,8 @@ export type NodeKind =
   | 'exclusiveGateway'
   | 'parallelGateway'
   | 'inclusiveGateway'
-  | 'eventBasedGateway';
+  | 'eventBasedGateway'
+  | 'complexGateway';
 
 export type Marker = 'loop' | 'parallel' | 'sequential';
 

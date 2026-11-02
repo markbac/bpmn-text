@@ -41,6 +41,7 @@ const KEYWORDS = new Set([
   'and',
   'or',
   'event',
+  'complex',
   'fork',
   'group',
   'pool',

@@ -1,0 +1,11 @@
+# A complex split with a stated rule, a default flow and its inserted join.
+# covers: §4.3, §7.1, §7.5
+title "Paper review"
+
+start Paper submitted
+complex Enough reviews? [rule: Continue when 2 of the 3 reviews are in]
+  first: user Review by the chair
+  second: user Review by a member
+  else: service Ask an external reviewer
+task Decide
+end Decision made
