@@ -250,6 +250,34 @@ note Uses the nightly snapshot, not live stock
 
 ![A data store, a data object and a note](images/notation-data.png)
 
+**Data states.** `Name (state)` refers to the data object `Name` in that state,
+in `reads:`, `writes:` and `data`. Each state used draws its own shape, with
+the state under the name, and all of them are the same data object. This shows
+a document moving through a process.
+
+<!-- screenshot: notation-data-states -->
+
+```bpmnt
+start
+task Draft invoice [writes: Invoice (draft)]
+user Approve invoice [reads: Invoice (draft), writes: Invoice (approved)]
+service Send invoice [reads: Invoice (approved), writes: Invoice (sent)]
+end
+```
+
+![A data object in three states](images/notation-data-states.png)
+
+* **One object.** `[collection]` on any `data` line applies to the data object,
+  and so to all its states. `data Invoice [collection]` declares the object
+  without drawing a shape of its own once the object is used in some state.
+* **Literal brackets.** Quote a name whose brackets are part of it:
+  `[writes: "Invoice (copy)"]`. A data object is named without its state, so
+  `Invoice (draft)` and `Invoice` are one object.
+* **Data stores** have no state. `(state)` on a store is warning **BT105**.
+* **BPMN output:** one `dataObject`, and one `dataObjectReference` with a
+  `dataState` per state. Because bpmn-js draws only the name of a reference, its
+  `name` also holds the state, as `Invoice` and `[draft]` on two lines.
+
 ### 4.5 Attributes
 
 Attributes are written in square brackets after the name, separated by commas.
@@ -847,6 +875,7 @@ See [`examples/`](../examples) for complete files covering every feature:
 | `03-lanes.bpmnt` | One pool, lane switches, lane scoping in branches |
 | `04-collaboration.bpmnt` | Two pools, message flows, a collapsed pool |
 | `05-events.bpmnt` | Timers, boundary events, event-based gateway |
+| `09-data-states.bpmnt` | One data object moving through several states |
 | `06-subprocess-data.bpmnt` | Subprocesses, data objects/stores, notes, markers |
 | `07-multi-phase.bpmnt` | Eight lanes, phase groups, several start chains, `fork`, placeholders, colours, `doc` |
 | `08-shared-definitions.bpmnt` | One error, signal and message shared between events, across pools |

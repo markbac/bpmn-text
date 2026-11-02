@@ -146,7 +146,10 @@ export function addDiagrams(
   for (const p of model.pools) if (p.process) assign(p.process, undefined);
   for (const p of model.pools) {
     for (const d of [
-      ...(p.process?.dataObjects ?? []).map((o) => [o.reference, o.container]),
+      ...(p.process?.dataObjectReferences ?? []).map((o) => [
+        o.id,
+        o.container,
+      ]),
       ...(p.process?.dataStoreReferences ?? []).map((r) => [r.id, r.container]),
     ] as [string, string | undefined][]) {
       const [id, container] = d;

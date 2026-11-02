@@ -1,0 +1,10 @@
+pool Participant_company
+  node Event_order_shipped in Lane_sales
+  node Activity_draft_invoice in Lane_sales
+  node Activity_approve_invoice in Lane_finance
+  node Activity_send_invoice in Lane_finance
+  node Event_invoice_sent in Lane_finance
+  Event_order_shipped -> Activity_draft_invoice
+  Activity_draft_invoice -> Activity_approve_invoice
+  Activity_approve_invoice -> Activity_send_invoice
+  Activity_send_invoice -> Event_invoice_sent

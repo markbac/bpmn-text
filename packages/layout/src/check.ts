@@ -129,7 +129,10 @@ function planes(model: Model, result: LayoutResult): Plane[] {
   // Data references, in the body that holds them.
   for (const p of model.pools) {
     for (const [id, container] of [
-      ...(p.process?.dataObjects ?? []).map((o) => [o.reference, o.container]),
+      ...(p.process?.dataObjectReferences ?? []).map((o) => [
+        o.id,
+        o.container,
+      ]),
       ...(p.process?.dataStoreReferences ?? []).map((r) => [r.id, r.container]),
     ] as [string, string | undefined][]) {
       const [plane, parent] = container

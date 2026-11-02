@@ -148,7 +148,8 @@ function bodyModel(model: Model, sub: FlowNode, process: Process): Model {
         process: {
           id: `${sub.id}__process`,
           ...sub.children!,
-          dataObjects: mine(process.dataObjects),
+          dataObjects: [],
+          dataObjectReferences: mine(process.dataObjectReferences),
           dataStoreReferences: mine(process.dataStoreReferences),
         },
       },
@@ -336,8 +337,8 @@ async function layoutModel(
         [...n.reads, ...n.writes].some((a) => a.dataRef === ref),
       );
     const data = [
-      ...p.dataObjects.map(
-        (o) => [o.reference, o.name, false, o.container] as const,
+      ...p.dataObjectReferences.map(
+        (o) => [o.id, o.name, false, o.container] as const,
       ),
       ...p.dataStoreReferences.map(
         (r) =>
@@ -1259,6 +1260,16 @@ function associate(
     { x: sAway.x, y: away },
     { x: tV.x, y: away },
     tV,
+  ]);
+  // Around the source and up the near side of the target, when data under
+  // the target closes its bottom.
+  const beside = tH.x + (rightward ? -ATTACH_GAP : ATTACH_GAP);
+  candidates.push([
+    sAway,
+    { x: sAway.x, y: away },
+    { x: beside, y: away },
+    { x: beside, y: tH.y },
+    tH,
   ]);
   return simplify(candidates.find(clear) ?? candidates.at(-1)!).map((p) => ({
     x: Math.round(p.x),

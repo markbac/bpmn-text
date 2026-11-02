@@ -7,7 +7,7 @@ import {
   expectModdleImport,
   expectSchemaValid,
 } from '@bpmn-text/test-utils';
-import { compile } from 'bpmn-text';
+import { compile, format } from 'bpmn-text';
 import { afterAll, describe, expect, it } from 'vitest';
 
 afterAll(closeBrowser);
@@ -25,6 +25,42 @@ async function valid(source: string) {
   await expectBpmnJsImport(xml);
   return xml;
 }
+
+describe('data object states (#88)', () => {
+  const states = read('examples/09-data-states.bpmnt');
+
+  it('writes one data object and one reference per state', async () => {
+    const xml = await valid(states);
+    expect(xml.match(/<bpmn:dataObject /g)).toHaveLength(1);
+    expect(xml.match(/<bpmn:dataObjectReference /g)).toHaveLength(3);
+    for (const state of ['draft', 'approved', 'sent']) {
+      expect(xml).toContain(
+        `<bpmn:dataState id="DataObjectReference_invoice_${state}_state" name="${state}" />`,
+      );
+    }
+    expect(xml).toContain('isCollection="true"');
+  });
+
+  it('shows the state under the name in bpmn-js', async () => {
+    const xml = await valid(states);
+    expect(xml).toContain('name="Invoice&#10;[approved]"');
+  });
+
+  it('keeps literal brackets, and drops a bare declaration', async () => {
+    const xml = await valid(read('test/fixtures/valid/data-states.bpmnt'));
+    expect(xml).toContain('name="Report (copy)"');
+    expect(xml.match(/<bpmn:dataObject /g)).toHaveLength(2);
+    expect(xml).not.toContain('id="DataObjectReference_report"');
+    expect(xml).toContain('id="DataObjectReference_report_checked"');
+  });
+
+  it('round-trips through the formatter', () => {
+    const source = `data Invoice (approved) [collection]
+task A [reads: "Invoice (copy)", writes: Invoice (draft)]
+`;
+    expect(format(source)).toBe(source);
+  });
+});
 
 describe('shared definitions (#89)', () => {
   const shared = `start

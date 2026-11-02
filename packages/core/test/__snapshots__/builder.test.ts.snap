@@ -1237,20 +1237,32 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
             "text": "Includes contractors from the timesheet export",
           },
         ],
+        "dataObjectReferences": [
+          {
+            "id": "DataObjectReference_hours_report",
+            "name": "Hours report",
+            "object": "DataObject_hours_report",
+            "source": "8:63-8:75",
+          },
+          {
+            "container": "Activity_create_invoices",
+            "id": "DataObjectReference_invoice",
+            "name": "Invoice",
+            "object": "DataObject_invoice",
+            "source": "14:40-14:47",
+          },
+        ],
         "dataObjects": [
           {
             "collection": false,
             "id": "DataObject_hours_report",
             "name": "Hours report",
-            "reference": "DataObjectReference_hours_report",
             "source": "8:63-8:75",
           },
           {
             "collection": false,
-            "container": "Activity_create_invoices",
             "id": "DataObject_invoice",
             "name": "Invoice",
-            "reference": "DataObjectReference_invoice",
             "source": "14:40-14:47",
           },
         ],
@@ -2697,6 +2709,186 @@ exports[`check() on the corpus > examples/08-shared-definitions.bpmnt has no err
     },
   ],
   "title": "Refund request",
+  "xorJoin": "gateway",
+}
+`;
+
+exports[`check() on the corpus > examples/09-data-states.bpmnt has no errors or warnings, and matches its IR snapshot 1`] = `
+{
+  "collaboration": true,
+  "pools": [
+    {
+      "collapsed": false,
+      "extra": {},
+      "id": "Participant_company",
+      "implicit": false,
+      "lanes": [
+        {
+          "extra": {},
+          "id": "Lane_sales",
+          "name": "Sales",
+          "source": "6:3-6:13",
+        },
+        {
+          "extra": {},
+          "id": "Lane_finance",
+          "name": "Finance",
+          "source": "9:3-9:15",
+        },
+      ],
+      "name": "Company",
+      "process": {
+        "dataObjectReferences": [
+          {
+            "id": "DataObjectReference_invoice_draft",
+            "name": "Invoice
+[draft]",
+            "object": "DataObject_invoice",
+            "source": "8:31-8:46",
+            "state": "draft",
+          },
+          {
+            "id": "DataObjectReference_invoice_approved",
+            "name": "Invoice
+[approved]",
+            "object": "DataObject_invoice",
+            "source": "10:57-10:75",
+            "state": "approved",
+          },
+          {
+            "id": "DataObjectReference_invoice_sent",
+            "name": "Invoice
+[sent]",
+            "object": "DataObject_invoice",
+            "source": "12:60-12:74",
+            "state": "sent",
+          },
+        ],
+        "dataObjects": [
+          {
+            "collection": true,
+            "id": "DataObject_invoice",
+            "name": "Invoice",
+            "source": "8:31-8:46",
+          },
+        ],
+        "flows": [
+          {
+            "id": "Flow_order_shipped__draft_invoice",
+            "source": "8:3-8:47",
+            "sourceRef": "Event_order_shipped",
+            "targetRef": "Activity_draft_invoice",
+          },
+          {
+            "id": "Flow_draft_invoice__approve_invoice",
+            "source": "10:3-10:76",
+            "sourceRef": "Activity_draft_invoice",
+            "targetRef": "Activity_approve_invoice",
+          },
+          {
+            "id": "Flow_approve_invoice__send_invoice",
+            "source": "12:3-12:75",
+            "sourceRef": "Activity_approve_invoice",
+            "targetRef": "Activity_send_invoice",
+          },
+          {
+            "id": "Flow_send_invoice__invoice_sent",
+            "source": "13:3-13:19",
+            "sourceRef": "Activity_send_invoice",
+            "targetRef": "Event_invoice_sent",
+          },
+        ],
+        "id": "Process_company",
+        "nodes": [
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Event_order_shipped",
+            "kind": "startEvent",
+            "laneId": "Lane_sales",
+            "name": "Order shipped",
+            "source": "7:3-7:22",
+          },
+          {
+            "attributeRanges": {
+              "writes": "8:23-8:29",
+            },
+            "extra": {},
+            "id": "Activity_draft_invoice",
+            "kind": "task",
+            "laneId": "Lane_sales",
+            "name": "Draft invoice",
+            "source": "8:3-8:47",
+            "writes": [
+              {
+                "dataRef": "DataObjectReference_invoice_draft",
+                "id": "DataOutputAssociation_draft_invoice__invoice_draft",
+              },
+            ],
+          },
+          {
+            "attributeRanges": {
+              "reads": "10:25-10:30",
+              "writes": "10:49-10:55",
+            },
+            "extra": {},
+            "id": "Activity_approve_invoice",
+            "kind": "userTask",
+            "laneId": "Lane_finance",
+            "name": "Approve invoice",
+            "reads": [
+              {
+                "dataRef": "DataObjectReference_invoice_draft",
+                "id": "DataInputAssociation_approve_invoice__invoice_draft",
+              },
+            ],
+            "source": "10:3-10:76",
+            "writes": [
+              {
+                "dataRef": "DataObjectReference_invoice_approved",
+                "id": "DataOutputAssociation_approve_invoice__invoice_approved",
+              },
+            ],
+          },
+          {
+            "attributeRanges": {
+              "reads": "12:25-12:30",
+              "writes": "12:52-12:58",
+            },
+            "extra": {},
+            "id": "Activity_send_invoice",
+            "kind": "serviceTask",
+            "laneId": "Lane_finance",
+            "name": "Send invoice",
+            "reads": [
+              {
+                "dataRef": "DataObjectReference_invoice_approved",
+                "id": "DataInputAssociation_send_invoice__invoice_approved",
+              },
+            ],
+            "source": "12:3-12:75",
+            "writes": [
+              {
+                "dataRef": "DataObjectReference_invoice_sent",
+                "id": "DataOutputAssociation_send_invoice__invoice_sent",
+              },
+            ],
+          },
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Event_invoice_sent",
+            "kind": "endEvent",
+            "laneId": "Lane_finance",
+            "name": "Invoice sent",
+            "source": "13:3-13:19",
+          },
+        ],
+      },
+      "source": "5:1-13:19",
+    },
+  ],
+  "title": "Invoice approval",
   "xorJoin": "gateway",
 }
 `;

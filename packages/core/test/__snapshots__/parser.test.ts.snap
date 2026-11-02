@@ -2489,3 +2489,144 @@ exports[`parser on the corpus > examples/08-shared-definitions.bpmnt 1`] = `
   "type": "document",
 }
 `;
+
+exports[`parser on the corpus > examples/09-data-states.bpmnt 1`] = `
+{
+  "body": [
+    {
+      "body": [
+        {
+          "name": "Sales",
+          "range": "6:3-6:13",
+          "type": "lane",
+        },
+        {
+          "element": {
+            "keyword": "start",
+            "kind": "start",
+            "name": "Order shipped",
+            "range": "7:3-7:22",
+            "type": "element",
+          },
+          "range": "7:3-7:22",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "attrs": [
+              {
+                "key": "writes",
+                "range": "8:23-8:46",
+                "values": [
+                  "Invoice (draft)",
+                ],
+              },
+            ],
+            "keyword": "task",
+            "kind": "task",
+            "name": "Draft invoice",
+            "range": "8:3-8:47",
+            "type": "element",
+          },
+          "range": "8:3-8:47",
+          "type": "element-stmt",
+        },
+        {
+          "name": "Finance",
+          "range": "9:3-9:15",
+          "type": "lane",
+        },
+        {
+          "element": {
+            "attrs": [
+              {
+                "key": "reads",
+                "range": "10:25-10:47",
+                "values": [
+                  "Invoice (draft)",
+                ],
+              },
+              {
+                "key": "writes",
+                "range": "10:49-10:75",
+                "values": [
+                  "Invoice (approved)",
+                ],
+              },
+            ],
+            "keyword": "user",
+            "kind": "user",
+            "name": "Approve invoice",
+            "range": "10:3-10:76",
+            "type": "element",
+          },
+          "range": "10:3-10:76",
+          "type": "element-stmt",
+        },
+        {
+          "attrs": [
+            {
+              "key": "collection",
+              "range": "11:28-11:38",
+            },
+          ],
+          "kind": "data",
+          "name": "Invoice (approved)",
+          "range": "11:3-11:39",
+          "type": "data",
+        },
+        {
+          "element": {
+            "attrs": [
+              {
+                "key": "reads",
+                "range": "12:25-12:50",
+                "values": [
+                  "Invoice (approved)",
+                ],
+              },
+              {
+                "key": "writes",
+                "range": "12:52-12:74",
+                "values": [
+                  "Invoice (sent)",
+                ],
+              },
+            ],
+            "keyword": "service",
+            "kind": "service",
+            "name": "Send invoice",
+            "range": "12:3-12:75",
+            "type": "element",
+          },
+          "range": "12:3-12:75",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "keyword": "end",
+            "kind": "end",
+            "name": "Invoice sent",
+            "range": "13:3-13:19",
+            "type": "element",
+          },
+          "range": "13:3-13:19",
+          "type": "element-stmt",
+        },
+      ],
+      "name": "Company",
+      "range": "5:1-13:19",
+      "type": "pool",
+    },
+  ],
+  "directives": [
+    {
+      "range": "3:1-3:25",
+      "type": "title",
+      "value": ""Invoice approval"",
+    },
+  ],
+  "range": "1:1-14:1",
+  "type": "document",
+}
+`;

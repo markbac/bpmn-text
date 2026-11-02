@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" name="Invoice approval" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-text">
+  <bpmn:collaboration id="Collaboration_1">
+    <bpmn:participant id="Participant_company" name="Company" processRef="Process_company" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_company" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Process_company">
+      <bpmn:lane id="Lane_sales" name="Sales">
+        <bpmn:flowNodeRef>Event_order_shipped</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_draft_invoice</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_finance" name="Finance">
+        <bpmn:flowNodeRef>Activity_approve_invoice</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_send_invoice</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_invoice_sent</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Event_order_shipped" name="Order shipped">
+      <bpmn:outgoing>Flow_order_shipped__draft_invoice</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_draft_invoice" name="Draft invoice">
+      <bpmn:incoming>Flow_order_shipped__draft_invoice</bpmn:incoming>
+      <bpmn:outgoing>Flow_draft_invoice__approve_invoice</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_draft_invoice__invoice_draft">
+        <bpmn:targetRef>DataObjectReference_invoice_draft</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+    <bpmn:userTask id="Activity_approve_invoice" name="Approve invoice">
+      <bpmn:incoming>Flow_draft_invoice__approve_invoice</bpmn:incoming>
+      <bpmn:outgoing>Flow_approve_invoice__send_invoice</bpmn:outgoing>
+      <bpmn:property id="Activity_approve_invoice_property" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="DataInputAssociation_approve_invoice__invoice_draft">
+        <bpmn:sourceRef>DataObjectReference_invoice_draft</bpmn:sourceRef>
+        <bpmn:targetRef>Activity_approve_invoice_property</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_approve_invoice__invoice_approved">
+        <bpmn:targetRef>DataObjectReference_invoice_approved</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Activity_send_invoice" name="Send invoice">
+      <bpmn:incoming>Flow_approve_invoice__send_invoice</bpmn:incoming>
+      <bpmn:outgoing>Flow_send_invoice__invoice_sent</bpmn:outgoing>
+      <bpmn:property id="Activity_send_invoice_property" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="DataInputAssociation_send_invoice__invoice_approved">
+        <bpmn:sourceRef>DataObjectReference_invoice_approved</bpmn:sourceRef>
+        <bpmn:targetRef>Activity_send_invoice_property</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_send_invoice__invoice_sent">
+        <bpmn:targetRef>DataObjectReference_invoice_sent</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_invoice_sent" name="Invoice sent">
+      <bpmn:incoming>Flow_send_invoice__invoice_sent</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_order_shipped__draft_invoice" sourceRef="Event_order_shipped" targetRef="Activity_draft_invoice" />
+    <bpmn:sequenceFlow id="Flow_draft_invoice__approve_invoice" sourceRef="Activity_draft_invoice" targetRef="Activity_approve_invoice" />
+    <bpmn:sequenceFlow id="Flow_approve_invoice__send_invoice" sourceRef="Activity_approve_invoice" targetRef="Activity_send_invoice" />
+    <bpmn:sequenceFlow id="Flow_send_invoice__invoice_sent" sourceRef="Activity_send_invoice" targetRef="Event_invoice_sent" />
+    <bpmn:dataObject id="DataObject_invoice" isCollection="true" />
+    <bpmn:dataObjectReference id="DataObjectReference_invoice_draft" name="Invoice&#10;[draft]" dataObjectRef="DataObject_invoice">
+      <bpmn:dataState id="DataObjectReference_invoice_draft_state" name="draft" />
+    </bpmn:dataObjectReference>
+    <bpmn:dataObjectReference id="DataObjectReference_invoice_approved" name="Invoice&#10;[approved]" dataObjectRef="DataObject_invoice">
+      <bpmn:dataState id="DataObjectReference_invoice_approved_state" name="approved" />
+    </bpmn:dataObjectReference>
+    <bpmn:dataObjectReference id="DataObjectReference_invoice_sent" name="Invoice&#10;[sent]" dataObjectRef="DataObject_invoice">
+      <bpmn:dataState id="DataObjectReference_invoice_sent_state" name="sent" />
+    </bpmn:dataObjectReference>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+      <bpmndi:BPMNShape id="Participant_company_di" bpmnElement="Participant_company" isHorizontal="true">
+        <dc:Bounds x="0" y="0" width="724" height="546" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_sales_di" bpmnElement="Lane_sales" isHorizontal="true">
+        <dc:Bounds x="30" y="0" width="694" height="273" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_finance_di" bpmnElement="Lane_finance" isHorizontal="true">
+        <dc:Bounds x="30" y="273" width="694" height="273" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_order_shipped_di" bpmnElement="Event_order_shipped">
+        <dc:Bounds x="100" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="83" y="103" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_draft_invoice_di" bpmnElement="Activity_draft_invoice">
+        <dc:Bounds x="186" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_approve_invoice_di" bpmnElement="Activity_approve_invoice">
+        <dc:Bounds x="348" y="313" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_send_invoice_di" bpmnElement="Activity_send_invoice">
+        <dc:Bounds x="498" y="313" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_invoice_sent_di" bpmnElement="Event_invoice_sent">
+        <dc:Bounds x="648" y="335" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="637" y="376" width="59" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataObjectReference_invoice_draft_di" bpmnElement="DataObjectReference_invoice_draft">
+        <dc:Bounds x="218" y="150" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="219" y="205" width="35" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataObjectReference_invoice_approved_di" bpmnElement="DataObjectReference_invoice_approved">
+        <dc:Bounds x="380" y="423" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="372" y="478" width="52" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="DataObjectReference_invoice_sent_di" bpmnElement="DataObjectReference_invoice_sent">
+        <dc:Bounds x="530" y="423" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="531" y="478" width="35" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_order_shipped__draft_invoice_di" bpmnElement="Flow_order_shipped__draft_invoice">
+        <di:waypoint x="136" y="80" />
+        <di:waypoint x="186" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_draft_invoice__approve_invoice_di" bpmnElement="Flow_draft_invoice__approve_invoice">
+        <di:waypoint x="286" y="80" />
+        <di:waypoint x="311" y="80" />
+        <di:waypoint x="311" y="353" />
+        <di:waypoint x="348" y="353" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_approve_invoice__send_invoice_di" bpmnElement="Flow_approve_invoice__send_invoice">
+        <di:waypoint x="448" y="353" />
+        <di:waypoint x="498" y="353" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_send_invoice__invoice_sent_di" bpmnElement="Flow_send_invoice__invoice_sent">
+        <di:waypoint x="598" y="353" />
+        <di:waypoint x="648" y="353" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_draft_invoice__invoice_draft_di" bpmnElement="DataOutputAssociation_draft_invoice__invoice_draft">
+        <di:waypoint x="236" y="120" />
+        <di:waypoint x="236" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_approve_invoice__invoice_draft_di" bpmnElement="DataInputAssociation_approve_invoice__invoice_draft">
+        <di:waypoint x="254" y="175" />
+        <di:waypoint x="398" y="175" />
+        <di:waypoint x="398" y="313" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_approve_invoice__invoice_approved_di" bpmnElement="DataOutputAssociation_approve_invoice__invoice_approved">
+        <di:waypoint x="398" y="393" />
+        <di:waypoint x="398" y="423" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_send_invoice__invoice_approved_di" bpmnElement="DataInputAssociation_send_invoice__invoice_approved">
+        <di:waypoint x="398" y="423" />
+        <di:waypoint x="398" y="408" />
+        <di:waypoint x="548" y="408" />
+        <di:waypoint x="548" y="393" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_send_invoice__invoice_sent_di" bpmnElement="DataOutputAssociation_send_invoice__invoice_sent">
+        <di:waypoint x="548" y="393" />
+        <di:waypoint x="548" y="423" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
+

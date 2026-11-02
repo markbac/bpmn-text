@@ -62,6 +62,8 @@ export interface Container {
 export interface Process extends Container {
   id: string;
   dataObjects: DataObject[];
+  /** What is drawn: one reference per (data object, state) used. */
+  dataObjectReferences: DataObjectReference[];
   /** The data stores this process uses, one reference each. */
   dataStoreReferences: DataStoreReference[];
 }
@@ -170,15 +172,24 @@ export interface EventDefinition {
 
 export interface DataObject {
   id: string;
-  /** The ID of its one data object reference, which is what is drawn. */
-  reference: string;
-  /**
-   * The subprocess whose body holds the reference: where the object is
-   * first used. Absent for the process itself.
-   */
-  container?: string;
   name: string;
   collection: boolean;
+  source: Range;
+}
+
+/** A use of a data object in one state, which is what is drawn. */
+export interface DataObjectReference {
+  id: string;
+  /** The data object's ID. */
+  object: string;
+  /** The drawn label: the object's name, with the state under it. */
+  name: string;
+  state?: string;
+  /**
+   * The subprocess whose body holds the reference: where it is first used.
+   * Absent for the process itself.
+   */
+  container?: string;
   source: Range;
 }
 

@@ -184,21 +184,30 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
     dataRefs.clear();
     const addRef = (container: string | undefined, ref: ModdleElement) =>
       dataRefs.set(container, [...(dataRefs.get(container) ?? []), ref]);
-    const objects = p.dataObjects.map((o) => {
-      const object = create('bpmn:DataObject', {
+    const objects = p.dataObjects.map((o) =>
+      create('bpmn:DataObject', {
         id: o.id,
         ...(o.collection ? { isCollection: true } : {}),
-      });
+      }),
+    );
+    for (const r of p.dataObjectReferences) {
       addRef(
-        o.container,
+        r.container,
         create('bpmn:DataObjectReference', {
-          id: o.reference,
-          name: o.name,
-          dataObjectRef: object,
+          id: r.id,
+          name: r.name,
+          dataObjectRef: elements.get(r.object),
+          ...(r.state
+            ? {
+                dataState: moddle.create('bpmn:DataState', {
+                  id: `${r.id}_state`,
+                  name: r.state,
+                }),
+              }
+            : {}),
         }),
       );
-      return object;
-    });
+    }
     for (const r of p.dataStoreReferences) {
       const store = elements.get(r.store)!;
       addRef(

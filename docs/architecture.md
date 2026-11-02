@@ -290,7 +290,8 @@ interface Container {            // a process or a subprocess body
 }
 interface Process extends Container {
   id;
-  dataObjects: DataObject[];    // { id, reference, container? }: one reference each
+  dataObjects: DataObject[];    // { id, name, collection }
+  dataObjectReferences: DataObjectReference[];   // { id, object, state?, container? }: one per state used
   dataStoreReferences: DataStoreReference[];   // the stores this process uses
 }
 interface FlowNode { id; kind; eventType?; name?; laneId?; groupId?; markers;

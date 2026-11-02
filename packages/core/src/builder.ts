@@ -11,11 +11,13 @@ import type {
   Ref,
   Statement,
   SubStmt,
+  Text,
 } from './ast.js';
 import { diagnostic, type Diagnostic, type Range } from './diagnostics.js';
 import type {
   Container,
   DataObject,
+  DataObjectReference,
   DataStore,
   DataStoreReference,
   DefinitionType,
@@ -172,14 +174,15 @@ interface NodeInfo {
   group?: Group;
   host?: FlowNode;
   explicitId?: string | undefined;
-  reads: (DataObject | DataStoreReference)[];
-  writes: (DataObject | DataStoreReference)[];
+  reads: DataRef[];
+  writes: DataRef[];
   /** Inserted joins: the element the join leads into, for its ID. */
   joinTarget?: FlowNode;
   /** `[message: …]` and the like: the definition's name, if not the event's. */
   definitionName?: string;
   definition?: EventDefinition;
 }
+type DataRef = DataObjectReference | DataStoreReference;
 interface FlowBuild {
   flow: SequenceFlow;
   from: FlowNode;
@@ -237,12 +240,16 @@ class Builder {
     Process,
     Map<DataStore, DataStoreReference>
   >();
-  /** Data references first used or declared inside a subprocess. */
-  private readonly dataContainer = new Map<
-    DataObject | DataStoreReference,
-    FlowNode | undefined
+  /** Each object's references, by state ('' for none). */
+  private readonly objectRefs = new Map<
+    DataObject,
+    Map<string, DataObjectReference>
   >();
-  private readonly usedData = new Set<DataObject | DataStoreReference>();
+  /** The reference's data object, until IDs are assigned. */
+  private readonly refObject = new Map<DataObjectReference, DataObject>();
+  /** Data references first used or declared inside a subprocess. */
+  private readonly dataContainer = new Map<DataRef, FlowNode | undefined>();
+  private readonly usedData = new Set<DataRef>();
   /** Explicit `@id`s, with where each was first written. */
   private readonly explicitIds = new Map<string, Range>();
 
@@ -289,6 +296,7 @@ class Builder {
     }
     this.resolve();
     this.shareDefinitions();
+    this.dropUnusedStatelessReferences();
     this.assignIds();
     this.pairLinks();
     this.model.groups = [...this.groups.values()];
@@ -387,6 +395,7 @@ class Builder {
         flows: [],
         annotations: [],
         dataObjects: [],
+        dataObjectReferences: [],
         dataStoreReferences: [],
       };
       this.dataObjects.set(pool.process, new Map());
@@ -530,13 +539,15 @@ class Builder {
             const collection = s.attrs.some(
               (a) => a.key.value === 'collection',
             );
-            const object = this.dataObject(
+            const { name, state } = dataName(s.name);
+            const ref = this.objectReference(
               ctx.process,
-              s.name.value,
+              name,
+              state,
               s.range,
               collection,
             );
-            this.placeData(object, ctx, false);
+            this.placeData(ref, ctx, false);
           }
           break;
         case 'pool':
@@ -631,8 +642,7 @@ class Builder {
       else if (MARKERS.has(key) && ACTIVITIES.has(kind))
         node.markers.push(key as Marker);
       else if (key === 'reads' || key === 'writes') {
-        for (const v of a.values)
-          info[key].push(this.data(ctx, v.value, v.range, true));
+        for (const v of a.values) info[key].push(this.data(ctx, v, true));
       } else if (key === 'collapsed' && kind === 'subProcess')
         node.collapsed = true;
       else if (key === 'non-interrupting' && kind === 'boundaryEvent')
@@ -974,7 +984,7 @@ class Builder {
     const objects = this.dataObjects.get(process)!;
     let object = objects.get(normalise(name));
     if (!object) {
-      object = { id: '', reference: '', name, collection, source };
+      object = { id: '', name, collection, source };
       objects.set(normalise(name), object);
       process.dataObjects.push(object);
     }
@@ -982,20 +992,56 @@ class Builder {
     return object;
   }
 
+  /** The reference to a data object in `state`, created on first use. */
+  private objectReference(
+    process: Process,
+    name: string,
+    state: string | undefined,
+    source: Range,
+    collection = false,
+  ): DataObjectReference {
+    const object = this.dataObject(process, name, source, collection);
+    const refs = this.objectRefs.get(object) ?? new Map();
+    this.objectRefs.set(object, refs);
+    const key = state ? normalise(state) : '';
+    let ref = refs.get(key);
+    if (!ref) {
+      ref = {
+        id: '',
+        object: '',
+        name: state ? `${object.name}\n[${state}]` : object.name,
+        ...(state ? { state } : {}),
+        source,
+      };
+      refs.set(key, ref);
+      this.refObject.set(ref, object);
+      process.dataObjectReferences.push(ref);
+    }
+    return ref!;
+  }
+
   /**
    * The process's reference to a data store if one has this name, else a
-   * data object, created on first use.
+   * reference to a data object in the state written, created on first use.
    */
-  private data(
-    ctx: Ctx,
-    name: string,
-    source: Range,
-    use: boolean,
-  ): DataObject | DataStoreReference {
+  private data(ctx: Ctx, written: Text, use: boolean): DataRef {
     const process = ctx.process;
-    const store = this.stores.get(normalise(name));
-    let data: DataObject | DataStoreReference;
-    if (!store) data = this.dataObject(process, name, source);
+    const source = written.range;
+    const { name, state } = dataName(written);
+    let store = this.stores.get(normalise(written.value));
+    if (!store && state) {
+      store = this.stores.get(normalise(name));
+      if (store)
+        this.diagnostics.push(
+          diagnostic(
+            'BT105',
+            `\`${store.name}\` is a data store, which has no state; \`(${state})\` has no effect. Quote the name if the brackets are part of it.`,
+            source,
+          ),
+        );
+    }
+    let data: DataRef;
+    if (!store) data = this.objectReference(process, name, state, source);
     else {
       const refs = this.storeRefs.get(process)!;
       let ref = refs.get(store);
@@ -1014,11 +1060,7 @@ class Builder {
    * Records the container of a data reference: where it is first used, or
    * where it is declared if it is never used.
    */
-  private placeData(
-    data: DataObject | DataStoreReference,
-    ctx: Ctx,
-    use: boolean,
-  ) {
+  private placeData(data: DataRef, ctx: Ctx, use: boolean) {
     if (this.usedData.has(data)) return;
     if (use) this.usedData.add(data);
     else if (this.dataContainer.has(data)) return;
@@ -1313,6 +1355,26 @@ class Builder {
     }
   }
 
+  /**
+   * `data Invoice` only declares the object: without a state of its own, it
+   * draws nothing once the object is used in some state.
+   */
+  private dropUnusedStatelessReferences() {
+    for (const [object, refs] of this.objectRefs) {
+      const plain = refs.get('');
+      if (!plain || refs.size < 2 || this.usedData.has(plain)) continue;
+      refs.delete('');
+      for (const pb of this.pools) {
+        const process = pb.pool.process;
+        if (!process?.dataObjects.includes(object)) continue;
+        process.dataObjectReferences = process.dataObjectReferences.filter(
+          (r) => r !== plain,
+        );
+      }
+      this.dataContainer.delete(plain);
+    }
+  }
+
   // IDs (architecture §8)
 
   private assignIds() {
@@ -1377,7 +1439,12 @@ class Builder {
     );
     for (const [o, id] of qualify(objects, poolSlug)) {
       o.id = take(id);
-      o.reference = take(`DataObjectReference_${stripPrefix(o.id)}`);
+      for (const [state, ref] of this.objectRefs.get(o) ?? []) {
+        ref.object = o.id;
+        ref.id = take(
+          `DataObjectReference_${stripPrefix(o.id)}${state ? `_${slug(state)}` : ''}`,
+        );
+      }
     }
     const storeOf = new Map(
       [...this.storeRefs.values()].flatMap((refs) =>
@@ -1405,9 +1472,6 @@ class Builder {
     for (const [data, sub] of this.dataContainer) {
       if (sub) data.container = sub.id;
     }
-    const drawn = (d: DataObject | DataStoreReference) =>
-      'reference' in d ? d.reference : d.id;
-
     for (const n of this.nodes) {
       const info = this.info.get(n)!;
       if (info.definition) n.definitionRef = info.definition.id;
@@ -1422,15 +1486,15 @@ class Builder {
       }
       n.reads = info.reads.map((d) => ({
         id: take(
-          `DataInputAssociation_${stripPrefix(n.id)}__${stripPrefix(drawn(d))}`,
+          `DataInputAssociation_${stripPrefix(n.id)}__${stripPrefix(d.id)}`,
         ),
-        dataRef: drawn(d),
+        dataRef: d.id,
       }));
       n.writes = info.writes.map((d) => ({
         id: take(
-          `DataOutputAssociation_${stripPrefix(n.id)}__${stripPrefix(drawn(d))}`,
+          `DataOutputAssociation_${stripPrefix(n.id)}__${stripPrefix(d.id)}`,
         ),
-        dataRef: drawn(d),
+        dataRef: d.id,
       }));
     }
     for (const { flow, from, to } of this.flows) {
@@ -1532,6 +1596,17 @@ function containsLanes(stmts: Statement[]): boolean {
         return false;
     }
   });
+}
+
+/**
+ * `Invoice (approved)` as the data object `Invoice` in state `approved`. A
+ * quoted name keeps its brackets (notation §4.4).
+ */
+function dataName(t: Text): { name: string; state?: string } {
+  const m = t.quoted
+    ? null
+    : /^(.*\S)\s*\(\s*([^()]*[^()\s])\s*\)$/.exec(t.value);
+  return m ? { name: m[1]!, state: m[2]! } : { name: t.value };
 }
 
 /** A readable, ID-safe slug: lower case, `_` between words. */

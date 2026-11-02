@@ -254,6 +254,23 @@ end
 
 ![Data and notes](images/cookbook-data.png)
 
+### A document moving through states
+
+Write the state in brackets after the name. Each state gets its own shape, all
+of one data object.
+
+<!-- screenshot: cookbook-data-states -->
+
+```bpmnt
+start
+user Write contract [writes: Contract (draft)]
+user Review contract [reads: Contract (draft), writes: Contract (reviewed)]
+user Sign contract [reads: Contract (reviewed), writes: Contract (signed)]
+end
+```
+
+![A contract moving through states](images/cookbook-data-states.png)
+
 ## Common errors and how to fix them
 
 ### BT201: ambiguous reference
