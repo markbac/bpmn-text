@@ -74,10 +74,13 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
         definition.condition = moddle.create('bpmn:FormalExpression');
       }
       if (n.eventType === 'link') definition.name = n.name ?? '';
+      if (n.definitionRef)
+        definition[`${n.eventType}Ref`] = elements.get(n.definitionRef);
       const element = moddle.create(definitionType[n.eventType], definition);
       if (n.eventType === 'link') linkDefinitions.set(n.id, [n, element]);
       attrs.eventDefinitions = [element];
-    }
+    } else if (n.definitionRef)
+      attrs.messageRef = elements.get(n.definitionRef);
     if (n.interrupting === false) attrs.cancelActivity = false;
     const marker = n.markers[0];
     if (marker === 'loop') {
@@ -245,6 +248,13 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
   const stores = model.dataStores.map((s) =>
     create('bpmn:DataStore', { id: s.id, name: s.name }),
   );
+  // Created before the processes, whose events refer to them.
+  const definitionElements = model.definitions.map((d) =>
+    create(`bpmn:${d.type[0]!.toUpperCase()}${d.type.slice(1)}`, {
+      id: d.id,
+      name: d.name,
+    }),
+  );
   const processes = model.pools.filter((p) => p.process).map(process);
   for (const [n, definition] of linkDefinitions.values()) {
     if (n.linkTarget) definition.target = linkDefinitions.get(n.linkTarget)![1];
@@ -253,7 +263,7 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
         (id) => linkDefinitions.get(id)![1],
       );
   }
-  const rootElements = [...stores, ...processes];
+  const rootElements = [...definitionElements, ...stores, ...processes];
   let root = processes[0]!;
 
   // Groups: one category value each, and the group in the root element.
@@ -296,6 +306,7 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
         ...named(f.name),
         sourceRef: elements.get(f.sourceRef),
         targetRef: elements.get(f.targetRef),
+        ...(f.messageRef ? { messageRef: elements.get(f.messageRef) } : {}),
       }),
     );
     root = moddle.create('bpmn:Collaboration', {

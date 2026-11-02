@@ -34,6 +34,10 @@ export const diagnosticCodes = {
   },
   BT103: { severity: 'warning', meaning: 'Unknown attribute' },
   BT104: { severity: 'error', meaning: 'Invalid colour value' },
+  BT105: {
+    severity: 'warning',
+    meaning: 'Attribute has no effect on this element',
+  },
   BT201: { severity: 'error', meaning: 'Ambiguous reference' },
   BT202: {
     severity: 'error',
@@ -96,6 +100,16 @@ export const diagnosticCodes = {
   BT304: {
     severity: 'info',
     meaning: 'Send/receive element without a message flow',
+  },
+  BT305: {
+    severity: 'info',
+    meaning:
+      'Error or escalation boundary event with nothing to catch in its subprocess',
+  },
+  BT306: {
+    severity: 'info',
+    meaning:
+      'Error or escalation thrown in a subprocess with nothing to catch it',
   },
 } as const satisfies Record<string, { severity: Severity; meaning: string }>;
 

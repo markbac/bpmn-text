@@ -26,6 +26,76 @@ async function valid(source: string) {
   return xml;
 }
 
+describe('shared definitions (#89)', () => {
+  const shared = `start
+sub Take payment
+  start
+  end error Payment failed
+  on error Payment failed -> end Refused
+end Paid
+`;
+
+  it('shares one error between the thrower and its boundary event', async () => {
+    const xml = await valid(shared);
+    expect(xml.match(/<bpmn:error /g)).toHaveLength(1);
+    expect(xml).toContain(
+      '<bpmn:error id="Error_payment_failed" name="Payment failed" />',
+    );
+    expect(xml.match(/errorRef="Error_payment_failed"/g)).toHaveLength(2);
+  });
+
+  it('keeps IDs stable when nothing changes', async () => {
+    expect(await valid(shared)).toBe(await valid(shared));
+  });
+
+  it('shares definitions across pools and through explicit names', async () => {
+    const xml = await valid(`pool A
+  start
+  throw signal Go now
+  send Ask [message: Order] ~> Got it
+  end
+pool B
+  start signal go  now
+  end
+  start message Got it [message: order]
+  end
+`);
+    expect(xml.match(/<bpmn:signal /g)).toHaveLength(1);
+    expect(xml.match(/<bpmn:message /g)).toHaveLength(1);
+    expect(xml).toContain('<bpmn:message id="Message_order" name="Order" />');
+    expect(xml).toMatch(/<bpmn:sendTask[^>]*messageRef="Message_order"/);
+    expect(xml).toMatch(/<bpmn:messageFlow[^>]*messageRef="Message_order"/);
+  });
+
+  it('gives a send and a receive of one name a message', async () => {
+    const xml = await valid(`pool A
+  start
+  send Order ~> @r
+  end
+pool B
+  start
+  receive Order @r
+  end
+`);
+    expect(xml).toContain('<bpmn:message id="Message_order" name="Order" />');
+    expect(xml).toMatch(/<bpmn:messageFlow[^>]*messageRef="Message_order"/);
+    expect(xml).toMatch(/<bpmn:receiveTask[^>]*messageRef="Message_order"/);
+  });
+
+  it('gives a message flow no message when its ends disagree', async () => {
+    const xml = await valid(`pool A
+  start
+  throw message One ~> @two
+  end
+pool B
+  start message Two @two
+  end
+`);
+    expect(xml).toMatch(/<bpmn:message id="Message_one"/);
+    expect(xml).not.toMatch(/<bpmn:messageFlow[^>]*messageRef/);
+  });
+});
+
 describe('link events (#86)', () => {
   it('compiles the reproduction with no flow across the link', async () => {
     const xml = await valid(`start
@@ -37,9 +107,7 @@ end
 `);
     expect(xml).not.toContain('Flow_to_b__to_b_2');
     expect(xml).toContain('<bpmn:linkEventDefinition');
-    expect(xml).toContain(
-      '<bpmn:target>Event_to_b_2_definition</bpmn:target>',
-    );
+    expect(xml).toContain('<bpmn:target>Event_to_b_2_definition</bpmn:target>');
     expect(xml).toContain('<bpmn:source>Event_to_b_definition</bpmn:source>');
   });
 

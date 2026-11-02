@@ -155,6 +155,7 @@ function bodyModel(model: Model, sub: FlowNode, process: Process): Model {
     ],
     messageFlows: [],
     dataStores: model.dataStores,
+    definitions: [],
     groups: [],
   };
 }

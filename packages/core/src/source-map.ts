@@ -36,6 +36,7 @@ export function sourceMap(model: Model): Record<string, Range> {
   }
   model.messageFlows.forEach(add);
   model.dataStores.forEach(add);
+  model.definitions.forEach(add);
   model.groups.forEach(add);
   return map;
 }

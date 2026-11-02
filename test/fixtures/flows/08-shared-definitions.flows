@@ -1,0 +1,38 @@
+pool Participant_customer
+  node Event_refund_wanted
+  node Activity_ask_for_a_refund
+  node Event_refund_decision
+  node Event_answer_received
+  Event_refund_wanted -> Activity_ask_for_a_refund
+  Activity_ask_for_a_refund -> Event_refund_decision
+  Event_refund_decision -> Event_answer_received
+pool Participant_shop
+  node Event_request_received in Lane_service
+  node Activity_check_the_purchase in Lane_service
+  node Event_order_unknown_2 in Lane_service on Activity_check_the_purchase
+  node Activity_reject_request in Lane_service
+  node Event_rejected in Lane_service
+  node Activity_pay_refund in Lane_finance
+  node Event_refund_paid in Lane_finance
+  node Activity_confirm_refund in Lane_finance
+  node Event_refunded in Lane_finance
+  node Event_refund_paid_2 in Lane_service
+  node Activity_close_the_case in Lane_service
+  node Event_case_closed in Lane_service
+  Event_request_received -> Activity_check_the_purchase
+  Event_order_unknown_2 -> Activity_reject_request
+  Activity_reject_request -> Event_rejected
+  Activity_check_the_purchase -> Activity_pay_refund
+  Activity_pay_refund -> Event_refund_paid
+  Event_refund_paid -> Activity_confirm_refund
+  Activity_confirm_refund -> Event_refunded
+  Event_refund_paid_2 -> Activity_close_the_case
+  Activity_close_the_case -> Event_case_closed
+  Activity_check_the_purchase:
+    Event_check_the_purchase_start_1 -> Activity_find_order
+    Activity_find_order -> Gateway_order_found
+    Gateway_order_found -> Event_checked [yes]
+    Gateway_order_found -> Event_order_unknown [no]
+message Activity_ask_for_a_refund ~> Event_request_received
+message Activity_reject_request ~> Event_refund_decision
+message Activity_confirm_refund ~> Event_refund_decision

@@ -10,7 +10,9 @@ note Includes contractors from the timesheet export
 sub Create invoices [parallel]
   start
   task Calculate totals [reads: Hours report]
-  service Generate PDF [writes: Invoice]
+  xor Rate known?
+    yes: service Generate PDF [writes: Invoice]
+    no: end error Missing rate
   end
   on error Missing rate -> user Fix rate card -> end Invoice skipped
 sub Send invoices [collapsed]

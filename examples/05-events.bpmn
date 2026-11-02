@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" name="Support ticket" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-text">
+  <bpmn:message id="Message_ticket_raised" name="Ticket raised" />
+  <bpmn:message id="Message_customer_confirms" name="Customer confirms" />
+  <bpmn:message id="Message_customer_reopens" name="Customer reopens" />
   <bpmn:process id="Process_support_ticket" name="Support ticket" isExecutable="false">
     <bpmn:startEvent id="Event_ticket_raised" name="Ticket raised">
       <bpmn:outgoing>Flow_ticket_raised__triage_ticket</bpmn:outgoing>
-      <bpmn:messageEventDefinition id="Event_ticket_raised_definition" />
+      <bpmn:messageEventDefinition id="Event_ticket_raised_definition" messageRef="Message_ticket_raised" />
     </bpmn:startEvent>
     <bpmn:userTask id="Activity_triage_ticket" name="Triage ticket">
       <bpmn:incoming>Flow_ticket_raised__triage_ticket</bpmn:incoming>
@@ -51,12 +54,12 @@
     <bpmn:intermediateCatchEvent id="Event_customer_confirms" name="Customer confirms">
       <bpmn:incoming>Flow_wait_for_customer__customer_confirms</bpmn:incoming>
       <bpmn:outgoing>Flow_customer_confirms__join_after_ticket_closed</bpmn:outgoing>
-      <bpmn:messageEventDefinition id="Event_customer_confirms_definition" />
+      <bpmn:messageEventDefinition id="Event_customer_confirms_definition" messageRef="Message_customer_confirms" />
     </bpmn:intermediateCatchEvent>
     <bpmn:intermediateCatchEvent id="Event_customer_reopens" name="Customer reopens">
       <bpmn:incoming>Flow_wait_for_customer__customer_reopens</bpmn:incoming>
       <bpmn:outgoing>Flow_customer_reopens__resolve_ticket</bpmn:outgoing>
-      <bpmn:messageEventDefinition id="Event_customer_reopens_definition" />
+      <bpmn:messageEventDefinition id="Event_customer_reopens_definition" messageRef="Message_customer_reopens" />
     </bpmn:intermediateCatchEvent>
     <bpmn:intermediateCatchEvent id="Event_7_days" name="7 days">
       <bpmn:incoming>Flow_wait_for_customer__7_days</bpmn:incoming>

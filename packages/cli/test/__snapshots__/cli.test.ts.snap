@@ -91,6 +91,17 @@ test/fixtures/diagnostics/BT104-invalid-colour.bpmnt: 1 error
 "
 `;
 
+exports[`bpmn-text check > prints code frames for BT105-attribute-without-effect.bpmnt 1`] = `
+"warning[BT105]: \`message:\` names the definition of a message event or a send or receive task; it has no effect here.
+ --> test/fixtures/diagnostics/BT105-attribute-without-effect.bpmnt:4:9
+  |
+4 | task A [message: Order]
+  |         ^^^^^^^
+
+test/fixtures/diagnostics/BT105-attribute-without-effect.bpmnt: 1 warning
+"
+`;
+
 exports[`bpmn-text check > prints code frames for BT201-ambiguous-reference.bpmnt 1`] = `
 "error[BT201]: \`Review\` is ambiguous: 2 elements have this name (lines 4, 5). Give the one you mean an @id and refer to it by that.
  --> test/fixtures/diagnostics/BT201-ambiguous-reference.bpmnt:9:8
@@ -272,6 +283,63 @@ test/fixtures/diagnostics/BT251-conflicting-lane-colour.bpmnt: 1 warning
 "
 `;
 
+exports[`bpmn-text check > prints code frames for BT260-link-throw-without-catch.bpmnt 1`] = `
+"warning[BT260]: No \`catch link Nowhere\` in this process level, so flow stops here.
+ --> test/fixtures/diagnostics/BT260-link-throw-without-catch.bpmnt:5:8
+  |
+5 |   yes: throw link Nowhere
+  |        ^
+
+test/fixtures/diagnostics/BT260-link-throw-without-catch.bpmnt: 1 warning
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT261-link-catch-without-throw.bpmnt 1`] = `
+"warning[BT261]: No \`throw link Nowhere\` in this process level, so this can never be reached.
+ --> test/fixtures/diagnostics/BT261-link-catch-without-throw.bpmnt:5:1
+  |
+5 | catch link Nowhere
+  | ^
+
+test/fixtures/diagnostics/BT261-link-catch-without-throw.bpmnt: 1 warning
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT262-duplicate-link-catch.bpmnt 1`] = `
+"error[BT262]: This process level already has a \`catch link Next\` on line 5: a throw event must lead to one place.
+ --> test/fixtures/diagnostics/BT262-duplicate-link-catch.bpmnt:7:1
+  |
+7 | catch link Next
+  | ^
+  = note: First catch (test/fixtures/diagnostics/BT262-duplicate-link-catch.bpmnt:5:1)
+
+test/fixtures/diagnostics/BT262-duplicate-link-catch.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT263-flow-out-of-link-throw.bpmnt 1`] = `
+"error[BT263]: A link throw event has no outgoing flow: flow continues at its link catch event.
+ --> test/fixtures/diagnostics/BT263-flow-out-of-link-throw.bpmnt:7:27
+  |
+7 |   yes: throw link Next -> Finish
+  |                           ^^^^^^
+
+warning[BT302]: Nothing flows out of this element. End the chain with \`end\`, or jump somewhere with \`->\`.
+ --> test/fixtures/diagnostics/BT263-flow-out-of-link-throw.bpmnt:8:7
+  |
+8 |   no: task Other
+  |       ^
+
+error[BT263]: A link catch event has no incoming flow: flow arrives through its link throw event.
+ --> test/fixtures/diagnostics/BT263-flow-out-of-link-throw.bpmnt:9:4
+  |
+9 | -> catch link Next
+  |    ^^^^^^^^^^^^^^^
+
+test/fixtures/diagnostics/BT263-flow-out-of-link-throw.bpmnt: 2 errors, 1 warning
+"
+`;
+
 exports[`bpmn-text check > prints code frames for BT301-unreachable.bpmnt 1`] = `
 "warning[BT301]: Nothing flows into this element, so it can never be reached.
  --> test/fixtures/diagnostics/BT301-unreachable.bpmnt:6:1
@@ -313,5 +381,27 @@ exports[`bpmn-text check > prints code frames for BT304-send-without-message-flo
   | ^
 
 test/fixtures/diagnostics/BT304-send-without-message-flow.bpmnt: 1 info
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT305-boundary-with-nothing-to-catch.bpmnt 1`] = `
+"info[BT305]: Nothing inside this subprocess throws \`Failed\`, so this boundary event never fires.
+ --> test/fixtures/diagnostics/BT305-boundary-with-nothing-to-catch.bpmnt:8:3
+  |
+8 |   on error Failed -> end Stopped
+  |   ^
+
+test/fixtures/diagnostics/BT305-boundary-with-nothing-to-catch.bpmnt: 1 info
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT306-thrown-with-nothing-to-catch.bpmnt 1`] = `
+"info[BT306]: Nothing around this subprocess catches \`Failed\`. Add \`on error\` under the \`sub\` if it should be handled.
+ --> test/fixtures/diagnostics/BT306-thrown-with-nothing-to-catch.bpmnt:6:3
+  |
+6 |   end error Failed
+  |   ^
+
+test/fixtures/diagnostics/BT306-thrown-with-nothing-to-catch.bpmnt: 1 info
 "
 `;

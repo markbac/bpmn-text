@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" name="Refund request" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-text">
+  <bpmn:collaboration id="Collaboration_1">
+    <bpmn:participant id="Participant_customer" name="Customer" processRef="Process_customer" />
+    <bpmn:participant id="Participant_shop" name="Shop" processRef="Process_shop" />
+    <bpmn:messageFlow id="MessageFlow_ask_for_a_refund__request_received" sourceRef="Activity_ask_for_a_refund" targetRef="Event_request_received" messageRef="Message_refund_request" />
+    <bpmn:messageFlow id="MessageFlow_reject_request__refund_decision" sourceRef="Activity_reject_request" targetRef="Event_refund_decision" messageRef="Message_refund_decision" />
+    <bpmn:messageFlow id="MessageFlow_confirm_refund__refund_decision" sourceRef="Activity_confirm_refund" targetRef="Event_refund_decision" messageRef="Message_refund_decision" />
+  </bpmn:collaboration>
+  <bpmn:message id="Message_refund_request" name="Refund request" />
+  <bpmn:message id="Message_refund_decision" name="Refund decision" />
+  <bpmn:error id="Error_order_unknown" name="Order unknown" />
+  <bpmn:signal id="Signal_refund_paid" name="Refund paid" />
+  <bpmn:process id="Process_customer" isExecutable="false">
+    <bpmn:startEvent id="Event_refund_wanted" name="Refund wanted">
+      <bpmn:outgoing>Flow_refund_wanted__ask_for_a_refund</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sendTask id="Activity_ask_for_a_refund" name="Ask for a refund" messageRef="Message_refund_request">
+      <bpmn:incoming>Flow_refund_wanted__ask_for_a_refund</bpmn:incoming>
+      <bpmn:outgoing>Flow_ask_for_a_refund__refund_decision</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:intermediateCatchEvent id="Event_refund_decision" name="Refund decision">
+      <bpmn:incoming>Flow_ask_for_a_refund__refund_decision</bpmn:incoming>
+      <bpmn:outgoing>Flow_refund_decision__answer_received</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Event_refund_decision_definition" messageRef="Message_refund_decision" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="Event_answer_received" name="Answer received">
+      <bpmn:incoming>Flow_refund_decision__answer_received</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_refund_wanted__ask_for_a_refund" sourceRef="Event_refund_wanted" targetRef="Activity_ask_for_a_refund" />
+    <bpmn:sequenceFlow id="Flow_ask_for_a_refund__refund_decision" sourceRef="Activity_ask_for_a_refund" targetRef="Event_refund_decision" />
+    <bpmn:sequenceFlow id="Flow_refund_decision__answer_received" sourceRef="Event_refund_decision" targetRef="Event_answer_received" />
+  </bpmn:process>
+  <bpmn:process id="Process_shop" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Process_shop">
+      <bpmn:lane id="Lane_service" name="Service">
+        <bpmn:flowNodeRef>Event_request_received</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_check_the_purchase</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_order_unknown_2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_reject_request</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_rejected</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_refund_paid_2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_close_the_case</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_case_closed</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_finance" name="Finance">
+        <bpmn:flowNodeRef>Activity_pay_refund</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_refund_paid</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_confirm_refund</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_refunded</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Event_request_received" name="Request received">
+      <bpmn:outgoing>Flow_request_received__check_the_purchase</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Event_request_received_definition" messageRef="Message_refund_request" />
+    </bpmn:startEvent>
+    <bpmn:subProcess id="Activity_check_the_purchase" name="Check the purchase">
+      <bpmn:incoming>Flow_request_received__check_the_purchase</bpmn:incoming>
+      <bpmn:outgoing>Flow_check_the_purchase__pay_refund</bpmn:outgoing>
+      <bpmn:startEvent id="Event_check_the_purchase_start_1">
+        <bpmn:outgoing>Flow_check_the_purchase_start_1__find_order</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:serviceTask id="Activity_find_order" name="Find order">
+        <bpmn:incoming>Flow_check_the_purchase_start_1__find_order</bpmn:incoming>
+        <bpmn:outgoing>Flow_find_order__order_found</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:exclusiveGateway id="Gateway_order_found" name="Order found?">
+        <bpmn:incoming>Flow_find_order__order_found</bpmn:incoming>
+        <bpmn:outgoing>Flow_order_found__checked</bpmn:outgoing>
+        <bpmn:outgoing>Flow_order_found__order_unknown</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:endEvent id="Event_checked" name="Checked">
+        <bpmn:incoming>Flow_order_found__checked</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:endEvent id="Event_order_unknown" name="Order unknown">
+        <bpmn:incoming>Flow_order_found__order_unknown</bpmn:incoming>
+        <bpmn:errorEventDefinition id="Event_order_unknown_definition" errorRef="Error_order_unknown" />
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_check_the_purchase_start_1__find_order" sourceRef="Event_check_the_purchase_start_1" targetRef="Activity_find_order" />
+      <bpmn:sequenceFlow id="Flow_find_order__order_found" sourceRef="Activity_find_order" targetRef="Gateway_order_found" />
+      <bpmn:sequenceFlow id="Flow_order_found__checked" name="yes" sourceRef="Gateway_order_found" targetRef="Event_checked" />
+      <bpmn:sequenceFlow id="Flow_order_found__order_unknown" name="no" sourceRef="Gateway_order_found" targetRef="Event_order_unknown" />
+    </bpmn:subProcess>
+    <bpmn:boundaryEvent id="Event_order_unknown_2" name="Order unknown" attachedToRef="Activity_check_the_purchase">
+      <bpmn:outgoing>Flow_order_unknown_2__reject_request</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="Event_order_unknown_2_definition" errorRef="Error_order_unknown" />
+    </bpmn:boundaryEvent>
+    <bpmn:sendTask id="Activity_reject_request" name="Reject request">
+      <bpmn:incoming>Flow_order_unknown_2__reject_request</bpmn:incoming>
+      <bpmn:outgoing>Flow_reject_request__rejected</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_rejected" name="Rejected">
+      <bpmn:incoming>Flow_reject_request__rejected</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Activity_pay_refund" name="Pay refund">
+      <bpmn:incoming>Flow_check_the_purchase__pay_refund</bpmn:incoming>
+      <bpmn:outgoing>Flow_pay_refund__refund_paid</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateThrowEvent id="Event_refund_paid" name="Refund paid">
+      <bpmn:incoming>Flow_pay_refund__refund_paid</bpmn:incoming>
+      <bpmn:outgoing>Flow_refund_paid__confirm_refund</bpmn:outgoing>
+      <bpmn:signalEventDefinition id="Event_refund_paid_definition" signalRef="Signal_refund_paid" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sendTask id="Activity_confirm_refund" name="Confirm refund">
+      <bpmn:incoming>Flow_refund_paid__confirm_refund</bpmn:incoming>
+      <bpmn:outgoing>Flow_confirm_refund__refunded</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="Event_refunded" name="Refunded">
+      <bpmn:incoming>Flow_confirm_refund__refunded</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="Event_refund_paid_2" name="Refund paid">
+      <bpmn:outgoing>Flow_refund_paid_2__close_the_case</bpmn:outgoing>
+      <bpmn:signalEventDefinition id="Event_refund_paid_2_definition" signalRef="Signal_refund_paid" />
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_close_the_case" name="Close the case">
+      <bpmn:incoming>Flow_refund_paid_2__close_the_case</bpmn:incoming>
+      <bpmn:outgoing>Flow_close_the_case__case_closed</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="Event_case_closed" name="Case closed">
+      <bpmn:incoming>Flow_close_the_case__case_closed</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_request_received__check_the_purchase" sourceRef="Event_request_received" targetRef="Activity_check_the_purchase" />
+    <bpmn:sequenceFlow id="Flow_order_unknown_2__reject_request" sourceRef="Event_order_unknown_2" targetRef="Activity_reject_request" />
+    <bpmn:sequenceFlow id="Flow_reject_request__rejected" sourceRef="Activity_reject_request" targetRef="Event_rejected" />
+    <bpmn:sequenceFlow id="Flow_check_the_purchase__pay_refund" sourceRef="Activity_check_the_purchase" targetRef="Activity_pay_refund" />
+    <bpmn:sequenceFlow id="Flow_pay_refund__refund_paid" sourceRef="Activity_pay_refund" targetRef="Event_refund_paid" />
+    <bpmn:sequenceFlow id="Flow_refund_paid__confirm_refund" sourceRef="Event_refund_paid" targetRef="Activity_confirm_refund" />
+    <bpmn:sequenceFlow id="Flow_confirm_refund__refunded" sourceRef="Activity_confirm_refund" targetRef="Event_refunded" />
+    <bpmn:sequenceFlow id="Flow_refund_paid_2__close_the_case" sourceRef="Event_refund_paid_2" targetRef="Activity_close_the_case" />
+    <bpmn:sequenceFlow id="Flow_close_the_case__case_closed" sourceRef="Activity_close_the_case" targetRef="Event_case_closed" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+      <bpmndi:BPMNShape id="Participant_customer_di" bpmnElement="Participant_customer" isHorizontal="true">
+        <dc:Bounds x="0" y="0" width="1476" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_shop_di" bpmnElement="Participant_shop" isHorizontal="true">
+        <dc:Bounds x="0" y="210" width="1476" height="592" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_service_di" bpmnElement="Lane_service" isHorizontal="true">
+        <dc:Bounds x="30" y="210" width="1446" height="432" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_finance_di" bpmnElement="Lane_finance" isHorizontal="true">
+        <dc:Bounds x="30" y="642" width="1446" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_refund_wanted_di" bpmnElement="Event_refund_wanted">
+        <dc:Bounds x="100" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="81" y="103" width="74" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ask_for_a_refund_di" bpmnElement="Activity_ask_for_a_refund">
+        <dc:Bounds x="186" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_refund_decision_di" bpmnElement="Event_refund_decision">
+        <dc:Bounds x="1314" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1293" y="103" width="79" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_answer_received_di" bpmnElement="Event_answer_received">
+        <dc:Bounds x="1400" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1377" y="103" width="82" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_request_received_di" bpmnElement="Event_request_received">
+        <dc:Bounds x="348" y="353" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="323" y="394" width="86" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_check_the_purchase_di" bpmnElement="Activity_check_the_purchase" isExpanded="true">
+        <dc:Bounds x="434" y="250" width="432" height="242" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_reject_request_di" bpmnElement="Activity_reject_request">
+        <dc:Bounds x="928" y="522" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_rejected_di" bpmnElement="Event_rejected">
+        <dc:Bounds x="1078" y="544" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1074" y="585" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_pay_refund_di" bpmnElement="Activity_pay_refund">
+        <dc:Bounds x="928" y="682" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_refund_paid_di" bpmnElement="Event_refund_paid">
+        <dc:Bounds x="1078" y="704" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1066" y="745" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_confirm_refund_di" bpmnElement="Activity_confirm_refund">
+        <dc:Bounds x="1164" y="682" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_refunded_di" bpmnElement="Event_refunded">
+        <dc:Bounds x="1314" y="704" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1308" y="745" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_refund_paid_2_di" bpmnElement="Event_refund_paid_2">
+        <dc:Bounds x="100" y="353" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="88" y="394" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_close_the_case_di" bpmnElement="Activity_close_the_case">
+        <dc:Bounds x="186" y="331" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_case_closed_di" bpmnElement="Event_case_closed">
+        <dc:Bounds x="348" y="544" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="336" y="585" width="61" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_order_unknown_2_di" bpmnElement="Event_order_unknown_2">
+        <dc:Bounds x="632" y="474" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="655" y="515" width="76" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_check_the_purchase_start_1_di" bpmnElement="Event_check_the_purchase_start_1">
+        <dc:Bounds x="454" y="306" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_find_order_di" bpmnElement="Activity_find_order">
+        <dc:Bounds x="540" y="284" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_order_found_di" bpmnElement="Gateway_order_found">
+        <dc:Bounds x="690" y="299" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="683" y="280" width="65" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_checked_di" bpmnElement="Event_checked">
+        <dc:Bounds x="790" y="306" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="786" y="347" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_order_unknown_di" bpmnElement="Event_order_unknown">
+        <dc:Bounds x="790" y="416" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="770" y="457" width="76" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_refund_wanted__ask_for_a_refund_di" bpmnElement="Flow_refund_wanted__ask_for_a_refund">
+        <di:waypoint x="136" y="80" />
+        <di:waypoint x="186" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ask_for_a_refund__refund_decision_di" bpmnElement="Flow_ask_for_a_refund__refund_decision">
+        <di:waypoint x="286" y="80" />
+        <di:waypoint x="1314" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_refund_decision__answer_received_di" bpmnElement="Flow_refund_decision__answer_received">
+        <di:waypoint x="1350" y="80" />
+        <di:waypoint x="1400" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_request_received__check_the_purchase_di" bpmnElement="Flow_request_received__check_the_purchase">
+        <di:waypoint x="384" y="371" />
+        <di:waypoint x="434" y="371" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_order_unknown_2__reject_request_di" bpmnElement="Flow_order_unknown_2__reject_request">
+        <di:waypoint x="650" y="510" />
+        <di:waypoint x="650" y="562" />
+        <di:waypoint x="928" y="562" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_reject_request__rejected_di" bpmnElement="Flow_reject_request__rejected">
+        <di:waypoint x="1028" y="562" />
+        <di:waypoint x="1078" y="562" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_check_the_purchase__pay_refund_di" bpmnElement="Flow_check_the_purchase__pay_refund">
+        <di:waypoint x="866" y="371" />
+        <di:waypoint x="891" y="371" />
+        <di:waypoint x="891" y="722" />
+        <di:waypoint x="928" y="722" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_pay_refund__refund_paid_di" bpmnElement="Flow_pay_refund__refund_paid">
+        <di:waypoint x="1028" y="722" />
+        <di:waypoint x="1078" y="722" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_refund_paid__confirm_refund_di" bpmnElement="Flow_refund_paid__confirm_refund">
+        <di:waypoint x="1114" y="722" />
+        <di:waypoint x="1164" y="722" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_confirm_refund__refunded_di" bpmnElement="Flow_confirm_refund__refunded">
+        <di:waypoint x="1264" y="722" />
+        <di:waypoint x="1314" y="722" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_refund_paid_2__close_the_case_di" bpmnElement="Flow_refund_paid_2__close_the_case">
+        <di:waypoint x="136" y="371" />
+        <di:waypoint x="186" y="371" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_close_the_case__case_closed_di" bpmnElement="Flow_close_the_case__case_closed">
+        <di:waypoint x="286" y="371" />
+        <di:waypoint x="311" y="371" />
+        <di:waypoint x="311" y="562" />
+        <di:waypoint x="348" y="562" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_ask_for_a_refund__request_received_di" bpmnElement="MessageFlow_ask_for_a_refund__request_received">
+        <di:waypoint x="236" y="120" />
+        <di:waypoint x="236" y="177" />
+        <di:waypoint x="366" y="177" />
+        <di:waypoint x="366" y="353" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_reject_request__refund_decision_di" bpmnElement="MessageFlow_reject_request__refund_decision">
+        <di:waypoint x="978" y="522" />
+        <di:waypoint x="978" y="185" />
+        <di:waypoint x="1332" y="185" />
+        <di:waypoint x="1332" y="98" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MessageFlow_confirm_refund__refund_decision_di" bpmnElement="MessageFlow_confirm_refund__refund_decision">
+        <di:waypoint x="1214" y="682" />
+        <di:waypoint x="1214" y="193" />
+        <di:waypoint x="1332" y="193" />
+        <di:waypoint x="1332" y="98" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_check_the_purchase_start_1__find_order_di" bpmnElement="Flow_check_the_purchase_start_1__find_order">
+        <di:waypoint x="490" y="324" />
+        <di:waypoint x="540" y="324" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_find_order__order_found_di" bpmnElement="Flow_find_order__order_found">
+        <di:waypoint x="640" y="324" />
+        <di:waypoint x="690" y="324" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_order_found__checked_di" bpmnElement="Flow_order_found__checked">
+        <di:waypoint x="740" y="324" />
+        <di:waypoint x="790" y="324" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="745" y="305" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_order_found__order_unknown_di" bpmnElement="Flow_order_found__order_unknown">
+        <di:waypoint x="715" y="349" />
+        <di:waypoint x="715" y="434" />
+        <di:waypoint x="790" y="434" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="720" y="385" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
+

@@ -912,6 +912,26 @@ exports[`check() on the corpus > examples/04-collaboration.bpmnt has no errors o
 exports[`check() on the corpus > examples/05-events.bpmnt has no errors or warnings, and matches its IR snapshot 1`] = `
 {
   "collaboration": false,
+  "definitions": [
+    {
+      "id": "Message_ticket_raised",
+      "name": "Ticket raised",
+      "source": "5:1-5:28",
+      "type": "message",
+    },
+    {
+      "id": "Message_customer_confirms",
+      "name": "Customer confirms",
+      "source": "14:5-14:36",
+      "type": "message",
+    },
+    {
+      "id": "Message_customer_reopens",
+      "name": "Customer reopens",
+      "source": "15:5-15:35",
+      "type": "message",
+    },
+  ],
   "pools": [
     {
       "collapsed": false,
@@ -1022,6 +1042,7 @@ exports[`check() on the corpus > examples/05-events.bpmnt has no errors or warni
         "nodes": [
           {
             "attributeRanges": {},
+            "definitionRef": "Message_ticket_raised",
             "eventType": "message",
             "extra": {},
             "id": "Event_ticket_raised",
@@ -1127,6 +1148,7 @@ exports[`check() on the corpus > examples/05-events.bpmnt has no errors or warni
           },
           {
             "attributeRanges": {},
+            "definitionRef": "Message_customer_confirms",
             "eventType": "message",
             "extra": {},
             "id": "Event_customer_confirms",
@@ -1136,6 +1158,7 @@ exports[`check() on the corpus > examples/05-events.bpmnt has no errors or warni
           },
           {
             "attributeRanges": {},
+            "definitionRef": "Message_customer_reopens",
             "eventType": "message",
             "extra": {},
             "id": "Event_customer_reopens",
@@ -1189,6 +1212,14 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
       "source": "5:1-5:20",
     },
   ],
+  "definitions": [
+    {
+      "id": "Error_missing_rate",
+      "name": "Missing rate",
+      "source": "15:9-15:31",
+      "type": "error",
+    },
+  ],
   "pools": [
     {
       "collapsed": false,
@@ -1220,7 +1251,7 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
             "id": "DataObject_invoice",
             "name": "Invoice",
             "reference": "DataObjectReference_invoice",
-            "source": "13:33-13:40",
+            "source": "14:40-14:47",
           },
         ],
         "dataStoreReferences": [
@@ -1244,26 +1275,26 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
             "targetRef": "Activity_create_invoices",
           },
           {
-            "id": "Flow_missing_rate__fix_rate_card",
-            "source": "15:25-15:46",
-            "sourceRef": "Event_missing_rate",
+            "id": "Flow_missing_rate_2__fix_rate_card",
+            "source": "17:25-17:46",
+            "sourceRef": "Event_missing_rate_2",
             "targetRef": "Activity_fix_rate_card",
           },
           {
             "id": "Flow_fix_rate_card__invoice_skipped",
-            "source": "15:47-15:69",
+            "source": "17:47-17:69",
             "sourceRef": "Activity_fix_rate_card",
             "targetRef": "Event_invoice_skipped",
           },
           {
             "id": "Flow_create_invoices__send_invoices",
-            "source": "16:1-16:30",
+            "source": "18:1-18:30",
             "sourceRef": "Activity_create_invoices",
             "targetRef": "Activity_send_invoices",
           },
           {
             "id": "Flow_send_invoices__run_complete",
-            "source": "22:1-22:17",
+            "source": "24:1-24:17",
             "sourceRef": "Activity_send_invoices",
             "targetRef": "Event_run_complete",
           },
@@ -1307,7 +1338,7 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
               "parallel": "10:22-10:30",
             },
             "boundaries": [
-              "Event_missing_rate",
+              "Event_missing_rate_2",
             ],
             "children": {
               "flows": [
@@ -1318,14 +1349,28 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
                   "targetRef": "Activity_calculate_totals",
                 },
                 {
-                  "id": "Flow_calculate_totals__generate_pdf",
-                  "source": "13:3-13:41",
+                  "id": "Flow_calculate_totals__rate_known",
+                  "source": "13:3-13:18",
                   "sourceRef": "Activity_calculate_totals",
+                  "targetRef": "Gateway_rate_known",
+                },
+                {
+                  "id": "Flow_rate_known__generate_pdf",
+                  "name": "yes",
+                  "source": "14:10-14:48",
+                  "sourceRef": "Gateway_rate_known",
                   "targetRef": "Activity_generate_pdf",
                 },
                 {
+                  "id": "Flow_rate_known__missing_rate",
+                  "name": "no",
+                  "source": "15:9-15:31",
+                  "sourceRef": "Gateway_rate_known",
+                  "targetRef": "Event_missing_rate",
+                },
+                {
                   "id": "Flow_generate_pdf__create_invoices_end_1",
-                  "source": "14:3-14:6",
+                  "source": "16:3-16:6",
                   "sourceRef": "Activity_generate_pdf",
                   "targetRef": "Event_create_invoices_end_1",
                 },
@@ -1355,14 +1400,23 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
                   "source": "12:3-12:46",
                 },
                 {
+                  "attributeRanges": {},
+                  "branches": 2,
+                  "extra": {},
+                  "id": "Gateway_rate_known",
+                  "kind": "exclusiveGateway",
+                  "name": "Rate known?",
+                  "source": "13:3-13:18",
+                },
+                {
                   "attributeRanges": {
-                    "writes": "13:25-13:31",
+                    "writes": "14:32-14:38",
                   },
                   "extra": {},
                   "id": "Activity_generate_pdf",
                   "kind": "serviceTask",
                   "name": "Generate PDF",
-                  "source": "13:3-13:41",
+                  "source": "14:10-14:48",
                   "writes": [
                     {
                       "dataRef": "DataObjectReference_invoice",
@@ -1372,10 +1426,20 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
                 },
                 {
                   "attributeRanges": {},
+                  "definitionRef": "Error_missing_rate",
+                  "eventType": "error",
+                  "extra": {},
+                  "id": "Event_missing_rate",
+                  "kind": "endEvent",
+                  "name": "Missing rate",
+                  "source": "15:9-15:31",
+                },
+                {
+                  "attributeRanges": {},
                   "extra": {},
                   "id": "Event_create_invoices_end_1",
                   "kind": "endEvent",
-                  "source": "14:3-14:6",
+                  "source": "16:3-16:6",
                 },
               ],
             },
@@ -1391,13 +1455,14 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
           {
             "attachedTo": "Activity_create_invoices",
             "attributeRanges": {},
+            "definitionRef": "Error_missing_rate",
             "eventType": "error",
             "extra": {},
-            "id": "Event_missing_rate",
+            "id": "Event_missing_rate_2",
             "interrupting": true,
             "kind": "boundaryEvent",
             "name": "Missing rate",
-            "source": "15:3-15:24",
+            "source": "17:3-17:24",
           },
           {
             "attributeRanges": {},
@@ -1405,7 +1470,7 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
             "id": "Activity_fix_rate_card",
             "kind": "userTask",
             "name": "Fix rate card",
-            "source": "15:28-15:46",
+            "source": "17:28-17:46",
           },
           {
             "attributeRanges": {},
@@ -1413,35 +1478,35 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
             "id": "Event_invoice_skipped",
             "kind": "endEvent",
             "name": "Invoice skipped",
-            "source": "15:50-15:69",
+            "source": "17:50-17:69",
           },
           {
             "attributeRanges": {
-              "collapsed": "16:20-16:29",
+              "collapsed": "18:20-18:29",
             },
             "children": {
               "flows": [
                 {
                   "id": "Flow_send_invoices_start_1__email_invoice",
-                  "source": "18:3-18:24",
+                  "source": "20:3-20:24",
                   "sourceRef": "Event_send_invoices_start_1",
                   "targetRef": "Activity_email_invoice",
                 },
                 {
                   "id": "Flow_email_invoice__30_days",
-                  "source": "19:3-19:15",
+                  "source": "21:3-21:15",
                   "sourceRef": "Activity_email_invoice",
                   "targetRef": "Event_30_days",
                 },
                 {
                   "id": "Flow_30_days__check_payment",
-                  "source": "20:3-20:31",
+                  "source": "22:3-22:31",
                   "sourceRef": "Event_30_days",
                   "targetRef": "Activity_check_payment",
                 },
                 {
                   "id": "Flow_check_payment__send_invoices_end_1",
-                  "source": "21:3-21:6",
+                  "source": "23:3-23:6",
                   "sourceRef": "Activity_check_payment",
                   "targetRef": "Event_send_invoices_end_1",
                 },
@@ -1452,7 +1517,7 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
                   "extra": {},
                   "id": "Event_send_invoices_start_1",
                   "kind": "startEvent",
-                  "source": "17:3-17:8",
+                  "source": "19:3-19:8",
                 },
                 {
                   "attributeRanges": {},
@@ -1460,7 +1525,7 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
                   "id": "Activity_email_invoice",
                   "kind": "serviceTask",
                   "name": "Email invoice",
-                  "source": "18:3-18:24",
+                  "source": "20:3-20:24",
                 },
                 {
                   "attributeRanges": {},
@@ -1469,11 +1534,11 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
                   "id": "Event_30_days",
                   "kind": "intermediateCatchEvent",
                   "name": "30 days",
-                  "source": "19:3-19:15",
+                  "source": "21:3-21:15",
                 },
                 {
                   "attributeRanges": {
-                    "loop": "20:26-20:30",
+                    "loop": "22:26-22:30",
                   },
                   "extra": {},
                   "id": "Activity_check_payment",
@@ -1482,14 +1547,14 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
                     "loop",
                   ],
                   "name": "Check payment",
-                  "source": "20:3-20:31",
+                  "source": "22:3-22:31",
                 },
                 {
                   "attributeRanges": {},
                   "extra": {},
                   "id": "Event_send_invoices_end_1",
                   "kind": "endEvent",
-                  "source": "21:3-21:6",
+                  "source": "23:3-23:6",
                 },
               ],
             },
@@ -1498,7 +1563,7 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
             "id": "Activity_send_invoices",
             "kind": "subProcess",
             "name": "Send invoices",
-            "source": "16:1-16:30",
+            "source": "18:1-18:30",
           },
           {
             "attributeRanges": {},
@@ -1506,7 +1571,7 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
             "id": "Event_run_complete",
             "kind": "endEvent",
             "name": "Run complete",
-            "source": "22:1-22:17",
+            "source": "24:1-24:17",
           },
         ],
       },
@@ -1521,6 +1586,26 @@ exports[`check() on the corpus > examples/06-subprocess-data.bpmnt has no errors
 exports[`check() on the corpus > examples/07-multi-phase.bpmnt has no errors or warnings, and matches its IR snapshot 1`] = `
 {
   "collaboration": true,
+  "definitions": [
+    {
+      "id": "Message_order_signed",
+      "name": "Order signed",
+      "source": "16:5-16:31",
+      "type": "message",
+    },
+    {
+      "id": "Message_deposit_received",
+      "name": "Deposit received",
+      "source": "32:9-32:39",
+      "type": "message",
+    },
+    {
+      "id": "Message_complaint_received",
+      "name": "Complaint received",
+      "source": "80:5-80:37",
+      "type": "message",
+    },
+  ],
   "documentation": "From signed order to a working installation and the first service visit.",
   "groups": [
     {
@@ -1841,6 +1926,7 @@ exports[`check() on the corpus > examples/07-multi-phase.bpmnt has no errors or 
         "nodes": [
           {
             "attributeRanges": {},
+            "definitionRef": "Message_order_signed",
             "documentation": "The customer has signed the quote in the portal.",
             "eventType": "message",
             "extra": {},
@@ -1915,6 +2001,7 @@ exports[`check() on the corpus > examples/07-multi-phase.bpmnt has no errors or 
           },
           {
             "attributeRanges": {},
+            "definitionRef": "Message_deposit_received",
             "documentation": "The deposit has arrived in the bank account.",
             "eventType": "message",
             "extra": {},
@@ -2151,6 +2238,7 @@ exports[`check() on the corpus > examples/07-multi-phase.bpmnt has no errors or 
           },
           {
             "attributeRanges": {},
+            "definitionRef": "Message_complaint_received",
             "documentation": "A customer complains by phone or e-mail.",
             "eventType": "message",
             "extra": {},
@@ -2200,6 +2288,415 @@ exports[`check() on the corpus > examples/07-multi-phase.bpmnt has no errors or 
     },
   ],
   "title": "Solar panel installation",
+  "xorJoin": "gateway",
+}
+`;
+
+exports[`check() on the corpus > examples/08-shared-definitions.bpmnt has no errors or warnings, and matches its IR snapshot 1`] = `
+{
+  "collaboration": true,
+  "definitions": [
+    {
+      "id": "Message_refund_request",
+      "name": "Refund request",
+      "source": "7:3-7:50",
+      "type": "message",
+    },
+    {
+      "id": "Message_refund_decision",
+      "name": "Refund decision",
+      "source": "8:3-8:32",
+      "type": "message",
+    },
+    {
+      "id": "Error_order_unknown",
+      "name": "Order unknown",
+      "source": "19:11-19:34",
+      "type": "error",
+    },
+    {
+      "id": "Signal_refund_paid",
+      "name": "Refund paid",
+      "source": "23:3-23:27",
+      "type": "signal",
+    },
+  ],
+  "messageFlows": [
+    {
+      "id": "MessageFlow_ask_for_a_refund__request_received",
+      "messageRef": "Message_refund_request",
+      "source": "7:51-7:70",
+      "sourceRef": "Activity_ask_for_a_refund",
+      "targetRef": "Event_request_received",
+    },
+    {
+      "id": "MessageFlow_reject_request__refund_decision",
+      "messageRef": "Message_refund_decision",
+      "source": "20:51-20:69",
+      "sourceRef": "Activity_reject_request",
+      "targetRef": "Event_refund_decision",
+    },
+    {
+      "id": "MessageFlow_confirm_refund__refund_decision",
+      "messageRef": "Message_refund_decision",
+      "source": "24:23-24:41",
+      "sourceRef": "Activity_confirm_refund",
+      "targetRef": "Event_refund_decision",
+    },
+  ],
+  "pools": [
+    {
+      "collapsed": false,
+      "extra": {},
+      "id": "Participant_customer",
+      "implicit": false,
+      "name": "Customer",
+      "process": {
+        "flows": [
+          {
+            "id": "Flow_refund_wanted__ask_for_a_refund",
+            "source": "7:3-7:50",
+            "sourceRef": "Event_refund_wanted",
+            "targetRef": "Activity_ask_for_a_refund",
+          },
+          {
+            "id": "Flow_ask_for_a_refund__refund_decision",
+            "source": "8:3-8:32",
+            "sourceRef": "Activity_ask_for_a_refund",
+            "targetRef": "Event_refund_decision",
+          },
+          {
+            "id": "Flow_refund_decision__answer_received",
+            "source": "9:3-9:22",
+            "sourceRef": "Event_refund_decision",
+            "targetRef": "Event_answer_received",
+          },
+        ],
+        "id": "Process_customer",
+        "nodes": [
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Event_refund_wanted",
+            "kind": "startEvent",
+            "name": "Refund wanted",
+            "source": "6:3-6:22",
+          },
+          {
+            "attributeRanges": {
+              "message": "7:26-7:33",
+            },
+            "definitionRef": "Message_refund_request",
+            "extra": {},
+            "id": "Activity_ask_for_a_refund",
+            "kind": "sendTask",
+            "name": "Ask for a refund",
+            "source": "7:3-7:50",
+          },
+          {
+            "attributeRanges": {},
+            "definitionRef": "Message_refund_decision",
+            "eventType": "message",
+            "extra": {},
+            "id": "Event_refund_decision",
+            "kind": "intermediateCatchEvent",
+            "name": "Refund decision",
+            "source": "8:3-8:32",
+          },
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Event_answer_received",
+            "kind": "endEvent",
+            "name": "Answer received",
+            "source": "9:3-9:22",
+          },
+        ],
+      },
+      "source": "5:1-9:22",
+    },
+    {
+      "collapsed": false,
+      "extra": {},
+      "id": "Participant_shop",
+      "implicit": false,
+      "lanes": [
+        {
+          "extra": {},
+          "id": "Lane_service",
+          "name": "Service",
+          "source": "12:3-12:15",
+        },
+        {
+          "extra": {},
+          "id": "Lane_finance",
+          "name": "Finance",
+          "source": "21:3-21:15",
+        },
+      ],
+      "name": "Shop",
+      "process": {
+        "flows": [
+          {
+            "id": "Flow_request_received__check_the_purchase",
+            "source": "14:3-14:25",
+            "sourceRef": "Event_request_received",
+            "targetRef": "Activity_check_the_purchase",
+          },
+          {
+            "id": "Flow_order_unknown_2__reject_request",
+            "source": "20:28-20:50",
+            "sourceRef": "Event_order_unknown_2",
+            "targetRef": "Activity_reject_request",
+          },
+          {
+            "id": "Flow_reject_request__rejected",
+            "source": "20:70-20:85",
+            "sourceRef": "Activity_reject_request",
+            "targetRef": "Event_rejected",
+          },
+          {
+            "id": "Flow_check_the_purchase__pay_refund",
+            "source": "22:3-22:21",
+            "sourceRef": "Activity_check_the_purchase",
+            "targetRef": "Activity_pay_refund",
+          },
+          {
+            "id": "Flow_pay_refund__refund_paid",
+            "source": "23:3-23:27",
+            "sourceRef": "Activity_pay_refund",
+            "targetRef": "Event_refund_paid",
+          },
+          {
+            "id": "Flow_refund_paid__confirm_refund",
+            "source": "24:3-24:22",
+            "sourceRef": "Event_refund_paid",
+            "targetRef": "Activity_confirm_refund",
+          },
+          {
+            "id": "Flow_confirm_refund__refunded",
+            "source": "25:3-25:15",
+            "sourceRef": "Activity_confirm_refund",
+            "targetRef": "Event_refunded",
+          },
+          {
+            "id": "Flow_refund_paid_2__close_the_case",
+            "source": "28:3-28:22",
+            "sourceRef": "Event_refund_paid_2",
+            "targetRef": "Activity_close_the_case",
+          },
+          {
+            "id": "Flow_close_the_case__case_closed",
+            "source": "29:3-29:18",
+            "sourceRef": "Activity_close_the_case",
+            "targetRef": "Event_case_closed",
+          },
+        ],
+        "id": "Process_shop",
+        "nodes": [
+          {
+            "attributeRanges": {
+              "message": "13:35-13:42",
+            },
+            "definitionRef": "Message_refund_request",
+            "eventType": "message",
+            "extra": {},
+            "id": "Event_request_received",
+            "kind": "startEvent",
+            "laneId": "Lane_service",
+            "name": "Request received",
+            "source": "13:3-13:59",
+          },
+          {
+            "attributeRanges": {},
+            "boundaries": [
+              "Event_order_unknown_2",
+            ],
+            "children": {
+              "flows": [
+                {
+                  "id": "Flow_check_the_purchase_start_1__find_order",
+                  "source": "16:5-16:23",
+                  "sourceRef": "Event_check_the_purchase_start_1",
+                  "targetRef": "Activity_find_order",
+                },
+                {
+                  "id": "Flow_find_order__order_found",
+                  "source": "17:5-17:21",
+                  "sourceRef": "Activity_find_order",
+                  "targetRef": "Gateway_order_found",
+                },
+                {
+                  "id": "Flow_order_found__checked",
+                  "name": "yes",
+                  "source": "18:12-18:23",
+                  "sourceRef": "Gateway_order_found",
+                  "targetRef": "Event_checked",
+                },
+                {
+                  "id": "Flow_order_found__order_unknown",
+                  "name": "no",
+                  "source": "19:11-19:34",
+                  "sourceRef": "Gateway_order_found",
+                  "targetRef": "Event_order_unknown",
+                },
+              ],
+              "nodes": [
+                {
+                  "attributeRanges": {},
+                  "extra": {},
+                  "id": "Event_check_the_purchase_start_1",
+                  "kind": "startEvent",
+                  "source": "15:5-15:10",
+                },
+                {
+                  "attributeRanges": {},
+                  "extra": {},
+                  "id": "Activity_find_order",
+                  "kind": "serviceTask",
+                  "name": "Find order",
+                  "source": "16:5-16:23",
+                },
+                {
+                  "attributeRanges": {},
+                  "branches": 2,
+                  "extra": {},
+                  "id": "Gateway_order_found",
+                  "kind": "exclusiveGateway",
+                  "name": "Order found?",
+                  "source": "17:5-17:21",
+                },
+                {
+                  "attributeRanges": {},
+                  "extra": {},
+                  "id": "Event_checked",
+                  "kind": "endEvent",
+                  "name": "Checked",
+                  "source": "18:12-18:23",
+                },
+                {
+                  "attributeRanges": {},
+                  "definitionRef": "Error_order_unknown",
+                  "eventType": "error",
+                  "extra": {},
+                  "id": "Event_order_unknown",
+                  "kind": "endEvent",
+                  "name": "Order unknown",
+                  "source": "19:11-19:34",
+                },
+              ],
+            },
+            "extra": {},
+            "id": "Activity_check_the_purchase",
+            "kind": "subProcess",
+            "laneId": "Lane_service",
+            "name": "Check the purchase",
+            "source": "14:3-14:25",
+          },
+          {
+            "attachedTo": "Activity_check_the_purchase",
+            "attributeRanges": {},
+            "definitionRef": "Error_order_unknown",
+            "eventType": "error",
+            "extra": {},
+            "id": "Event_order_unknown_2",
+            "interrupting": true,
+            "kind": "boundaryEvent",
+            "laneId": "Lane_service",
+            "name": "Order unknown",
+            "source": "20:5-20:27",
+          },
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Activity_reject_request",
+            "kind": "sendTask",
+            "laneId": "Lane_service",
+            "name": "Reject request",
+            "source": "20:31-20:50",
+          },
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Event_rejected",
+            "kind": "endEvent",
+            "laneId": "Lane_service",
+            "name": "Rejected",
+            "source": "20:73-20:85",
+          },
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Activity_pay_refund",
+            "kind": "serviceTask",
+            "laneId": "Lane_finance",
+            "name": "Pay refund",
+            "source": "22:3-22:21",
+          },
+          {
+            "attributeRanges": {},
+            "definitionRef": "Signal_refund_paid",
+            "eventType": "signal",
+            "extra": {},
+            "id": "Event_refund_paid",
+            "kind": "intermediateThrowEvent",
+            "laneId": "Lane_finance",
+            "name": "Refund paid",
+            "source": "23:3-23:27",
+          },
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Activity_confirm_refund",
+            "kind": "sendTask",
+            "laneId": "Lane_finance",
+            "name": "Confirm refund",
+            "source": "24:3-24:22",
+          },
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Event_refunded",
+            "kind": "endEvent",
+            "laneId": "Lane_finance",
+            "name": "Refunded",
+            "source": "25:3-25:15",
+          },
+          {
+            "attributeRanges": {},
+            "definitionRef": "Signal_refund_paid",
+            "eventType": "signal",
+            "extra": {},
+            "id": "Event_refund_paid_2",
+            "kind": "startEvent",
+            "laneId": "Lane_service",
+            "name": "Refund paid",
+            "source": "27:3-27:27",
+          },
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Activity_close_the_case",
+            "kind": "task",
+            "laneId": "Lane_service",
+            "name": "Close the case",
+            "source": "28:3-28:22",
+          },
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Event_case_closed",
+            "kind": "endEvent",
+            "laneId": "Lane_service",
+            "name": "Case closed",
+            "source": "29:3-29:18",
+          },
+        ],
+      },
+      "source": "11:1-29:18",
+    },
+  ],
+  "title": "Refund request",
   "xorJoin": "gateway",
 }
 `;

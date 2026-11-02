@@ -1,0 +1,9 @@
+# BT305: Nothing in the subprocess throws this error.
+# expect: BT305 @ 8:3
+start
+sub Work
+  start
+  task Do it
+  end
+  on error Failed -> end Stopped
+end

@@ -17,6 +17,8 @@ export interface Model {
   pools: Pool[];
   messageFlows: MessageFlow[];
   dataStores: DataStore[];
+  /** Root-level messages, signals, errors and escalations events share. */
+  definitions: EventDefinition[];
   /** In document order, which is also their column order. */
   groups: Group[];
 }
@@ -95,6 +97,8 @@ export interface FlowNode {
   laneId?: string;
   groupId?: string;
   markers: Marker[];
+  /** Events and send/receive tasks: the shared definition they refer to. */
+  definitionRef?: string;
   /** Link throw events: the ID of the catch event with the same name. */
   linkTarget?: string;
   /** Link catch events: the IDs of the throw events with the same name. */
@@ -149,6 +153,18 @@ export interface MessageFlow {
   sourceRef: string;
   targetRef: string;
   name?: string;
+  /** The message definition carried, where its ends agree on one. */
+  messageRef?: string;
+  source: Range;
+}
+
+export type DefinitionType = 'message' | 'signal' | 'error' | 'escalation';
+
+/** A definition events of one type and name refer to (notation §4.1). */
+export interface EventDefinition {
+  id: string;
+  type: DefinitionType;
+  name: string;
   source: Range;
 }
 

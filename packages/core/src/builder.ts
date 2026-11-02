@@ -18,6 +18,8 @@ import type {
   DataObject,
   DataStore,
   DataStoreReference,
+  DefinitionType,
+  EventDefinition,
   FlowNode,
   Group,
   Lane,
@@ -92,8 +94,15 @@ const JOIN_KIND = {
 } as const;
 type SplitKind = keyof typeof JOIN_KIND;
 const MARKERS = new Set(['loop', 'parallel', 'sequential']);
+const DEFINITION_TYPES = new Set<string>([
+  'message',
+  'signal',
+  'error',
+  'escalation',
+] satisfies DefinitionType[]);
 /** Attributes that become model fields; any other is kept in `extra`. */
 const HANDLED = new Set([
+  ...DEFINITION_TYPES,
   'id',
   'loop',
   'parallel',
@@ -167,6 +176,9 @@ interface NodeInfo {
   writes: (DataObject | DataStoreReference)[];
   /** Inserted joins: the element the join leads into, for its ID. */
   joinTarget?: FlowNode;
+  /** `[message: …]` and the like: the definition's name, if not the event's. */
+  definitionName?: string;
+  definition?: EventDefinition;
 }
 interface FlowBuild {
   flow: SequenceFlow;
@@ -205,6 +217,7 @@ class Builder {
     pools: [],
     messageFlows: [],
     dataStores: [],
+    definitions: [],
     groups: [],
   };
   private readonly pools: PoolBuild[] = [];
@@ -214,6 +227,8 @@ class Builder {
   private readonly pendingSequence: PendingSequence[] = [];
   private readonly pendingMessages: PendingMessage[] = [];
   private readonly messageEnds = new Map<MessageFlow, [Endpoint, Endpoint]>();
+  private readonly definitions = new Map<string, EventDefinition>();
+  private readonly flowMessages = new Map<MessageFlow, EventDefinition>();
   private readonly annotationHosts = new Map<Annotation, FlowNode>();
   private readonly groups = new Map<string, Group>();
   private readonly stores = new Map<string, DataStore>();
@@ -273,6 +288,7 @@ class Builder {
       this.walkPool(pb, body, this.model);
     }
     this.resolve();
+    this.shareDefinitions();
     this.assignIds();
     this.pairLinks();
     this.model.groups = [...this.groups.values()];
@@ -621,6 +637,21 @@ class Builder {
         node.collapsed = true;
       else if (key === 'non-interrupting' && kind === 'boundaryEvent')
         node.interrupting = false;
+      else if (DEFINITION_TYPES.has(key) && first) {
+        if (
+          e.eventType === key ||
+          (key === 'message' && (kind === 'sendTask' || kind === 'receiveTask'))
+        )
+          info.definitionName = first.value;
+        else
+          this.diagnostics.push(
+            diagnostic(
+              'BT105',
+              `\`${key}:\` names the definition of ${key === 'message' ? 'a message event or a send or receive task' : `${key === 'error' || key === 'escalation' ? 'an' : 'a'} ${key} event`}; it has no effect here.`,
+              a.key.range,
+            ),
+          );
+      }
     }
     if (kind === 'boundaryEvent') node.interrupting ??= true;
     this.commonAttrs(node, e.attrs);
@@ -1233,6 +1264,55 @@ class Builder {
     );
   }
 
+  /**
+   * Events of one type and name refer to one definition across the document
+   * (notation §4.1). A message flow carries the message its ends agree on.
+   */
+  private shareDefinitions() {
+    const definition = (type: DefinitionType, name: string, source: Range) => {
+      const key = `${type}|${normalise(name)}`;
+      let d = this.definitions.get(key);
+      if (!d) {
+        d = { id: '', type, name, source };
+        this.definitions.set(key, d);
+      }
+      return d;
+    };
+    for (const n of this.nodes) {
+      const info = this.info.get(n)!;
+      const type = n.eventType ?? '';
+      const name = info.definitionName ?? (n.eventType ? n.name : undefined);
+      if (name && DEFINITION_TYPES.has(type))
+        info.definition = definition(type as DefinitionType, name, n.source);
+      else if (info.definitionName)
+        info.definition = definition('message', info.definitionName, n.source);
+    }
+    for (const [flow, [from, to]] of this.messageEnds) {
+      const ends = [from, to].flatMap((e) => (isPool(e) ? [] : [e]));
+      // A send and a receive with one name pass a message of that name.
+      const [a, b] = ends;
+      if (
+        a?.kind === 'sendTask' &&
+        b?.kind === 'receiveTask' &&
+        a.name &&
+        normalise(a.name) === normalise(b.name ?? '') &&
+        !this.info.get(a)!.definition &&
+        !this.info.get(b)!.definition
+      ) {
+        const d = definition('message', a.name, a.source);
+        this.info.get(a)!.definition = d;
+        this.info.get(b)!.definition = d;
+      }
+      const carried = new Set(
+        ends.flatMap((e) => {
+          const d = this.info.get(e)!.definition;
+          return d?.type === 'message' ? [d] : [];
+        }),
+      );
+      if (carried.size === 1) this.flowMessages.set(flow, [...carried][0]!);
+    }
+  }
+
   // IDs (architecture §8)
 
   private assignIds() {
@@ -1280,6 +1360,11 @@ class Builder {
       );
     }
 
+    for (const d of this.definitions.values()) {
+      const prefix = d.type[0]!.toUpperCase() + d.type.slice(1);
+      d.id = take(`${prefix}_${slug(d.name)}`);
+      this.model.definitions.push(d);
+    }
     for (const g of this.groups.values()) g.id = take(`Group_${slug(g.name)}`);
     for (const s of this.stores.values())
       s.id = take(`DataStore_${slug(s.name)}`);
@@ -1325,6 +1410,7 @@ class Builder {
 
     for (const n of this.nodes) {
       const info = this.info.get(n)!;
+      if (info.definition) n.definitionRef = info.definition.id;
       if (info.lane) n.laneId = info.lane.id;
       if (info.group) {
         n.groupId = info.group.id;
@@ -1357,6 +1443,8 @@ class Builder {
     for (const [flow, [from, to]] of this.messageEnds) {
       flow.sourceRef = endpointId(from);
       flow.targetRef = endpointId(to);
+      const message = this.flowMessages.get(flow);
+      if (message) flow.messageRef = message.id;
       flow.id = take(
         `MessageFlow_${stripPrefix(flow.sourceRef)}__${stripPrefix(flow.targetRef)}`,
       );

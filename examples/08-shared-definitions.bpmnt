@@ -1,0 +1,29 @@
+# One error, signal and message shared by the events that use them.
+# covers: §4.1, §6.4, §10
+title "Refund request"
+
+pool Customer
+  start Refund wanted
+  send Ask for a refund [message: Refund request] ~> Request received
+  catch message Refund decision
+  end Answer received
+
+pool Shop
+  lane Service
+  start message Request received [message: Refund request]
+  sub Check the purchase
+    start
+    service Find order
+    xor Order found?
+      yes: end Checked
+      no: end error Order unknown
+    on error Order unknown -> send Reject request ~> Refund decision -> end Rejected
+  lane Finance
+  service Pay refund
+  throw signal Refund paid
+  send Confirm refund ~> Refund decision
+  end Refunded
+  lane Service
+  start signal Refund paid
+  task Close the case
+  end Case closed

@@ -21,6 +21,7 @@ const examples = [
   '05-events',
   '06-subprocess-data',
   '07-multi-phase',
+  '08-shared-definitions',
 ];
 const root = join(import.meta.dirname, '..');
 

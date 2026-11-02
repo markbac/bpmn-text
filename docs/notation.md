@@ -129,6 +129,42 @@ Every element statement has the same shape:
 | `throw message\|signal\|escalation\|compensation\|link [name]` | Intermediate throw event |
 | `wait <name>` | Shorthand for `catch timer <name>`, e.g. `wait 3 days` |
 
+**Shared definitions.** Message, signal, error and escalation events of the
+same type and name, anywhere in the document, refer to one definition: a
+root-level `bpmn:message`, `bpmn:signal`, `bpmn:error` or `bpmn:escalation`,
+with an ID such as `Error_payment_failed`. This needs no extra syntax, and it
+is how a modelling tool can show that the error a subprocess throws is the one
+its boundary event catches.
+
+<!-- screenshot: notation-shared-error -->
+
+```bpmnt
+start
+sub Take payment
+  start
+  service Charge card
+  end error Payment failed
+  on error Payment failed -> task Ask for another card -> end Payment refused
+end Paid
+```
+
+![An error thrown in a subprocess and caught on it](images/notation-shared-error.png)
+
+* **A different label.** When an event's label differs from the definition,
+  name the definition with an attribute: `[message: Order]`, `[signal: …]`,
+  `[error: …]` or `[escalation: …]`. On an event of another type or any
+  other element, the attribute has no effect (warning **BT105**).
+* **Unnamed events** have no definition. An unnamed `on error` catches any
+  error.
+* **Send and receive tasks** refer to a message only through `[message: …]`,
+  because their names usually describe the work rather than the message.
+* **Message flows** carry a `messageRef` when their ends refer to one message,
+  or are a send and a receive task with the same name.
+* **Nothing to catch or throw.** An error or escalation boundary on a `sub`
+  whose body never throws it is **BT305**. An error or escalation thrown inside
+  a `sub` that nothing around it catches is **BT306**. Both are information
+  only, since the diagram is still valid.
+
 **Link events** are an off-page connector: `throw link Name` jumps to `catch
 link Name` without a line across the diagram. Use them when a flow would
 otherwise cross most of a large diagram.
@@ -239,6 +275,7 @@ user Approve order @approve [parallel, reads: Order]
 | `doc: "…"` | any element, pool, lane, group | Documentation (§4.6) |
 | `color: c` | any element, pool, lane, group | Fill colour (§4.7) |
 | `stroke: c` | any element, pool, lane, group | Border/line colour (§4.7) |
+| `message: x`, `signal: x`, `error: x`, `escalation: x` | events of that type; `message` also on send and receive tasks | The shared definition this refers to (§4.1) |
 
 Unknown attributes produce a warning, not an error.
 
@@ -689,6 +726,9 @@ on <event-type> [name] [@id] [[attributes]] [flow tail]
 
 * Event types: `message`, `timer`, `signal`, `error`, `escalation`,
   `conditional`, `compensation`.
+* A boundary event refers to the same definition as events of its type and name
+  elsewhere (§4.1), so `on error Payment failed` on a `sub` catches the
+  `end error Payment failed` inside it.
 * Interrupting by default. Add `[non-interrupting]` for a dashed event.
   Error and compensation boundaries are always interrupting (BT240 if marked
   otherwise).
@@ -718,6 +758,7 @@ possible, a quick fix.
 | BT102 | error | Event type not allowed here (e.g. `start terminate`) |
 | BT103 | warning | Unknown attribute |
 | BT104 | error | Invalid colour value |
+| BT105 | warning | Attribute has no effect on this element |
 | BT201 | error | Ambiguous reference |
 | BT202 | error | Unknown reference (with closest-name suggestion) |
 | BT203 | error | Duplicate `@id` |
@@ -741,6 +782,8 @@ possible, a quick fix.
 | BT302 | warning | Dead end (non-end element with no outgoing flow) |
 | BT303 | info | Process has no start or no end event |
 | BT304 | info | Send/receive element without a message flow |
+| BT305 | info | Error or escalation boundary event with nothing to catch in its subprocess |
+| BT306 | info | Error or escalation thrown in a subprocess with nothing to catch it |
 
 ---
 
@@ -806,3 +849,4 @@ See [`examples/`](../examples) for complete files covering every feature:
 | `05-events.bpmnt` | Timers, boundary events, event-based gateway |
 | `06-subprocess-data.bpmnt` | Subprocesses, data objects/stores, notes, markers |
 | `07-multi-phase.bpmnt` | Eight lanes, phase groups, several start chains, `fork`, placeholders, colours, `doc` |
+| `08-shared-definitions.bpmnt` | One error, signal and message shared between events, across pools |

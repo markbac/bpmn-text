@@ -1,0 +1,5 @@
+# BT105: A definition attribute only applies to its own type of event.
+# expect: BT105 @ 4:9
+start
+task A [message: Order]
+end

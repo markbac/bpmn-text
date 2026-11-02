@@ -113,6 +113,10 @@ const ATTRIBUTES = new Set([
   'color',
   'stroke',
   'fit',
+  'message',
+  'signal',
+  'error',
+  'escalation',
 ]);
 
 /**

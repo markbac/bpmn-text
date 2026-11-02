@@ -64,6 +64,18 @@ function countFlows(c: Container) {
   return { incoming, outgoing };
 }
 
+/** Whether a catcher (unnamed: any) handles what `thrower` throws. */
+const catches = (catcher: FlowNode, thrower: FlowNode) =>
+  catcher.eventType === thrower.eventType &&
+  (!catcher.definitionRef ||
+    !thrower.definitionRef ||
+    catcher.definitionRef === thrower.definitionRef);
+/** Error end events, and escalation end and throw events. */
+const throwsUp = (n: FlowNode) =>
+  (n.eventType === 'error' && n.kind === 'endEvent') ||
+  (n.eventType === 'escalation' &&
+    (n.kind === 'endEvent' || n.kind === 'intermediateThrowEvent'));
+
 export const rules: Rule[] = [
   {
     code: 'BT222',
@@ -235,6 +247,57 @@ export const rules: Rule[] = [
           ),
         );
       }
+      return out;
+    },
+  },
+  {
+    code: 'BT305',
+    check(model) {
+      const out: Diagnostic[] = [];
+      for (const [n, c] of modelNodes(model)) {
+        if (
+          n.kind !== 'boundaryEvent' ||
+          (n.eventType !== 'error' && n.eventType !== 'escalation')
+        )
+          continue;
+        const body = c.nodes.find((h) => h.id === n.attachedTo)?.children;
+        if (!body?.nodes.length) continue;
+        const thrown = [...allNodes(body)].some(
+          ([t]) => throwsUp(t) && catches(n, t),
+        );
+        if (thrown) continue;
+        out.push(
+          diagnostic(
+            'BT305',
+            `Nothing inside this subprocess throws ${n.name ? `\`${n.name}\`` : `an ${n.eventType}`}, so this boundary event never fires.`,
+            keyword(n),
+          ),
+        );
+      }
+      return out;
+    },
+  },
+  {
+    code: 'BT306',
+    check(model) {
+      const out: Diagnostic[] = [];
+      const walk = (c: Container, handlers: FlowNode[], nested: boolean) => {
+        for (const n of c.nodes) {
+          if (nested && throwsUp(n) && !handlers.some((h) => catches(h, n))) {
+            out.push(
+              diagnostic(
+                'BT306',
+                `Nothing around this subprocess catches ${n.name ? `\`${n.name}\`` : `this ${n.eventType}`}. Add \`on ${n.eventType}\` under the \`sub\` if it should be handled.`,
+                keyword(n),
+              ),
+            );
+          }
+          if (!n.children) continue;
+          const hosted = c.nodes.filter((b) => b.attachedTo === n.id);
+          walk(n.children, [...handlers, ...hosted], true);
+        }
+      };
+      for (const p of model.pools) if (p.process) walk(p.process, [], false);
       return out;
     },
   },
