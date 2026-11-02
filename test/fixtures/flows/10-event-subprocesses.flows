@@ -1,0 +1,26 @@
+pool Participant_shop
+  node Event_order_placed in Lane_sales
+  node Activity_handle_order in Lane_sales
+  node Activity_take_payment in Lane_billing
+  node Event_order_paid in Lane_billing
+  node Activity_cancellation in Lane_sales
+  node Activity_daily_report in Lane_billing
+  Event_order_placed -> Activity_handle_order
+  Activity_handle_order -> Activity_take_payment
+  Activity_take_payment -> Event_order_paid
+  Activity_handle_order:
+    Event_handle_order_start_1 -> Activity_pick_items
+    Activity_pick_items -> Activity_ship_parcel
+    Activity_ship_parcel -> Event_handle_order_end_1
+    Activity_item_missing:
+      Event_out_of_stock -> Activity_offer_a_substitute
+      Activity_offer_a_substitute -> Event_item_missing_end_1
+    Activity_stock_count:
+      Event_count_started -> Activity_report_open_orders
+      Activity_report_open_orders -> Event_stock_count_end_1
+  Activity_cancellation:
+    Event_order_cancelled -> Activity_refund_customer
+    Activity_refund_customer -> Event_refunded
+  Activity_daily_report:
+    Event_every_morning -> Activity_update_the_ledger
+    Activity_update_the_ledger -> Event_daily_report_end_1

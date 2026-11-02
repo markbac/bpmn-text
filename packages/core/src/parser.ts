@@ -27,8 +27,20 @@ export interface ParseResult {
   diagnostics: Diagnostic[];
 }
 
+/** Start event types only an event subprocess can use (notation §8.1). */
+const EVENT_SUBPROCESS_STARTS: readonly EventType[] = [
+  'error',
+  'escalation',
+  'compensation',
+];
 const EVENT_TYPES: Record<string, readonly EventType[]> = {
-  start: ['message', 'timer', 'signal', 'conditional'],
+  start: [
+    'message',
+    'timer',
+    'signal',
+    'conditional',
+    ...EVENT_SUBPROCESS_STARTS,
+  ],
   end: [
     'message',
     'signal',
@@ -97,6 +109,7 @@ const FLAGS = new Set([
   'non-interrupting',
   'collection',
   'fit',
+  'event',
 ]);
 const ATTRIBUTES = new Set([
   'id',
@@ -117,6 +130,7 @@ const ATTRIBUTES = new Set([
   'signal',
   'error',
   'escalation',
+  'event',
 ]);
 
 /**
@@ -127,6 +141,7 @@ export const vocabulary = {
   keywords: STATEMENT_KEYWORDS,
   eventTypes: EVENT_TYPES,
   attributes: [...ATTRIBUTES],
+  flags: [...FLAGS],
 } as const;
 
 /** Thrown inside a statement; the statement loop reports it and skips the line. */
@@ -159,6 +174,8 @@ export function parse(source: string): ParseResult {
 
 class Parser {
   private pos = 0;
+  /** Directly inside the body of an event subprocess. */
+  private inEventSubprocess = false;
 
   constructor(
     private readonly source: string,
@@ -471,6 +488,10 @@ class Parser {
       }
       const body: Statement[] = [];
       const boundaries: BoundaryStmt[] = [];
+      const outer = this.inEventSubprocess;
+      this.inEventSubprocess = element.attrs.some(
+        (a) => a.key.value === 'event',
+      );
       this.next();
       while (this.peek().kind !== 'dedent' && this.peek().kind !== 'eof') {
         if (this.startsWith('on')) {
@@ -482,6 +503,7 @@ class Parser {
         }
       }
       this.next();
+      this.inEventSubprocess = outer;
       return {
         type: 'sub',
         element,
@@ -675,12 +697,24 @@ class Parser {
       const typeWord = rest ? firstWordOf(rest) : undefined;
       if (typeWord && ALL_EVENT_TYPES.has(typeWord.word.value as EventType)) {
         const type = typeWord.word.value as EventType;
-        if (EVENT_TYPES[word.value]!.includes(type)) eventType = type;
+        const outside =
+          word.value === 'start' &&
+          EVENT_SUBPROCESS_STARTS.includes(type) &&
+          !this.inEventSubprocess;
+        if (outside) {
+          this.diagnostics.push(
+            diagnostic(
+              'BT102',
+              `\`start ${type}\` is only allowed in an event subprocess (\`sub … [event]\`).`,
+              typeWord.word.range,
+            ),
+          );
+        } else if (EVENT_TYPES[word.value]!.includes(type)) eventType = type;
         else {
           this.diagnostics.push(
             diagnostic(
               'BT102',
-              `\`${word.value} ${type}\` is not allowed. Event types for \`${word.value}\`: ${EVENT_TYPES[word.value]!.join(', ')}.`,
+              `\`${word.value} ${type}\` is not allowed. Event types for \`${word.value}\`: ${EVENT_TYPES[word.value]!.filter((x) => this.inEventSubprocess || word.value !== 'start' || !EVENT_SUBPROCESS_STARTS.includes(x)).join(', ')}.`,
               typeWord.word.range,
             ),
           );

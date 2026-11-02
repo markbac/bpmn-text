@@ -64,7 +64,10 @@ export const diagnosticCodes = {
     severity: 'error',
     meaning: 'Element before first lane in a pool with lanes',
   },
-  BT240: { severity: 'error', meaning: 'Invalid boundary event configuration' },
+  BT240: {
+    severity: 'error',
+    meaning: 'Invalid boundary or event subprocess event configuration',
+  },
   BT241: {
     severity: 'warning',
     meaning: 'Non-interrupting boundary chain ends open',
@@ -86,6 +89,14 @@ export const diagnosticCodes = {
   BT263: {
     severity: 'error',
     meaning: 'Explicit flow out of a link throw or into a link catch',
+  },
+  BT270: {
+    severity: 'error',
+    meaning: 'Event subprocess without exactly one typed start event',
+  },
+  BT271: {
+    severity: 'error',
+    meaning: 'Flow into or out of an event subprocess',
   },
   BT301: {
     severity: 'warning',

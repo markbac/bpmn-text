@@ -149,6 +149,32 @@ end
 
 ![Escalations and timeouts](images/cookbook-escalation.png)
 
+### Something that can happen at any point
+
+A boundary event watches one activity. An event subprocess watches its whole
+parent: the pool or `sub` it is written in. Its start event says what starts it,
+and it stops the parent unless that event is `[non-interrupting]`.
+
+<!-- screenshot: cookbook-event-subprocess -->
+
+```bpmnt
+pool Shop
+  start Order placed
+  task Pick items
+  task Ship
+  end Shipped
+  sub Customer cancels [event]
+    start message Cancellation received
+    task Refund customer
+    end Cancelled
+  sub Status request [event]
+    start message Status asked [non-interrupting]
+    send Send order status
+    end
+```
+
+![Event subprocesses](images/cookbook-event-subprocess.png)
+
 ### Waiting for the first of several events
 
 An event-based gateway waits for whichever event comes first.

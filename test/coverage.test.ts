@@ -26,6 +26,154 @@ async function valid(source: string) {
   return xml;
 }
 
+describe('event subprocesses (#87)', () => {
+  const example = read('examples/10-event-subprocesses.bpmnt');
+
+  it('writes triggeredByEvent and isInterrupting', async () => {
+    const xml = await valid(example);
+    expect(xml.match(/triggeredByEvent="true"/g)).toHaveLength(4);
+    expect(xml.match(/isInterrupting="false"/g)).toHaveLength(2);
+    expect(xml).toContain('Event_every_morning');
+  });
+
+  it('gives a collapsed one its own plane', async () => {
+    const xml = await valid(example);
+    expect(xml).toContain('bpmnElement="Activity_daily_report"');
+    expect(xml).toContain('id="Activity_daily_report_diagram"');
+  });
+
+  it('keeps implicit flow out of it', async () => {
+    const { model, diagnostics } = await compile(`start
+task A
+sub On ping [event]
+  start message Ping
+  end
+task B
+end
+`);
+    expect(diagnostics).toEqual([]);
+    expect(model.pools[0]!.process!.flows.map((f) => f.id)).toContain(
+      'Flow_a__b',
+    );
+  });
+
+  it('draws it below the main flow, inside the parent', async () => {
+    const { layout } = await compile(example);
+    const box = (id: string) => layout.shapes.get(id)!;
+    const parent = box('Activity_handle_order');
+    const inner = box('Activity_item_missing');
+    expect(inner.y).toBeGreaterThan(box('Activity_pick_items').y);
+    expect(inner.x).toBeGreaterThanOrEqual(parent.x);
+    expect(inner.y + inner.height).toBeLessThanOrEqual(
+      parent.y + parent.height,
+    );
+    const pool = box('Participant_shop');
+    const cancel = box('Activity_cancellation');
+    expect(cancel.y).toBeGreaterThan(parent.y + parent.height);
+    expect(cancel.y + cancel.height).toBeLessThanOrEqual(pool.y + pool.height);
+  });
+
+  it('routes a message flow to it', async () => {
+    await valid(`pool Customer
+  start
+  send Cancel ~> Cancelled
+  end
+pool Shop
+  start
+  task Work
+  end
+  sub Stop [event]
+    start message Cancelled
+    end
+`);
+  });
+
+  it('copes with a pool holding nothing else, and wide strips', async () => {
+    await valid(`pool Shop
+  sub Only one [event]
+    start message Ping
+    task A
+    task B
+    task C
+    end
+  sub Another one [event]
+    start message Pong
+    task D
+    task E
+    task F
+    end
+`);
+  });
+
+  it('draws notes and data on it', async () => {
+    await valid(`start
+task A -> end Done
+sub Watch [event, reads: Register, writes: Log]
+  start message Ping
+  end
+note Runs any time
+`);
+  });
+
+  it('reports what an event subprocess cannot do', async () => {
+    const codes = async (source: string) =>
+      (await compile(source)).diagnostics.map((d) => d.code);
+    expect(await codes('start error\nend\n')).toEqual(['BT102']);
+    expect(
+      await codes(`start
+sub A [event]
+  start message One
+  start message Two
+  end
+end
+`),
+    ).toContain('BT270');
+    expect(
+      await codes(`start
+sub A [event]
+  start error Bad [non-interrupting]
+  end
+end
+`),
+    ).toEqual(['BT240']);
+    expect(
+      await codes(`start
+sub A [event]
+  start message One
+  end
+  on timer Late -> end Stopped
+end
+`),
+    ).toEqual(['BT240']);
+    expect(await codes('start [non-interrupting]\nend\n')).toEqual(['BT105']);
+    expect(await codes('start\ntask A [event]\nend\n')).toEqual(['BT105']);
+  });
+
+  it('counts its start event as a catcher for BT306', async () => {
+    const { diagnostics } = await compile(`sub Outer
+  start
+  sub Inner
+    start
+    end error Failed
+  end
+  sub Handler [event]
+    start error Failed
+    end
+start
+end
+`);
+    expect(diagnostics.map((d) => d.code)).not.toContain('BT306');
+  });
+
+  it('formats the flag unchanged', () => {
+    const source = `sub A [event, collapsed]
+  start message One [non-interrupting]
+  end
+`;
+    expect(format(source)).toBe(source);
+  });
+});
+
 describe('data object states (#88)', () => {
   const states = read('examples/09-data-states.bpmnt');
 

@@ -70,7 +70,7 @@ pool Support
   * exclusive, parallel, inclusive and event-based gateways;
   * sequence flows (implicit and explicit, labelled, default flows);
   * pools (expanded and collapsed), lanes (lane switches) and message flows;
-  * embedded subprocesses (expanded and collapsed);
+  * embedded subprocesses (expanded and collapsed) and event subprocesses;
   * boundary events (interrupting and non-interrupting);
   * data objects, data stores, data associations;
   * text annotations;
@@ -96,8 +96,8 @@ pool Support
   types, forms, condition expressions, I/O mappings). The architecture leaves
   room for this as an extension (see [architecture.md §9](architecture.md)).
 * Reverse conversion (`.bpmn` → text).
-* Nested lanes (child lane sets), nested or overlapping groups, event
-  subprocesses, transactions, conversations, choreographies.
+* Nested lanes (child lane sets), nested or overlapping groups, transactions,
+  conversations, choreographies.
 * Colouring only a lane's header (BPMN DI can only colour the whole lane).
 * Manual layout hints or pinned coordinates.
 * Round-tripping manual edits made in a modeller back into the text.

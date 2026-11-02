@@ -135,6 +135,9 @@ describe('completion (#39)', () => {
       'timer',
       'signal',
       'conditional',
+      'error',
+      'escalation',
+      'compensation',
     ]);
     expect(labels('  on ')).toContain('error');
     expect(labels('task A [lo')).toContain('loop');

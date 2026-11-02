@@ -105,6 +105,7 @@ const DEFINITION_TYPES = new Set<string>([
 /** Attributes that become model fields; any other is kept in `extra`. */
 const HANDLED = new Set([
   ...DEFINITION_TYPES,
+  'event',
   'id',
   'loop',
   'parallel',
@@ -165,6 +166,8 @@ interface Ctx {
   sub?: FlowNode;
   lane?: Lane;
   group?: Group | undefined;
+  /** The body of an event subprocess. */
+  eventSubprocess?: boolean;
 }
 interface NodeInfo {
   pool: PoolBuild;
@@ -566,6 +569,16 @@ class Builder {
 
   /** Reports an explicit flow that a link event does not allow (BT263). */
   private linkFlow(from: FlowNode, to: FlowNode, range: Range): boolean {
+    if (from.triggeredByEvent || to.triggeredByEvent) {
+      this.diagnostics.push(
+        diagnostic(
+          'BT271',
+          'An event subprocess has no incoming or outgoing flows: its start event starts it.',
+          range,
+        ),
+      );
+      return true;
+    }
     const message = isLinkThrow(from)
       ? 'A link throw event has no outgoing flow: flow continues at its link catch event.'
       : isLinkCatch(to)
@@ -647,7 +660,21 @@ class Builder {
         node.collapsed = true;
       else if (key === 'non-interrupting' && kind === 'boundaryEvent')
         node.interrupting = false;
-      else if (DEFINITION_TYPES.has(key) && first) {
+      else if (key === 'non-interrupting' && kind === 'startEvent') {
+        if (ctx.eventSubprocess) node.interrupting = false;
+        else
+          this.noEffect(
+            a.key.range,
+            'Only the start event of an event subprocess can be non-interrupting',
+          );
+      } else if (key === 'event') {
+        if (kind === 'subProcess') node.triggeredByEvent = true;
+        else
+          this.noEffect(
+            a.key.range,
+            '`event` declares an event subprocess, on a `sub`',
+          );
+      } else if (DEFINITION_TYPES.has(key) && first) {
         if (
           e.eventType === key ||
           (key === 'message' && (kind === 'sendTask' || kind === 'receiveTask'))
@@ -666,6 +693,12 @@ class Builder {
     if (kind === 'boundaryEvent') node.interrupting ??= true;
     this.commonAttrs(node, e.attrs);
     return node;
+  }
+
+  private noEffect(range: Range, why: string) {
+    this.diagnostics.push(
+      diagnostic('BT105', `${why}; it has no effect here.`, range),
+    );
   }
 
   private explicitId(id: string, range: Range): string | undefined {
@@ -944,7 +977,9 @@ class Builder {
         'A `sub` without a body must be `[collapsed]`, as a placeholder for detail documented elsewhere.',
       );
     }
-    this.enter(open, node, ctx);
+    const eventSubprocess = node.triggeredByEvent === true;
+    if (eventSubprocess) delete this.info.get(node)!.group;
+    else this.enter(open, node, ctx);
     const children: Container = { nodes: [], flows: [], annotations: [] };
     node.children = children;
     if (st.body) {
@@ -955,12 +990,22 @@ class Builder {
           process: ctx.process,
           container: children,
           sub: node,
+          ...(eventSubprocess ? { eventSubprocess } : {}),
         },
         none(),
         node,
       );
     }
-    return [this.boundaries(node, st.boundaries, ctx, from(node)), node];
+    // An event subprocess is not part of the story: flow passes it by.
+    return [
+      this.boundaries(
+        node,
+        st.boundaries,
+        ctx,
+        eventSubprocess ? open : from(node),
+      ),
+      node,
+    ];
   }
 
   // Data

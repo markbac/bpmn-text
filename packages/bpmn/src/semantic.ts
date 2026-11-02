@@ -81,7 +81,11 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
       attrs.eventDefinitions = [element];
     } else if (n.definitionRef)
       attrs.messageRef = elements.get(n.definitionRef);
-    if (n.interrupting === false) attrs.cancelActivity = false;
+    if (n.interrupting === false) {
+      attrs[n.kind === 'startEvent' ? 'isInterrupting' : 'cancelActivity'] =
+        false;
+    }
+    if (n.triggeredByEvent) attrs.triggeredByEvent = true;
     const marker = n.markers[0];
     if (marker === 'loop') {
       attrs.loopCharacteristics = moddle.create(

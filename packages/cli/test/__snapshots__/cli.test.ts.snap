@@ -340,6 +340,34 @@ test/fixtures/diagnostics/BT263-flow-out-of-link-throw.bpmnt: 2 errors, 1 warnin
 "
 `;
 
+exports[`bpmn-text check > prints code frames for BT270-event-subprocess-without-typed-start.bpmnt 1`] = `
+"error[BT270]: The start event of an event subprocess must be typed: message, timer, signal, conditional, error, escalation or compensation.
+ --> test/fixtures/diagnostics/BT270-event-subprocess-without-typed-start.bpmnt:5:1
+  |
+5 | sub Untyped [event]
+  | ^
+
+test/fixtures/diagnostics/BT270-event-subprocess-without-typed-start.bpmnt: 1 error
+"
+`;
+
+exports[`bpmn-text check > prints code frames for BT271-flow-into-event-subprocess.bpmnt 1`] = `
+"warning[BT302]: Nothing flows out of this element. End the chain with \`end\`, or jump somewhere with \`->\`.
+ --> test/fixtures/diagnostics/BT271-flow-into-event-subprocess.bpmnt:4:1
+  |
+4 | start
+  | ^
+
+error[BT271]: An event subprocess has no incoming or outgoing flows: its start event starts it.
+ --> test/fixtures/diagnostics/BT271-flow-into-event-subprocess.bpmnt:5:4
+  |
+5 | -> Handler
+  |    ^^^^^^^
+
+test/fixtures/diagnostics/BT271-flow-into-event-subprocess.bpmnt: 1 error, 1 warning
+"
+`;
+
 exports[`bpmn-text check > prints code frames for BT301-unreachable.bpmnt 1`] = `
 "warning[BT301]: Nothing flows into this element, so it can never be reached.
  --> test/fixtures/diagnostics/BT301-unreachable.bpmnt:6:1

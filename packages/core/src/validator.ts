@@ -99,17 +99,30 @@ export const rules: Rule[] = [
     code: 'BT240',
     check(model) {
       const out: Diagnostic[] = [];
-      for (const [n] of modelNodes(model)) {
+      for (const [n, c] of modelNodes(model)) {
         if (
-          n.kind === 'boundaryEvent' &&
           n.interrupting === false &&
           (n.eventType === 'error' || n.eventType === 'compensation')
         ) {
           out.push(
             diagnostic(
               'BT240',
-              `A boundary ${n.eventType} event always interrupts the activity; remove \`non-interrupting\`.`,
+              n.kind === 'startEvent'
+                ? `A start ${n.eventType} event always interrupts; remove \`non-interrupting\`.`
+                : `A boundary ${n.eventType} event always interrupts the activity; remove \`non-interrupting\`.`,
               n.attributeRanges['non-interrupting'] ?? keyword(n),
+            ),
+          );
+        }
+        if (
+          n.attachedTo &&
+          c.nodes.find((h) => h.id === n.attachedTo)?.triggeredByEvent
+        ) {
+          out.push(
+            diagnostic(
+              'BT240',
+              'An event subprocess cannot have boundary events: it is not part of the flow.',
+              keyword(n),
             ),
           );
         }
@@ -182,6 +195,28 @@ export const rules: Rule[] = [
     },
   },
   {
+    code: 'BT270',
+    check(model) {
+      const out: Diagnostic[] = [];
+      for (const [n] of modelNodes(model)) {
+        if (!n.triggeredByEvent) continue;
+        const starts = (n.children?.nodes ?? []).filter(
+          (s) => s.kind === 'startEvent',
+        );
+        const message =
+          starts.length > 1
+            ? 'An event subprocess has exactly one start event; this one has several.'
+            : starts.length === 0
+              ? 'An event subprocess needs a typed start event, the event that starts it.'
+              : !starts[0]!.eventType
+                ? 'The start event of an event subprocess must be typed: message, timer, signal, conditional, error, escalation or compensation.'
+                : undefined;
+        if (message) out.push(diagnostic('BT270', message, keyword(n)));
+      }
+      return out;
+    },
+  },
+  {
     code: 'BT301',
     check(model) {
       const messageTargets = new Set(
@@ -192,6 +227,7 @@ export const rules: Rule[] = [
         if (
           n.kind === 'startEvent' ||
           n.kind === 'boundaryEvent' ||
+          n.triggeredByEvent ||
           isLinkCatch(n)
         )
           continue;
@@ -213,7 +249,12 @@ export const rules: Rule[] = [
     check(model) {
       const out: Diagnostic[] = [];
       for (const [n, c] of modelNodes(model)) {
-        if (n.kind === 'endEvent' || n.endsOpenBoundaryChain || isLinkThrow(n))
+        if (
+          n.kind === 'endEvent' ||
+          n.endsOpenBoundaryChain ||
+          n.triggeredByEvent ||
+          isLinkThrow(n)
+        )
           continue;
         if (flowCounts(c).outgoing.has(n.id)) continue;
         out.push(
@@ -281,7 +322,15 @@ export const rules: Rule[] = [
     code: 'BT306',
     check(model) {
       const out: Diagnostic[] = [];
-      const walk = (c: Container, handlers: FlowNode[], nested: boolean) => {
+      const walk = (c: Container, outer: FlowNode[], nested: boolean) => {
+        // An event subprocess's start event handles what its container throws.
+        const handlers = [
+          ...outer,
+          ...c.nodes
+            .filter((n) => n.triggeredByEvent)
+            .flatMap((n) => n.children?.nodes ?? [])
+            .filter((n) => n.kind === 'startEvent'),
+        ];
         for (const n of c.nodes) {
           if (nested && throwsUp(n) && !handlers.some((h) => catches(h, n))) {
             out.push(

@@ -123,6 +123,7 @@ Every element statement has the same shape:
 |---|---|
 | `start [name]` | None start event |
 | `start message\|timer\|signal\|conditional [name]` | Typed start event |
+| `start error\|escalation\|compensation [name]` | Start event of an event subprocess (§8.1) |
 | `end [name]` | None end event |
 | `end message\|signal\|error\|escalation\|compensation\|terminate [name]` | Typed end event |
 | `catch message\|timer\|signal\|conditional\|link [name]` | Intermediate catch event |
@@ -208,6 +209,7 @@ end Shipped
 | `rule <name>` | Business rule task |
 | `call <name>` | Call activity |
 | `sub <name>` + block | Embedded subprocess (§8) |
+| `sub <name> [event]` + block | Event subprocess (§8.1) |
 
 Activity markers are given as attributes:
 
@@ -297,7 +299,8 @@ user Approve order @approve [parallel, reads: Order]
 | `loop`, `parallel`, `sequential` | activities | Markers |
 | `reads: …`, `writes: …` | activities, events | Data associations |
 | `collapsed` | `sub`, `pool` | Collapsed subprocess / black-box pool |
-| `non-interrupting` | `on` (boundary) | Dashed boundary event |
+| `non-interrupting` | `on` (boundary), `start` in an event subprocess | Dashed event, which leaves the activity or parent running |
+| `event` | `sub` | Event subprocess (§8.1) |
 | `collection` | `data` | Collection data object |
 | `lane: X` | flow nodes in a pool with lanes | Place this element in lane X without switching (§9) |
 | `doc: "…"` | any element, pool, lane, group | Documentation (§4.6) |
@@ -655,6 +658,50 @@ sub Handle payment
 * Lanes do not apply inside a subprocess. The whole subprocess sits in its
   parent's lane.
 
+### 8.1 Event subprocesses
+
+`sub Name [event]` is a subprocess started by an event while its parent runs,
+such as "if the customer cancels at any point". Write it in a `sub` body or
+directly in a pool body. It is not part of the story: implicit flow passes it
+by, so it can go anywhere in the block.
+
+<!-- screenshot: notation-event-subprocess -->
+
+```bpmnt
+start
+sub Handle order
+  start
+  task Pick items
+  task Ship
+  end
+  sub Cancellation [event]
+    start message Order cancelled
+    task Refund customer
+    end
+sub Late delivery [event]
+  start timer One week [non-interrupting]
+  task Apologise
+  end
+end Order finished
+```
+
+![Event subprocesses](images/notation-event-subprocess.png)
+
+* **Start event.** It has exactly one start event, which must be typed
+  (error **BT270**): `message`, `timer`, `signal`, `conditional`, `error`,
+  `escalation` or `compensation`. The last three are allowed only here; on any
+  other `start` they are error **BT102**.
+* **Interrupting.** An event subprocess stops its parent unless its start event
+  is `[non-interrupting]`. Error and compensation starts always interrupt
+  (error **BT240**).
+* **No flows.** A flow into or out of an event subprocess is error **BT271**, and
+  a boundary event on it is error **BT240**.
+* **Layout.** It is drawn below its parent's main flow, in the lane it was
+  written in, with a dotted border. `[event, collapsed]` has task size, with
+  the body on a plane of its own.
+* **Groups.** Being outside the flow, it takes no column, so it does not join a
+  group it is written in.
+
 ---
 
 ## 9. Pools and lanes (lane switches)
@@ -798,7 +845,7 @@ possible, a quick fix.
 | BT222 | warning | Gateway with a single branch |
 | BT224 | error | `fork` without an open preceding element |
 | BT230 | error | Element before first lane in a pool with lanes |
-| BT240 | error | Invalid boundary event configuration |
+| BT240 | error | Invalid boundary or event subprocess event configuration |
 | BT241 | warning | Non-interrupting boundary chain ends open |
 | BT250 | error | Nested group, element in two groups, or group inside a `sub` |
 | BT251 | warning | Conflicting lane attributes |
@@ -806,6 +853,8 @@ possible, a quick fix.
 | BT261 | warning | Link catch event without any throw |
 | BT262 | error | Two link catch events with the same name in one process level |
 | BT263 | error | Explicit flow out of a link throw or into a link catch |
+| BT270 | error | Event subprocess without exactly one typed start event |
+| BT271 | error | Flow into or out of an event subprocess |
 | BT301 | warning | Unreachable element (no incoming sequence or message flow, not a start event) |
 | BT302 | warning | Dead end (non-end element with no outgoing flow) |
 | BT303 | info | Process has no start or no end event |
@@ -875,7 +924,8 @@ See [`examples/`](../examples) for complete files covering every feature:
 | `03-lanes.bpmnt` | One pool, lane switches, lane scoping in branches |
 | `04-collaboration.bpmnt` | Two pools, message flows, a collapsed pool |
 | `05-events.bpmnt` | Timers, boundary events, event-based gateway |
-| `09-data-states.bpmnt` | One data object moving through several states |
 | `06-subprocess-data.bpmnt` | Subprocesses, data objects/stores, notes, markers |
 | `07-multi-phase.bpmnt` | Eight lanes, phase groups, several start chains, `fork`, placeholders, colours, `doc` |
 | `08-shared-definitions.bpmnt` | One error, signal and message shared between events, across pools |
+| `09-data-states.bpmnt` | One data object moving through several states |
+| `10-event-subprocesses.bpmnt` | Interrupting and non-interrupting event subprocesses, in a pool and inside a `sub` |

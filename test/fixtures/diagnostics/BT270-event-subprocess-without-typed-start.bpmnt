@@ -1,0 +1,7 @@
+# BT270: An event subprocess needs one typed start event.
+# expect: BT270 @ 5:1
+start
+end
+sub Untyped [event]
+  start
+  end

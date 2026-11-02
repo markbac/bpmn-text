@@ -1,0 +1,30 @@
+# Every start event type an event subprocess can use, and flow passing it by.
+# covers: §8.1, §4.1
+title "Event subprocess types"
+
+start
+task First
+sub On message [event]
+  start message Ping [non-interrupting]
+  end
+sub On timer [event]
+  start timer Every hour [non-interrupting]
+  end
+sub On signal [event]
+  start signal Alarm [non-interrupting]
+  end
+sub On condition [event]
+  start conditional Too hot [non-interrupting]
+  end
+sub On escalation [event]
+  start escalation Too late [non-interrupting]
+  end
+note Handles what comes up
+sub On error [event]
+  start error
+  end
+sub On compensation [event]
+  start compensation
+  end
+task Second
+end

@@ -2630,3 +2630,361 @@ exports[`parser on the corpus > examples/09-data-states.bpmnt 1`] = `
   "type": "document",
 }
 `;
+
+exports[`parser on the corpus > examples/10-event-subprocesses.bpmnt 1`] = `
+{
+  "body": [
+    {
+      "body": [
+        {
+          "name": "Sales",
+          "range": "6:3-6:13",
+          "type": "lane",
+        },
+        {
+          "element": {
+            "eventType": "message",
+            "keyword": "start",
+            "kind": "start",
+            "name": "Order placed",
+            "range": "7:3-7:29",
+            "type": "element",
+          },
+          "range": "7:3-7:29",
+          "type": "element-stmt",
+        },
+        {
+          "body": [
+            {
+              "element": {
+                "keyword": "start",
+                "kind": "start",
+                "range": "9:5-9:10",
+                "type": "element",
+              },
+              "range": "9:5-9:10",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "task",
+                "kind": "task",
+                "name": "Pick items",
+                "range": "10:5-10:20",
+                "type": "element",
+              },
+              "range": "10:5-10:20",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "task",
+                "kind": "task",
+                "name": "Ship parcel",
+                "range": "11:5-11:21",
+                "type": "element",
+              },
+              "range": "11:5-11:21",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "end",
+                "kind": "end",
+                "range": "12:5-12:8",
+                "type": "element",
+              },
+              "range": "12:5-12:8",
+              "type": "element-stmt",
+            },
+            {
+              "body": [
+                {
+                  "element": {
+                    "eventType": "error",
+                    "keyword": "start",
+                    "kind": "start",
+                    "name": "Out of stock",
+                    "range": "14:7-14:31",
+                    "type": "element",
+                  },
+                  "range": "14:7-14:31",
+                  "type": "element-stmt",
+                },
+                {
+                  "element": {
+                    "keyword": "task",
+                    "kind": "task",
+                    "name": "Offer a substitute",
+                    "range": "15:7-15:30",
+                    "type": "element",
+                  },
+                  "range": "15:7-15:30",
+                  "type": "element-stmt",
+                },
+                {
+                  "element": {
+                    "keyword": "end",
+                    "kind": "end",
+                    "range": "16:7-16:10",
+                    "type": "element",
+                  },
+                  "range": "16:7-16:10",
+                  "type": "element-stmt",
+                },
+              ],
+              "element": {
+                "attrs": [
+                  {
+                    "key": "event",
+                    "range": "13:23-13:28",
+                  },
+                ],
+                "keyword": "sub",
+                "kind": "sub",
+                "name": "Item missing",
+                "range": "13:5-13:29",
+                "type": "element",
+              },
+              "range": "13:5-16:10",
+              "type": "sub",
+            },
+            {
+              "body": [
+                {
+                  "element": {
+                    "attrs": [
+                      {
+                        "key": "non-interrupting",
+                        "range": "18:35-18:51",
+                      },
+                    ],
+                    "eventType": "signal",
+                    "keyword": "start",
+                    "kind": "start",
+                    "name": "Count started",
+                    "range": "18:7-18:52",
+                    "type": "element",
+                  },
+                  "range": "18:7-18:52",
+                  "type": "element-stmt",
+                },
+                {
+                  "element": {
+                    "keyword": "task",
+                    "kind": "task",
+                    "name": "Report open orders",
+                    "range": "19:7-19:30",
+                    "type": "element",
+                  },
+                  "range": "19:7-19:30",
+                  "type": "element-stmt",
+                },
+                {
+                  "element": {
+                    "keyword": "end",
+                    "kind": "end",
+                    "range": "20:7-20:10",
+                    "type": "element",
+                  },
+                  "range": "20:7-20:10",
+                  "type": "element-stmt",
+                },
+              ],
+              "element": {
+                "attrs": [
+                  {
+                    "key": "event",
+                    "range": "17:22-17:27",
+                  },
+                ],
+                "keyword": "sub",
+                "kind": "sub",
+                "name": "Stock count",
+                "range": "17:5-17:28",
+                "type": "element",
+              },
+              "range": "17:5-20:10",
+              "type": "sub",
+            },
+          ],
+          "element": {
+            "keyword": "sub",
+            "kind": "sub",
+            "name": "Handle order",
+            "range": "8:3-8:19",
+            "type": "element",
+          },
+          "range": "8:3-20:10",
+          "type": "sub",
+        },
+        {
+          "name": "Billing",
+          "range": "21:3-21:15",
+          "type": "lane",
+        },
+        {
+          "element": {
+            "keyword": "service",
+            "kind": "service",
+            "name": "Take payment",
+            "range": "22:3-22:23",
+            "type": "element",
+          },
+          "range": "22:3-22:23",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "eventType": "message",
+            "keyword": "end",
+            "kind": "end",
+            "name": "Order paid",
+            "range": "23:3-23:25",
+            "type": "element",
+          },
+          "range": "23:3-23:25",
+          "type": "element-stmt",
+        },
+        {
+          "name": "Sales",
+          "range": "24:3-24:13",
+          "type": "lane",
+        },
+        {
+          "body": [
+            {
+              "element": {
+                "eventType": "message",
+                "keyword": "start",
+                "kind": "start",
+                "name": "Order cancelled",
+                "range": "26:5-26:34",
+                "type": "element",
+              },
+              "range": "26:5-26:34",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "service",
+                "kind": "service",
+                "name": "Refund customer",
+                "range": "27:5-27:28",
+                "type": "element",
+              },
+              "range": "27:5-27:28",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "end",
+                "kind": "end",
+                "name": "Refunded",
+                "range": "28:5-28:17",
+                "type": "element",
+              },
+              "range": "28:5-28:17",
+              "type": "element-stmt",
+            },
+          ],
+          "element": {
+            "attrs": [
+              {
+                "key": "event",
+                "range": "25:21-25:26",
+              },
+            ],
+            "keyword": "sub",
+            "kind": "sub",
+            "name": "Cancellation",
+            "range": "25:3-25:27",
+            "type": "element",
+          },
+          "range": "25:3-28:17",
+          "type": "sub",
+        },
+        {
+          "name": "Billing",
+          "range": "29:3-29:15",
+          "type": "lane",
+        },
+        {
+          "body": [
+            {
+              "element": {
+                "attrs": [
+                  {
+                    "key": "non-interrupting",
+                    "range": "31:32-31:48",
+                  },
+                ],
+                "eventType": "timer",
+                "keyword": "start",
+                "kind": "start",
+                "name": "Every morning",
+                "range": "31:5-31:49",
+                "type": "element",
+              },
+              "range": "31:5-31:49",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "service",
+                "kind": "service",
+                "name": "Update the ledger",
+                "range": "32:5-32:30",
+                "type": "element",
+              },
+              "range": "32:5-32:30",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "end",
+                "kind": "end",
+                "range": "33:5-33:8",
+                "type": "element",
+              },
+              "range": "33:5-33:8",
+              "type": "element-stmt",
+            },
+          ],
+          "element": {
+            "attrs": [
+              {
+                "key": "event",
+                "range": "30:21-30:26",
+              },
+              {
+                "key": "collapsed",
+                "range": "30:28-30:37",
+              },
+            ],
+            "keyword": "sub",
+            "kind": "sub",
+            "name": "Daily report",
+            "range": "30:3-30:38",
+            "type": "element",
+          },
+          "range": "30:3-33:8",
+          "type": "sub",
+        },
+      ],
+      "name": "Shop",
+      "range": "5:1-33:8",
+      "type": "pool",
+    },
+  ],
+  "directives": [
+    {
+      "range": "3:1-3:23",
+      "type": "title",
+      "value": ""Order handling"",
+    },
+  ],
+  "range": "1:1-34:1",
+  "type": "document",
+}
+`;

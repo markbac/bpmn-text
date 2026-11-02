@@ -11,15 +11,7 @@ import { vocabulary } from '@bpmn-text/core';
 
 const keywords = new Set<string>(vocabulary.keywords);
 const eventTypes = vocabulary.eventTypes as Record<string, readonly string[]>;
-const flags = new Set([
-  'loop',
-  'parallel',
-  'sequential',
-  'collapsed',
-  'non-interrupting',
-  'collection',
-  'fit',
-]);
+const flags = new Set<string>(vocabulary.flags);
 
 interface State {
   /** No token read yet on this line. */

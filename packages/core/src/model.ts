@@ -107,13 +107,15 @@ export interface FlowNode {
   linkSources?: string[];
   /** Boundary events: the activity they are attached to. */
   attachedTo?: string;
-  /** Boundary events: false for `[non-interrupting]`. */
+  /** Boundary events, and start events of event subprocesses: false for `[non-interrupting]`. */
   interrupting?: boolean;
   /** Activities: the IDs of their boundary events. */
   boundaries: string[];
   /** Subprocesses: the body. */
   children?: Container;
   collapsed?: boolean;
+  /** Event subprocesses: outside the parent's flow, started by an event. */
+  triggeredByEvent?: true;
   /** Data input associations: from the data object or store references read. */
   reads: DataAssociation[];
   /** Data output associations: to the references written. */
