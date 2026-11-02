@@ -368,6 +368,17 @@ test/fixtures/diagnostics/BT271-flow-into-event-subprocess.bpmnt: 1 error, 1 war
 "
 `;
 
+exports[`bpmn-text check > prints code frames for BT280-start-in-adhoc.bpmnt 1`] = `
+"error[BT280]: An ad-hoc subprocess has no start or end events: its activities are performed in any order until it is complete.
+ --> test/fixtures/diagnostics/BT280-start-in-adhoc.bpmnt:5:3
+  |
+5 |   start
+  |   ^
+
+test/fixtures/diagnostics/BT280-start-in-adhoc.bpmnt: 1 error
+"
+`;
+
 exports[`bpmn-text check > prints code frames for BT301-unreachable.bpmnt 1`] = `
 "warning[BT301]: Nothing flows into this element, so it can never be reached.
  --> test/fixtures/diagnostics/BT301-unreachable.bpmnt:6:1

@@ -106,6 +106,7 @@ const DEFINITION_TYPES = new Set<string>([
 const HANDLED = new Set([
   ...DEFINITION_TYPES,
   'event',
+  'adhoc',
   'id',
   'loop',
   'parallel',
@@ -168,6 +169,8 @@ interface Ctx {
   group?: Group | undefined;
   /** The body of an event subprocess. */
   eventSubprocess?: boolean;
+  /** The body of an ad-hoc subprocess: statements do not flow into each other. */
+  adHoc?: boolean;
 }
 interface NodeInfo {
   pool: PoolBuild;
@@ -563,7 +566,7 @@ class Builder {
 
   /** Implicit flow into `node`: never into a start or link catch (notation §5). */
   private enter(open: Open, node: FlowNode, ctx: Ctx) {
-    if (node.kind !== 'startEvent' && !isLinkCatch(node))
+    if (!ctx.adHoc && node.kind !== 'startEvent' && !isLinkCatch(node))
       this.connect(open, node, ctx);
   }
 
@@ -646,14 +649,24 @@ class Builder {
     if (e.name) node.name = e.name.value;
     if (e.eventType) node.eventType = e.eventType;
     if (e.id) info.explicitId = this.explicitId(e.id.value, e.id.range);
+    const adHoc =
+      kind === 'subProcess' && e.attrs.some((a) => a.key.value === 'adhoc');
+    if (adHoc) node.adHoc = 'Parallel';
     for (const a of e.attrs) {
       const key = a.key.value;
       node.attributeRanges[key] = a.key.range;
       const first = a.values[0];
       if (key === 'id' && first)
         info.explicitId = this.explicitId(first.value, first.range);
+      else if (adHoc && (key === 'parallel' || key === 'sequential'))
+        node.adHoc = key === 'parallel' ? 'Parallel' : 'Sequential';
       else if (MARKERS.has(key) && ACTIVITIES.has(kind))
         node.markers.push(key as Marker);
+      else if (key === 'adhoc' && !adHoc)
+        this.noEffect(
+          a.key.range,
+          '`adhoc` declares an ad-hoc subprocess, on a `sub`',
+        );
       else if (key === 'reads' || key === 'writes') {
         for (const v of a.values) info[key].push(this.data(ctx, v, true));
       } else if (key === 'collapsed' && kind === 'subProcess')
@@ -807,7 +820,7 @@ class Builder {
     for (const b of list) {
       const event = this.declare(b.element, ctx);
       this.info.get(event)!.host = host;
-      const inner = { ...ctx };
+      const inner = { ...ctx, adHoc: false }; // a chain has an order of its own
       let chain = this.chain(event, b.tail, inner, none());
       chain = this.walk(b.body, inner, chain, event);
       const dangling = ends(chain);
@@ -883,7 +896,8 @@ class Builder {
   }
 
   private branch(b: Branch, ctx: Ctx, open: Open, docTarget: Documented): Open {
-    const inner = { ...ctx }; // lane switches are scoped to the branch
+    // Lane switches are scoped to the branch, which has an order of its own.
+    const inner = { ...ctx, adHoc: false };
     if (b.inline) {
       const { target, tail } = b.inline;
       if (target.type === 'element') {
@@ -980,7 +994,12 @@ class Builder {
     const eventSubprocess = node.triggeredByEvent === true;
     if (eventSubprocess) delete this.info.get(node)!.group;
     else this.enter(open, node, ctx);
-    const children: Container = { nodes: [], flows: [], annotations: [] };
+    const children: Container = {
+      nodes: [],
+      flows: [],
+      annotations: [],
+      ...(node.adHoc ? { adHoc: true as const } : {}),
+    };
     node.children = children;
     if (st.body) {
       this.walk(
@@ -991,6 +1010,7 @@ class Builder {
           container: children,
           sub: node,
           ...(eventSubprocess ? { eventSubprocess } : {}),
+          ...(node.adHoc ? { adHoc: true } : {}),
         },
         none(),
         node,

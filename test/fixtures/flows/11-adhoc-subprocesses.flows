@@ -1,0 +1,13 @@
+pool Participant_bid_preparation (implicit)
+  node Event_invitation_to_tender
+  node Activity_prepare_proposal
+  node Activity_collect_references
+  node Activity_sign_the_bid
+  node Event_bid_submitted
+  Event_invitation_to_tender -> Activity_prepare_proposal
+  Activity_prepare_proposal -> Activity_collect_references
+  Activity_collect_references -> Activity_sign_the_bid
+  Activity_sign_the_bid -> Event_bid_submitted
+  Activity_prepare_proposal:
+    Activity_review_wording -> Activity_publish_draft
+  Activity_collect_references:

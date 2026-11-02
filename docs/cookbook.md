@@ -91,6 +91,25 @@ end
 
 ![An explicit merge gateway](images/cookbook-merge.png)
 
+## Work in no fixed order
+
+An ad-hoc subprocess lists activities to perform in any order until the work is
+complete. Nothing flows between them unless you write an arrow.
+
+<!-- screenshot: cookbook-adhoc -->
+
+```bpmnt
+start Request received
+sub Prepare proposal [adhoc]
+  task Research customer
+  task Draft sections
+  task Gather quotes
+user Sign proposal
+end
+```
+
+![Work in no fixed order](images/cookbook-adhoc.png)
+
 ## Parallel work
 
 `and` runs all branches; the open ones are joined by an inserted parallel

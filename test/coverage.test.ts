@@ -26,6 +26,94 @@ async function valid(source: string) {
   return xml;
 }
 
+describe('ad-hoc subprocesses (#90)', () => {
+  const example = read('examples/11-adhoc-subprocesses.bpmnt');
+
+  it('writes adHocSubProcess with its ordering', async () => {
+    const xml = await valid(example);
+    expect(xml).toContain(
+      '<bpmn:adHocSubProcess id="Activity_prepare_proposal" name="Prepare proposal" ordering="Parallel">',
+    );
+    expect(xml).toContain(
+      '<bpmn:adHocSubProcess id="Activity_collect_references" name="Collect references" ordering="Sequential">',
+    );
+    expect(xml).not.toContain('multiInstanceLoopCharacteristics');
+  });
+
+  it('reports nothing about its body', async () => {
+    const { diagnostics } = await compile(example);
+    expect(diagnostics).toEqual([]);
+  });
+
+  it('has no implicit flow, but keeps explicit ones', async () => {
+    const { model } = await compile(example);
+    const sub = model.pools[0]!.process!.nodes.find(
+      (n) => n.id === 'Activity_prepare_proposal',
+    )!;
+    expect(sub.children!.flows.map((f) => f.id)).toEqual([
+      'Flow_review_wording__publish_draft',
+    ]);
+  });
+
+  it('lays out its activities in a grid', async () => {
+    const { layout } = await compile(`start
+sub Work [adhoc]
+  task A
+  task B
+  task C
+  task D
+  task E
+end
+`);
+    const at = (id: string) => layout.shapes.get(`Activity_${id}`)!;
+    expect(at('a').y).toBe(at('b').y);
+    expect(at('a').y).toBe(at('c').y);
+    expect(at('d').y).toBeGreaterThan(at('a').y);
+    expect(at('d').x).toBe(at('a').x);
+    expect(at('e').x).toBe(at('b').x);
+    expect(at('b').x).toBeGreaterThan(at('a').x);
+  });
+
+  it('keeps flow inside branches and boundary chains', async () => {
+    const xml = await valid(`start
+sub Work [adhoc]
+  task Plain
+  task Watched
+    on timer Late -> task Chase -> task Again
+  xor Choice?
+    yes:
+      task One
+      task Two
+    no: task Three
+end
+`);
+    expect(xml).toContain('Flow_one__two');
+    expect(xml).toContain('Flow_chase__again');
+    expect(xml).toContain('Flow_choice__three');
+  });
+
+  it('rejects being both adhoc and event', async () => {
+    const { diagnostics } = await compile(`start
+sub Work [adhoc, event]
+  task A
+end
+`);
+    expect(diagnostics.map((d) => d.code)).toContain('BT280');
+  });
+
+  it('warns about the flag on anything else', async () => {
+    const { diagnostics } = await compile('start\ntask A [adhoc]\nend\n');
+    expect(diagnostics.map((d) => d.code)).toEqual(['BT105']);
+  });
+
+  it('formats the flag unchanged', () => {
+    const source = `sub A [adhoc, sequential, collapsed]
+  task B
+`;
+    expect(format(source)).toBe(source);
+  });
+});
+
 describe('event subprocesses (#87)', () => {
   const example = read('examples/10-event-subprocesses.bpmnt');
 

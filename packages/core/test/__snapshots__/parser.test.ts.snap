@@ -2988,3 +2988,190 @@ exports[`parser on the corpus > examples/10-event-subprocesses.bpmnt 1`] = `
   "type": "document",
 }
 `;
+
+exports[`parser on the corpus > examples/11-adhoc-subprocesses.bpmnt 1`] = `
+{
+  "body": [
+    {
+      "element": {
+        "keyword": "start",
+        "kind": "start",
+        "name": "Invitation to tender",
+        "range": "5:1-5:27",
+        "type": "element",
+      },
+      "range": "5:1-5:27",
+      "type": "element-stmt",
+    },
+    {
+      "body": [
+        {
+          "element": {
+            "keyword": "task",
+            "kind": "task",
+            "name": "Research customer",
+            "range": "7:3-7:25",
+            "type": "element",
+          },
+          "range": "7:3-7:25",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "keyword": "task",
+            "kind": "task",
+            "name": "Draft sections",
+            "range": "8:3-8:22",
+            "type": "element",
+          },
+          "range": "8:3-8:22",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "keyword": "task",
+            "kind": "task",
+            "name": "Gather quotes",
+            "range": "9:3-9:21",
+            "type": "element",
+          },
+          "range": "9:3-9:21",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "keyword": "task",
+            "kind": "task",
+            "name": "Check the budget",
+            "range": "10:3-10:24",
+            "type": "element",
+          },
+          "range": "10:3-10:24",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "keyword": "task",
+            "kind": "task",
+            "name": "Review wording",
+            "range": "11:3-11:22",
+            "type": "element",
+          },
+          "range": "11:3-11:44",
+          "tail": [
+            {
+              "op": "sequence",
+              "range": "11:23-11:44",
+              "targets": [
+                {
+                  "keyword": "task",
+                  "kind": "task",
+                  "name": "Publish draft",
+                  "range": "11:26-11:44",
+                  "type": "element",
+                },
+              ],
+            },
+          ],
+          "type": "element-stmt",
+        },
+      ],
+      "element": {
+        "attrs": [
+          {
+            "key": "adhoc",
+            "range": "6:23-6:28",
+          },
+        ],
+        "keyword": "sub",
+        "kind": "sub",
+        "name": "Prepare proposal",
+        "range": "6:1-6:29",
+        "type": "element",
+      },
+      "range": "6:1-11:44",
+      "type": "sub",
+    },
+    {
+      "body": [
+        {
+          "element": {
+            "keyword": "task",
+            "kind": "task",
+            "name": "Ask past customers",
+            "range": "13:3-13:26",
+            "type": "element",
+          },
+          "range": "13:3-13:26",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "keyword": "task",
+            "kind": "task",
+            "name": "Write case studies",
+            "range": "14:3-14:26",
+            "type": "element",
+          },
+          "range": "14:3-14:26",
+          "type": "element-stmt",
+        },
+      ],
+      "element": {
+        "attrs": [
+          {
+            "key": "adhoc",
+            "range": "12:25-12:30",
+          },
+          {
+            "key": "sequential",
+            "range": "12:32-12:42",
+          },
+          {
+            "key": "collapsed",
+            "range": "12:44-12:53",
+          },
+        ],
+        "keyword": "sub",
+        "kind": "sub",
+        "name": "Collect references",
+        "range": "12:1-12:54",
+        "type": "element",
+      },
+      "range": "12:1-14:26",
+      "type": "sub",
+    },
+    {
+      "element": {
+        "keyword": "user",
+        "kind": "user",
+        "name": "Sign the bid",
+        "range": "15:1-15:18",
+        "type": "element",
+      },
+      "range": "15:1-15:18",
+      "type": "element-stmt",
+    },
+    {
+      "element": {
+        "keyword": "end",
+        "kind": "end",
+        "name": "Bid submitted",
+        "range": "16:1-16:18",
+        "type": "element",
+      },
+      "range": "16:1-16:18",
+      "type": "element-stmt",
+    },
+  ],
+  "directives": [
+    {
+      "range": "3:1-3:24",
+      "type": "title",
+      "value": ""Bid preparation"",
+    },
+  ],
+  "range": "1:1-17:1",
+  "type": "document",
+}
+`;

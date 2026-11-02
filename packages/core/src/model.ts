@@ -57,6 +57,8 @@ export interface Container {
   nodes: FlowNode[];
   flows: SequenceFlow[];
   annotations: Annotation[];
+  /** The body of an ad-hoc subprocess: activities with no implied order. */
+  adHoc?: true;
 }
 
 export interface Process extends Container {
@@ -114,6 +116,8 @@ export interface FlowNode {
   /** Subprocesses: the body. */
   children?: Container;
   collapsed?: boolean;
+  /** Ad-hoc subprocesses: the order their activities are performed in. */
+  adHoc?: 'Parallel' | 'Sequential';
   /** Event subprocesses: outside the parent's flow, started by an event. */
   triggeredByEvent?: true;
   /** Data input associations: from the data object or store references read. */

@@ -104,7 +104,8 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
       ];
       attrs.artifacts = artifacts(n.children);
     }
-    return create(typeOf(n.kind), attrs);
+    if (n.adHoc) attrs.ordering = n.adHoc;
+    return create(n.adHoc ? 'bpmn:AdHocSubProcess' : typeOf(n.kind), attrs);
   }
 
   /**

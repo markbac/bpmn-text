@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" name="Bid preparation" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-text">
+  <bpmn:process id="Process_bid_preparation" name="Bid preparation" isExecutable="false">
+    <bpmn:startEvent id="Event_invitation_to_tender" name="Invitation to tender">
+      <bpmn:outgoing>Flow_invitation_to_tender__prepare_proposal</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:adHocSubProcess id="Activity_prepare_proposal" name="Prepare proposal" ordering="Parallel">
+      <bpmn:incoming>Flow_invitation_to_tender__prepare_proposal</bpmn:incoming>
+      <bpmn:outgoing>Flow_prepare_proposal__collect_references</bpmn:outgoing>
+      <bpmn:task id="Activity_research_customer" name="Research customer" />
+      <bpmn:task id="Activity_draft_sections" name="Draft sections" />
+      <bpmn:task id="Activity_gather_quotes" name="Gather quotes" />
+      <bpmn:task id="Activity_check_the_budget" name="Check the budget" />
+      <bpmn:task id="Activity_review_wording" name="Review wording">
+        <bpmn:outgoing>Flow_review_wording__publish_draft</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:task id="Activity_publish_draft" name="Publish draft">
+        <bpmn:incoming>Flow_review_wording__publish_draft</bpmn:incoming>
+      </bpmn:task>
+      <bpmn:sequenceFlow id="Flow_review_wording__publish_draft" sourceRef="Activity_review_wording" targetRef="Activity_publish_draft" />
+    </bpmn:adHocSubProcess>
+    <bpmn:adHocSubProcess id="Activity_collect_references" name="Collect references" ordering="Sequential">
+      <bpmn:incoming>Flow_prepare_proposal__collect_references</bpmn:incoming>
+      <bpmn:outgoing>Flow_collect_references__sign_the_bid</bpmn:outgoing>
+      <bpmn:task id="Activity_ask_past_customers" name="Ask past customers" />
+      <bpmn:task id="Activity_write_case_studies" name="Write case studies" />
+    </bpmn:adHocSubProcess>
+    <bpmn:userTask id="Activity_sign_the_bid" name="Sign the bid">
+      <bpmn:incoming>Flow_collect_references__sign_the_bid</bpmn:incoming>
+      <bpmn:outgoing>Flow_sign_the_bid__bid_submitted</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_bid_submitted" name="Bid submitted">
+      <bpmn:incoming>Flow_sign_the_bid__bid_submitted</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_invitation_to_tender__prepare_proposal" sourceRef="Event_invitation_to_tender" targetRef="Activity_prepare_proposal" />
+    <bpmn:sequenceFlow id="Flow_prepare_proposal__collect_references" sourceRef="Activity_prepare_proposal" targetRef="Activity_collect_references" />
+    <bpmn:sequenceFlow id="Flow_collect_references__sign_the_bid" sourceRef="Activity_collect_references" targetRef="Activity_sign_the_bid" />
+    <bpmn:sequenceFlow id="Flow_sign_the_bid__bid_submitted" sourceRef="Activity_sign_the_bid" targetRef="Event_bid_submitted" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_bid_preparation">
+      <bpmndi:BPMNShape id="Event_invitation_to_tender_di" bpmnElement="Event_invitation_to_tender">
+        <dc:Bounds x="100" y="197" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="90" y="238" width="57" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_prepare_proposal_di" bpmnElement="Activity_prepare_proposal" isExpanded="true">
+        <dc:Bounds x="186" y="40" width="290" height="350" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_collect_references_di" bpmnElement="Activity_collect_references" isExpanded="false">
+        <dc:Bounds x="526" y="175" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_sign_the_bid_di" bpmnElement="Activity_sign_the_bid">
+        <dc:Bounds x="676" y="175" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_bid_submitted_di" bpmnElement="Event_bid_submitted">
+        <dc:Bounds x="826" y="197" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="811" y="238" width="67" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_research_customer_di" bpmnElement="Activity_research_customer">
+        <dc:Bounds x="206" y="180" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_draft_sections_di" bpmnElement="Activity_draft_sections">
+        <dc:Bounds x="356" y="180" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_gather_quotes_di" bpmnElement="Activity_gather_quotes">
+        <dc:Bounds x="206" y="290" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_check_the_budget_di" bpmnElement="Activity_check_the_budget">
+        <dc:Bounds x="356" y="290" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_review_wording_di" bpmnElement="Activity_review_wording">
+        <dc:Bounds x="206" y="70" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_publish_draft_di" bpmnElement="Activity_publish_draft">
+        <dc:Bounds x="356" y="70" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_invitation_to_tender__prepare_proposal_di" bpmnElement="Flow_invitation_to_tender__prepare_proposal">
+        <di:waypoint x="136" y="215" />
+        <di:waypoint x="186" y="215" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_prepare_proposal__collect_references_di" bpmnElement="Flow_prepare_proposal__collect_references">
+        <di:waypoint x="476" y="215" />
+        <di:waypoint x="526" y="215" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_collect_references__sign_the_bid_di" bpmnElement="Flow_collect_references__sign_the_bid">
+        <di:waypoint x="626" y="215" />
+        <di:waypoint x="676" y="215" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_sign_the_bid__bid_submitted_di" bpmnElement="Flow_sign_the_bid__bid_submitted">
+        <di:waypoint x="776" y="215" />
+        <di:waypoint x="826" y="215" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_review_wording__publish_draft_di" bpmnElement="Flow_review_wording__publish_draft">
+        <di:waypoint x="306" y="110" />
+        <di:waypoint x="356" y="110" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="Activity_collect_references_diagram">
+    <bpmndi:BPMNPlane id="Activity_collect_references_plane" bpmnElement="Activity_collect_references">
+      <bpmndi:BPMNShape id="Activity_ask_past_customers_di" bpmnElement="Activity_ask_past_customers">
+        <dc:Bounds x="100" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_write_case_studies_di" bpmnElement="Activity_write_case_studies">
+        <dc:Bounds x="250" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
+

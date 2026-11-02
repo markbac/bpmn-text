@@ -210,6 +210,7 @@ end Shipped
 | `call <name>` | Call activity |
 | `sub <name>` + block | Embedded subprocess (§8) |
 | `sub <name> [event]` + block | Event subprocess (§8.1) |
+| `sub <name> [adhoc]` + block | Ad-hoc subprocess (§8.2) |
 
 Activity markers are given as attributes:
 
@@ -296,11 +297,12 @@ user Approve order @approve [parallel, reads: Order]
 | Attribute | Applies to | Meaning |
 |---|---|---|
 | `id: x` | any element | Same as `@x` |
-| `loop`, `parallel`, `sequential` | activities | Markers |
+| `loop`, `parallel`, `sequential` | activities | Markers; on an ad-hoc `sub`, `parallel` and `sequential` set its ordering (§8.2) |
 | `reads: …`, `writes: …` | activities, events | Data associations |
 | `collapsed` | `sub`, `pool` | Collapsed subprocess / black-box pool |
 | `non-interrupting` | `on` (boundary), `start` in an event subprocess | Dashed event, which leaves the activity or parent running |
 | `event` | `sub` | Event subprocess (§8.1) |
+| `adhoc` | `sub` | Ad-hoc subprocess (§8.2) |
 | `collection` | `data` | Collection data object |
 | `lane: X` | flow nodes in a pool with lanes | Place this element in lane X without switching (§9) |
 | `doc: "…"` | any element, pool, lane, group | Documentation (§4.6) |
@@ -702,6 +704,39 @@ end Order finished
 * **Groups.** Being outside the flow, it takes no column, so it does not join a
   group it is written in.
 
+### 8.2 Ad-hoc subprocesses
+
+`sub Name [adhoc]` is a set of activities performed in any order, any number of
+times, until the work is complete. BPMN draws it with a tilde marker.
+
+<!-- screenshot: notation-adhoc -->
+
+```bpmnt
+start
+sub Prepare proposal [adhoc]
+  task Research customer
+  task Draft sections
+  task Gather quotes
+  task Check the budget
+  task Review wording -> task Publish draft
+end Proposal ready
+```
+
+![An ad-hoc subprocess](images/notation-adhoc.png)
+
+* **No implicit flow inside.** Activities are listed, not chained, so they need
+  no start or end event, and BT301 and BT302 do not apply to its body. A start
+  or end event inside is error **BT280**, because BPMN does not allow them.
+* **Explicit flows are allowed** for the occasional ordering constraint, as with
+  `Review wording` and `Publish draft` above. A chain, a gateway's branches and a
+  boundary event's chain inside keep their usual flow.
+* **Ordering.** `[parallel]` is the default, or `[sequential]` for one activity at
+  a time. These set the subprocess's `ordering`, not a multi-instance marker.
+* **Layout.** Activities that no flow connects go in a compact grid, in document
+  order, below any that are connected. `[adhoc, collapsed]` has task size, with
+  the tilde marker.
+* A subprocess cannot be both `adhoc` and `event` (**BT280**).
+
 ---
 
 ## 9. Pools and lanes (lane switches)
@@ -855,6 +890,7 @@ possible, a quick fix.
 | BT263 | error | Explicit flow out of a link throw or into a link catch |
 | BT270 | error | Event subprocess without exactly one typed start event |
 | BT271 | error | Flow into or out of an event subprocess |
+| BT280 | error | Start or end event in an ad-hoc subprocess, or one that is also an event subprocess |
 | BT301 | warning | Unreachable element (no incoming sequence or message flow, not a start event) |
 | BT302 | warning | Dead end (non-end element with no outgoing flow) |
 | BT303 | info | Process has no start or no end event |
@@ -929,3 +965,4 @@ See [`examples/`](../examples) for complete files covering every feature:
 | `08-shared-definitions.bpmnt` | One error, signal and message shared between events, across pools |
 | `09-data-states.bpmnt` | One data object moving through several states |
 | `10-event-subprocesses.bpmnt` | Interrupting and non-interrupting event subprocesses, in a pool and inside a `sub` |
+| `11-adhoc-subprocesses.bpmnt` | Expanded and collapsed ad-hoc subprocesses, with an ordering constraint |

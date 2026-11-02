@@ -91,7 +91,8 @@ export function addDiagrams(
         if (type === 'bpmn:Participant' || type === 'bpmn:Lane') {
           attrs.isHorizontal = true;
         }
-        if (type === 'bpmn:SubProcess') attrs.isExpanded = expanded.has(id);
+        if (type === 'bpmn:SubProcess' || type === 'bpmn:AdHocSubProcess')
+          attrs.isExpanded = expanded.has(id);
         if (shape.label) {
           attrs.label = moddle.create('bpmndi:BPMNLabel', {
             bounds: bounds(shape.label),

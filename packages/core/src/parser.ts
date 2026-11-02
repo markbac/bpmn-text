@@ -110,6 +110,7 @@ const FLAGS = new Set([
   'collection',
   'fit',
   'event',
+  'adhoc',
 ]);
 const ATTRIBUTES = new Set([
   'id',
@@ -131,6 +132,7 @@ const ATTRIBUTES = new Set([
   'error',
   'escalation',
   'event',
+  'adhoc',
 ]);
 
 /**

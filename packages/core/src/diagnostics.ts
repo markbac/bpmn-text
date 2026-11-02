@@ -98,6 +98,11 @@ export const diagnosticCodes = {
     severity: 'error',
     meaning: 'Flow into or out of an event subprocess',
   },
+  BT280: {
+    severity: 'error',
+    meaning:
+      'Start or end event in an ad-hoc subprocess, or one that is also an event subprocess',
+  },
   BT301: {
     severity: 'warning',
     meaning:

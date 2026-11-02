@@ -70,7 +70,8 @@ pool Support
   * exclusive, parallel, inclusive and event-based gateways;
   * sequence flows (implicit and explicit, labelled, default flows);
   * pools (expanded and collapsed), lanes (lane switches) and message flows;
-  * embedded subprocesses (expanded and collapsed) and event subprocesses;
+  * embedded subprocesses (expanded and collapsed), event subprocesses and
+    ad-hoc subprocesses;
   * boundary events (interrupting and non-interrupting);
   * data objects, data stores, data associations;
   * text annotations;

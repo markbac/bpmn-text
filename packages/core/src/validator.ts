@@ -217,6 +217,33 @@ export const rules: Rule[] = [
     },
   },
   {
+    code: 'BT280',
+    check(model) {
+      const out: Diagnostic[] = [];
+      for (const [n, c] of modelNodes(model)) {
+        if (c.adHoc && (n.kind === 'startEvent' || n.kind === 'endEvent')) {
+          out.push(
+            diagnostic(
+              'BT280',
+              'An ad-hoc subprocess has no start or end events: its activities are performed in any order until it is complete.',
+              keyword(n),
+            ),
+          );
+        }
+        if (n.adHoc && n.triggeredByEvent) {
+          out.push(
+            diagnostic(
+              'BT280',
+              'A subprocess cannot be both `adhoc` and `event`.',
+              n.attributeRanges.adhoc ?? keyword(n),
+            ),
+          );
+        }
+      }
+      return out;
+    },
+  },
+  {
     code: 'BT301',
     check(model) {
       const messageTargets = new Set(
@@ -228,6 +255,7 @@ export const rules: Rule[] = [
           n.kind === 'startEvent' ||
           n.kind === 'boundaryEvent' ||
           n.triggeredByEvent ||
+          c.adHoc ||
           isLinkCatch(n)
         )
           continue;
@@ -253,6 +281,7 @@ export const rules: Rule[] = [
           n.kind === 'endEvent' ||
           n.endsOpenBoundaryChain ||
           n.triggeredByEvent ||
+          c.adHoc ||
           isLinkThrow(n)
         )
           continue;

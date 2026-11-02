@@ -3301,3 +3301,183 @@ exports[`check() on the corpus > examples/10-event-subprocesses.bpmnt has no err
   "xorJoin": "gateway",
 }
 `;
+
+exports[`check() on the corpus > examples/11-adhoc-subprocesses.bpmnt has no errors or warnings, and matches its IR snapshot 1`] = `
+{
+  "collaboration": false,
+  "pools": [
+    {
+      "collapsed": false,
+      "extra": {},
+      "id": "Participant_bid_preparation",
+      "implicit": true,
+      "name": "Bid preparation",
+      "process": {
+        "flows": [
+          {
+            "id": "Flow_invitation_to_tender__prepare_proposal",
+            "source": "6:1-6:29",
+            "sourceRef": "Event_invitation_to_tender",
+            "targetRef": "Activity_prepare_proposal",
+          },
+          {
+            "id": "Flow_prepare_proposal__collect_references",
+            "source": "12:1-12:54",
+            "sourceRef": "Activity_prepare_proposal",
+            "targetRef": "Activity_collect_references",
+          },
+          {
+            "id": "Flow_collect_references__sign_the_bid",
+            "source": "15:1-15:18",
+            "sourceRef": "Activity_collect_references",
+            "targetRef": "Activity_sign_the_bid",
+          },
+          {
+            "id": "Flow_sign_the_bid__bid_submitted",
+            "source": "16:1-16:18",
+            "sourceRef": "Activity_sign_the_bid",
+            "targetRef": "Event_bid_submitted",
+          },
+        ],
+        "id": "Process_bid_preparation",
+        "nodes": [
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Event_invitation_to_tender",
+            "kind": "startEvent",
+            "name": "Invitation to tender",
+            "source": "5:1-5:27",
+          },
+          {
+            "adHoc": "Parallel",
+            "attributeRanges": {
+              "adhoc": "6:23-6:28",
+            },
+            "children": {
+              "adHoc": true,
+              "flows": [
+                {
+                  "id": "Flow_review_wording__publish_draft",
+                  "source": "11:23-11:44",
+                  "sourceRef": "Activity_review_wording",
+                  "targetRef": "Activity_publish_draft",
+                },
+              ],
+              "nodes": [
+                {
+                  "attributeRanges": {},
+                  "extra": {},
+                  "id": "Activity_research_customer",
+                  "kind": "task",
+                  "name": "Research customer",
+                  "source": "7:3-7:25",
+                },
+                {
+                  "attributeRanges": {},
+                  "extra": {},
+                  "id": "Activity_draft_sections",
+                  "kind": "task",
+                  "name": "Draft sections",
+                  "source": "8:3-8:22",
+                },
+                {
+                  "attributeRanges": {},
+                  "extra": {},
+                  "id": "Activity_gather_quotes",
+                  "kind": "task",
+                  "name": "Gather quotes",
+                  "source": "9:3-9:21",
+                },
+                {
+                  "attributeRanges": {},
+                  "extra": {},
+                  "id": "Activity_check_the_budget",
+                  "kind": "task",
+                  "name": "Check the budget",
+                  "source": "10:3-10:24",
+                },
+                {
+                  "attributeRanges": {},
+                  "extra": {},
+                  "id": "Activity_review_wording",
+                  "kind": "task",
+                  "name": "Review wording",
+                  "source": "11:3-11:22",
+                },
+                {
+                  "attributeRanges": {},
+                  "extra": {},
+                  "id": "Activity_publish_draft",
+                  "kind": "task",
+                  "name": "Publish draft",
+                  "source": "11:26-11:44",
+                },
+              ],
+            },
+            "extra": {},
+            "id": "Activity_prepare_proposal",
+            "kind": "subProcess",
+            "name": "Prepare proposal",
+            "source": "6:1-6:29",
+          },
+          {
+            "adHoc": "Sequential",
+            "attributeRanges": {
+              "adhoc": "12:25-12:30",
+              "collapsed": "12:44-12:53",
+              "sequential": "12:32-12:42",
+            },
+            "children": {
+              "adHoc": true,
+              "nodes": [
+                {
+                  "attributeRanges": {},
+                  "extra": {},
+                  "id": "Activity_ask_past_customers",
+                  "kind": "task",
+                  "name": "Ask past customers",
+                  "source": "13:3-13:26",
+                },
+                {
+                  "attributeRanges": {},
+                  "extra": {},
+                  "id": "Activity_write_case_studies",
+                  "kind": "task",
+                  "name": "Write case studies",
+                  "source": "14:3-14:26",
+                },
+              ],
+            },
+            "collapsed": true,
+            "extra": {},
+            "id": "Activity_collect_references",
+            "kind": "subProcess",
+            "name": "Collect references",
+            "source": "12:1-12:54",
+          },
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Activity_sign_the_bid",
+            "kind": "userTask",
+            "name": "Sign the bid",
+            "source": "15:1-15:18",
+          },
+          {
+            "attributeRanges": {},
+            "extra": {},
+            "id": "Event_bid_submitted",
+            "kind": "endEvent",
+            "name": "Bid submitted",
+            "source": "16:1-16:18",
+          },
+        ],
+      },
+      "source": "5:1-5:27",
+    },
+  ],
+  "title": "Bid preparation",
+  "xorJoin": "gateway",
+}
+`;

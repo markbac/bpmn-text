@@ -1,0 +1,16 @@
+# Ad-hoc subprocesses, expanded and collapsed, with an ordering constraint.
+# covers: §4.2, §4.5, §8, §8.2
+title "Bid preparation"
+
+start Invitation to tender
+sub Prepare proposal [adhoc]
+  task Research customer
+  task Draft sections
+  task Gather quotes
+  task Check the budget
+  task Review wording -> task Publish draft
+sub Collect references [adhoc, sequential, collapsed]
+  task Ask past customers
+  task Write case studies
+user Sign the bid
+end Bid submitted

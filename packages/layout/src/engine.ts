@@ -421,11 +421,25 @@ async function layoutModel(
   }
 
   // Phase 2: columns.
-  const { column, order, columns } = await layer(
-    layerNodes,
-    layerEdges,
-    model.pools,
-    options.elk,
+  const {
+    column,
+    order,
+    columns: layeredColumns,
+  } = await layer(layerNodes, layerEdges, model.pools, options.elk);
+  // An ad-hoc body: activities no flow orders go in a compact grid, in
+  // document order, below any that are connected.
+  const connected = new Set(flows.flatMap((f) => [f.from, f.to]));
+  const inGrid = layerNodes.filter(
+    (n) => n.pool.process?.adHoc && !connected.has(n.node.id),
+  );
+  const gridColumns = Math.ceil(Math.sqrt(inGrid.length));
+  inGrid.forEach((n, i) => {
+    column.set(n.node.id, i % gridColumns);
+    order.set(n.node.id, i);
+  });
+  const columns = Math.max(layeredColumns, gridColumns);
+  const belowConnected = new Set(
+    connected.size > 0 ? inGrid.map((n) => n.node.id) : [],
   );
   const col = (id: string) => column.get(top.get(id)!) ?? 0;
   const isBack = (f: Flow) => col(f.to) <= col(f.from);
@@ -496,7 +510,7 @@ async function layoutModel(
         outIndex.get(f.id)!,
       ])
       .sort((a, b) => a[0]! - b[0]! || a[1]! - b[1]!);
-    const rank = main.has(n.node.id) ? 0 : 1;
+    const rank = main.has(n.node.id) && !belowConnected.has(n.node.id) ? 0 : 1;
     const [pred, index] = keys[0] ?? [-1, 0];
     const furthest = -reachOf(n.node.id).size;
     return [rank, pred!, furthest, index!, order.get(n.node.id)!];
