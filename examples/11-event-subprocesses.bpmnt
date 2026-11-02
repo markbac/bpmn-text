@@ -1,0 +1,33 @@
+# Event subprocesses, interrupting and not, in a pool and inside a sub; one collapsed.
+# covers: §4.1, §8, §8.1
+title "Order handling"
+
+pool Shop
+  lane Sales
+  start message Order placed
+  sub Handle order
+    start
+    task Pick items
+    task Ship parcel
+    end
+    sub Item missing [event]
+      start error Out of stock
+      task Offer a substitute
+      end
+    sub Stock count [event]
+      start signal Count started [non-interrupting]
+      task Report open orders
+      end
+  lane Billing
+  service Take payment
+  end message Order paid
+  lane Sales
+  sub Cancellation [event]
+    start message Order cancelled
+    service Refund customer
+    end Refunded
+  lane Billing
+  sub Daily report [event, collapsed]
+    start timer Every morning [non-interrupting]
+    service Update the ledger
+    end

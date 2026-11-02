@@ -77,8 +77,8 @@ export function textWidth(text: string, fontSize = LABEL_FONT_SIZE): number {
 
 /**
  * The size of an external label: `text` wrapped at word boundaries to
- * `maxWidth`, rounded up to whole pixels. A word wider than `maxWidth`
- * gets a line of its own.
+ * `maxWidth`, rounded up to whole pixels, keeping its line breaks. A word
+ * wider than `maxWidth` gets a line of its own.
  */
 export function labelSize(
   text: string,
@@ -87,15 +87,19 @@ export function labelSize(
   lineHeight = LABEL_LINE_HEIGHT,
 ): Size {
   const lines: string[] = [];
-  for (const word of text.split(/\s+/).filter(Boolean)) {
-    const last = lines.at(-1);
-    if (
-      last !== undefined &&
-      textWidth(`${last} ${word}`, fontSize) <= maxWidth
-    ) {
-      lines[lines.length - 1] = `${last} ${word}`;
-    } else {
-      lines.push(word);
+  for (const paragraph of text.split('\n')) {
+    let last: string | undefined;
+    for (const word of paragraph.split(/\s+/).filter(Boolean)) {
+      if (
+        last !== undefined &&
+        textWidth(`${last} ${word}`, fontSize) <= maxWidth
+      ) {
+        last = `${last} ${word}`;
+        lines[lines.length - 1] = last;
+      } else {
+        last = word;
+        lines.push(word);
+      }
     }
   }
   return {

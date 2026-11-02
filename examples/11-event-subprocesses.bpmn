@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" name="Order handling" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-text">
+  <bpmn:collaboration id="Collaboration_1">
+    <bpmn:participant id="Participant_shop" name="Shop" processRef="Process_shop" />
+  </bpmn:collaboration>
+  <bpmn:message id="Message_order_placed" name="Order placed" />
+  <bpmn:error id="Error_out_of_stock" name="Out of stock" />
+  <bpmn:signal id="Signal_count_started" name="Count started" />
+  <bpmn:message id="Message_order_paid" name="Order paid" />
+  <bpmn:message id="Message_order_cancelled" name="Order cancelled" />
+  <bpmn:process id="Process_shop" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Process_shop">
+      <bpmn:lane id="Lane_sales" name="Sales">
+        <bpmn:flowNodeRef>Event_order_placed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_handle_order</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_cancellation</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_billing" name="Billing">
+        <bpmn:flowNodeRef>Activity_take_payment</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_order_paid</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_daily_report</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Event_order_placed" name="Order placed">
+      <bpmn:outgoing>Flow_order_placed__handle_order</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Event_order_placed_definition" messageRef="Message_order_placed" />
+    </bpmn:startEvent>
+    <bpmn:subProcess id="Activity_handle_order" name="Handle order">
+      <bpmn:incoming>Flow_order_placed__handle_order</bpmn:incoming>
+      <bpmn:outgoing>Flow_handle_order__take_payment</bpmn:outgoing>
+      <bpmn:startEvent id="Event_handle_order_start_1">
+        <bpmn:outgoing>Flow_handle_order_start_1__pick_items</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:task id="Activity_pick_items" name="Pick items">
+        <bpmn:incoming>Flow_handle_order_start_1__pick_items</bpmn:incoming>
+        <bpmn:outgoing>Flow_pick_items__ship_parcel</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:task id="Activity_ship_parcel" name="Ship parcel">
+        <bpmn:incoming>Flow_pick_items__ship_parcel</bpmn:incoming>
+        <bpmn:outgoing>Flow_ship_parcel__handle_order_end_1</bpmn:outgoing>
+      </bpmn:task>
+      <bpmn:endEvent id="Event_handle_order_end_1">
+        <bpmn:incoming>Flow_ship_parcel__handle_order_end_1</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:subProcess id="Activity_item_missing" name="Item missing" triggeredByEvent="true">
+        <bpmn:startEvent id="Event_out_of_stock" name="Out of stock">
+          <bpmn:outgoing>Flow_out_of_stock__offer_a_substitute</bpmn:outgoing>
+          <bpmn:errorEventDefinition id="Event_out_of_stock_definition" errorRef="Error_out_of_stock" />
+        </bpmn:startEvent>
+        <bpmn:task id="Activity_offer_a_substitute" name="Offer a substitute">
+          <bpmn:incoming>Flow_out_of_stock__offer_a_substitute</bpmn:incoming>
+          <bpmn:outgoing>Flow_offer_a_substitute__item_missing_end_1</bpmn:outgoing>
+        </bpmn:task>
+        <bpmn:endEvent id="Event_item_missing_end_1">
+          <bpmn:incoming>Flow_offer_a_substitute__item_missing_end_1</bpmn:incoming>
+        </bpmn:endEvent>
+        <bpmn:sequenceFlow id="Flow_out_of_stock__offer_a_substitute" sourceRef="Event_out_of_stock" targetRef="Activity_offer_a_substitute" />
+        <bpmn:sequenceFlow id="Flow_offer_a_substitute__item_missing_end_1" sourceRef="Activity_offer_a_substitute" targetRef="Event_item_missing_end_1" />
+      </bpmn:subProcess>
+      <bpmn:subProcess id="Activity_stock_count" name="Stock count" triggeredByEvent="true">
+        <bpmn:startEvent id="Event_count_started" name="Count started" isInterrupting="false">
+          <bpmn:outgoing>Flow_count_started__report_open_orders</bpmn:outgoing>
+          <bpmn:signalEventDefinition id="Event_count_started_definition" signalRef="Signal_count_started" />
+        </bpmn:startEvent>
+        <bpmn:task id="Activity_report_open_orders" name="Report open orders">
+          <bpmn:incoming>Flow_count_started__report_open_orders</bpmn:incoming>
+          <bpmn:outgoing>Flow_report_open_orders__stock_count_end_1</bpmn:outgoing>
+        </bpmn:task>
+        <bpmn:endEvent id="Event_stock_count_end_1">
+          <bpmn:incoming>Flow_report_open_orders__stock_count_end_1</bpmn:incoming>
+        </bpmn:endEvent>
+        <bpmn:sequenceFlow id="Flow_count_started__report_open_orders" sourceRef="Event_count_started" targetRef="Activity_report_open_orders" />
+        <bpmn:sequenceFlow id="Flow_report_open_orders__stock_count_end_1" sourceRef="Activity_report_open_orders" targetRef="Event_stock_count_end_1" />
+      </bpmn:subProcess>
+      <bpmn:sequenceFlow id="Flow_handle_order_start_1__pick_items" sourceRef="Event_handle_order_start_1" targetRef="Activity_pick_items" />
+      <bpmn:sequenceFlow id="Flow_pick_items__ship_parcel" sourceRef="Activity_pick_items" targetRef="Activity_ship_parcel" />
+      <bpmn:sequenceFlow id="Flow_ship_parcel__handle_order_end_1" sourceRef="Activity_ship_parcel" targetRef="Event_handle_order_end_1" />
+    </bpmn:subProcess>
+    <bpmn:serviceTask id="Activity_take_payment" name="Take payment">
+      <bpmn:incoming>Flow_handle_order__take_payment</bpmn:incoming>
+      <bpmn:outgoing>Flow_take_payment__order_paid</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_order_paid" name="Order paid">
+      <bpmn:incoming>Flow_take_payment__order_paid</bpmn:incoming>
+      <bpmn:messageEventDefinition id="Event_order_paid_definition" messageRef="Message_order_paid" />
+    </bpmn:endEvent>
+    <bpmn:subProcess id="Activity_cancellation" name="Cancellation" triggeredByEvent="true">
+      <bpmn:startEvent id="Event_order_cancelled" name="Order cancelled">
+        <bpmn:outgoing>Flow_order_cancelled__refund_customer</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="Event_order_cancelled_definition" messageRef="Message_order_cancelled" />
+      </bpmn:startEvent>
+      <bpmn:serviceTask id="Activity_refund_customer" name="Refund customer">
+        <bpmn:incoming>Flow_order_cancelled__refund_customer</bpmn:incoming>
+        <bpmn:outgoing>Flow_refund_customer__refunded</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:endEvent id="Event_refunded" name="Refunded">
+        <bpmn:incoming>Flow_refund_customer__refunded</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_order_cancelled__refund_customer" sourceRef="Event_order_cancelled" targetRef="Activity_refund_customer" />
+      <bpmn:sequenceFlow id="Flow_refund_customer__refunded" sourceRef="Activity_refund_customer" targetRef="Event_refunded" />
+    </bpmn:subProcess>
+    <bpmn:subProcess id="Activity_daily_report" name="Daily report" triggeredByEvent="true">
+      <bpmn:startEvent id="Event_every_morning" name="Every morning" isInterrupting="false">
+        <bpmn:outgoing>Flow_every_morning__update_the_ledger</bpmn:outgoing>
+        <bpmn:timerEventDefinition id="Event_every_morning_definition" />
+      </bpmn:startEvent>
+      <bpmn:serviceTask id="Activity_update_the_ledger" name="Update the ledger">
+        <bpmn:incoming>Flow_every_morning__update_the_ledger</bpmn:incoming>
+        <bpmn:outgoing>Flow_update_the_ledger__daily_report_end_1</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:endEvent id="Event_daily_report_end_1">
+        <bpmn:incoming>Flow_update_the_ledger__daily_report_end_1</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_every_morning__update_the_ledger" sourceRef="Event_every_morning" targetRef="Activity_update_the_ledger" />
+      <bpmn:sequenceFlow id="Flow_update_the_ledger__daily_report_end_1" sourceRef="Activity_update_the_ledger" targetRef="Event_daily_report_end_1" />
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="Flow_order_placed__handle_order" sourceRef="Event_order_placed" targetRef="Activity_handle_order" />
+    <bpmn:sequenceFlow id="Flow_handle_order__take_payment" sourceRef="Activity_handle_order" targetRef="Activity_take_payment" />
+    <bpmn:sequenceFlow id="Flow_take_payment__order_paid" sourceRef="Activity_take_payment" targetRef="Event_order_paid" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+      <bpmndi:BPMNShape id="Participant_shop_di" bpmnElement="Participant_shop" isHorizontal="true">
+        <dc:Bounds x="0" y="0" width="1196" height="826" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_sales_di" bpmnElement="Lane_sales" isHorizontal="true">
+        <dc:Bounds x="30" y="0" width="1166" height="556" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_billing_di" bpmnElement="Lane_billing" isHorizontal="true">
+        <dc:Bounds x="30" y="556" width="1166" height="270" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_order_placed_di" bpmnElement="Event_order_placed">
+        <dc:Bounds x="100" y="180" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="86" y="221" width="64" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_handle_order_di" bpmnElement="Activity_handle_order" isExpanded="true">
+        <dc:Bounds x="186" y="40" width="722" height="316" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_take_payment_di" bpmnElement="Activity_take_payment">
+        <dc:Bounds x="970" y="596" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_order_paid_di" bpmnElement="Event_order_paid">
+        <dc:Bounds x="1120" y="618" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1112" y="659" width="52" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_cancellation_di" bpmnElement="Activity_cancellation" isExpanded="true">
+        <dc:Bounds x="100" y="411" width="340" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_daily_report_di" bpmnElement="Activity_daily_report" isExpanded="false">
+        <dc:Bounds x="100" y="731" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_handle_order_start_1_di" bpmnElement="Event_handle_order_start_1">
+        <dc:Bounds x="206" y="92" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_pick_items_di" bpmnElement="Activity_pick_items">
+        <dc:Bounds x="292" y="70" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_ship_parcel_di" bpmnElement="Activity_ship_parcel">
+        <dc:Bounds x="442" y="70" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_handle_order_end_1_di" bpmnElement="Event_handle_order_end_1">
+        <dc:Bounds x="592" y="92" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_item_missing_di" bpmnElement="Activity_item_missing" isExpanded="true">
+        <dc:Bounds x="206" y="205" width="324" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_stock_count_di" bpmnElement="Activity_stock_count" isExpanded="true">
+        <dc:Bounds x="560" y="205" width="328" height="130" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_out_of_stock_di" bpmnElement="Event_out_of_stock">
+        <dc:Bounds x="237.5" y="257" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="226.5" y="298" width="59" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_offer_a_substitute_di" bpmnElement="Activity_offer_a_substitute">
+        <dc:Bounds x="323.5" y="235" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_item_missing_end_1_di" bpmnElement="Event_item_missing_end_1">
+        <dc:Bounds x="473.5" y="257" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_count_started_di" bpmnElement="Event_count_started">
+        <dc:Bounds x="595.5" y="257" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="580.5" y="298" width="67" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_report_open_orders_di" bpmnElement="Activity_report_open_orders">
+        <dc:Bounds x="681.5" y="235" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_stock_count_end_1_di" bpmnElement="Event_stock_count_end_1">
+        <dc:Bounds x="831.5" y="257" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_order_cancelled_di" bpmnElement="Event_order_cancelled">
+        <dc:Bounds x="141.5" y="463" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="120.5" y="504" width="78" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_refund_customer_di" bpmnElement="Activity_refund_customer">
+        <dc:Bounds x="227.5" y="441" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_refunded_di" bpmnElement="Event_refunded">
+        <dc:Bounds x="377.5" y="463" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="371.5" y="504" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_order_placed__handle_order_di" bpmnElement="Flow_order_placed__handle_order">
+        <di:waypoint x="136" y="198" />
+        <di:waypoint x="186" y="198" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_handle_order__take_payment_di" bpmnElement="Flow_handle_order__take_payment">
+        <di:waypoint x="908" y="198" />
+        <di:waypoint x="933" y="198" />
+        <di:waypoint x="933" y="636" />
+        <di:waypoint x="970" y="636" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_take_payment__order_paid_di" bpmnElement="Flow_take_payment__order_paid">
+        <di:waypoint x="1070" y="636" />
+        <di:waypoint x="1120" y="636" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_handle_order_start_1__pick_items_di" bpmnElement="Flow_handle_order_start_1__pick_items">
+        <di:waypoint x="242" y="110" />
+        <di:waypoint x="292" y="110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_pick_items__ship_parcel_di" bpmnElement="Flow_pick_items__ship_parcel">
+        <di:waypoint x="392" y="110" />
+        <di:waypoint x="442" y="110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ship_parcel__handle_order_end_1_di" bpmnElement="Flow_ship_parcel__handle_order_end_1">
+        <di:waypoint x="542" y="110" />
+        <di:waypoint x="592" y="110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_out_of_stock__offer_a_substitute_di" bpmnElement="Flow_out_of_stock__offer_a_substitute">
+        <di:waypoint x="273.5" y="275" />
+        <di:waypoint x="323.5" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_offer_a_substitute__item_missing_end_1_di" bpmnElement="Flow_offer_a_substitute__item_missing_end_1">
+        <di:waypoint x="423.5" y="275" />
+        <di:waypoint x="473.5" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_count_started__report_open_orders_di" bpmnElement="Flow_count_started__report_open_orders">
+        <di:waypoint x="631.5" y="275" />
+        <di:waypoint x="681.5" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_report_open_orders__stock_count_end_1_di" bpmnElement="Flow_report_open_orders__stock_count_end_1">
+        <di:waypoint x="781.5" y="275" />
+        <di:waypoint x="831.5" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_order_cancelled__refund_customer_di" bpmnElement="Flow_order_cancelled__refund_customer">
+        <di:waypoint x="177.5" y="481" />
+        <di:waypoint x="227.5" y="481" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_refund_customer__refunded_di" bpmnElement="Flow_refund_customer__refunded">
+        <di:waypoint x="327.5" y="481" />
+        <di:waypoint x="377.5" y="481" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="Activity_daily_report_diagram">
+    <bpmndi:BPMNPlane id="Activity_daily_report_plane" bpmnElement="Activity_daily_report">
+      <bpmndi:BPMNShape id="Event_every_morning_di" bpmnElement="Event_every_morning">
+        <dc:Bounds x="100" y="62" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="83" y="103" width="71" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_update_the_ledger_di" bpmnElement="Activity_update_the_ledger">
+        <dc:Bounds x="186" y="40" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_daily_report_end_1_di" bpmnElement="Event_daily_report_end_1">
+        <dc:Bounds x="336" y="62" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_every_morning__update_the_ledger_di" bpmnElement="Flow_every_morning__update_the_ledger">
+        <di:waypoint x="136" y="80" />
+        <di:waypoint x="186" y="80" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_update_the_ledger__daily_report_end_1_di" bpmnElement="Flow_update_the_ledger__daily_report_end_1">
+        <di:waypoint x="286" y="80" />
+        <di:waypoint x="336" y="80" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
+

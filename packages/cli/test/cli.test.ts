@@ -52,7 +52,8 @@ const diagnosticsFixtures = readdirSync(
 ).filter((f) => f.endsWith('.bpmnt'));
 
 describe('bpmn-text build', () => {
-  it('builds every example into a directory', async () => {
+  // About 2 s on its own, but with a full parallel suite it can pass 5 s.
+  it('builds every example into a directory', { timeout: 30_000 }, async () => {
     const out = temp();
     const { code, stderr } = await cli([
       'build',
@@ -72,6 +73,12 @@ describe('bpmn-text build', () => {
       '06-subprocess-data.bpmn',
       '07-multi-phase.bpmn',
       '08-broadband-provisioning.bpmn',
+      '09-shared-definitions.bpmn',
+      '10-data-states.bpmn',
+      '11-event-subprocesses.bpmn',
+      '12-adhoc-subprocesses.bpmn',
+      '13-complex-gateway.bpmn',
+      '14-link-events.bpmn',
     ]);
     for (const f of files) {
       await expectSchemaValid(readFileSync(join(out, f), 'utf8'));

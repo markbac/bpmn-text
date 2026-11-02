@@ -1,0 +1,13 @@
+# One invoice moving through three states, across lanes.
+# covers: §4.4
+title "Invoice approval"
+
+pool Company
+  lane Sales
+  start Order shipped
+  task Draft invoice [writes: Invoice (draft)]
+  lane Finance
+  user Approve invoice [reads: Invoice (draft), writes: Invoice (approved)]
+  data Invoice (approved) [collection]
+  service Send invoice [reads: Invoice (approved), writes: Invoice (sent)]
+  end Invoice sent

@@ -1,0 +1,7 @@
+# BT306: Nothing around the subprocess catches this error.
+# expect: BT306 @ 6:3
+start
+sub Work
+  start
+  end error Failed
+end

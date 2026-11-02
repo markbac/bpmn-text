@@ -33,6 +33,7 @@ export type ElementKind =
   | 'and'
   | 'or'
   | 'event'
+  | 'complex'
   | 'on';
 
 /** A name, label or value as written: bare or quoted. */

@@ -1,0 +1,21 @@
+pool Participant_returns (implicit)
+  node Event_parcel_returned
+  node Activity_inspect_parcel
+  node Gateway_condition
+  node Activity_restock_items
+  node Event_refund
+  node Activity_write_off_items
+  node Event_refund_2
+  node Event_rejected
+  node Event_refund_3
+  node Activity_refund_customer
+  node Event_refunded
+  Event_parcel_returned -> Activity_inspect_parcel
+  Activity_inspect_parcel -> Gateway_condition
+  Gateway_condition -> Activity_restock_items [good]
+  Activity_restock_items -> Event_refund
+  Gateway_condition -> Activity_write_off_items [damaged]
+  Activity_write_off_items -> Event_refund_2
+  Gateway_condition -> Event_rejected (default)
+  Event_refund_3 -> Activity_refund_customer
+  Activity_refund_customer -> Event_refunded

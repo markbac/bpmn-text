@@ -1,0 +1,7 @@
+# BT280: An ad-hoc subprocess has no start or end events.
+# expect: BT280 @ 5:3
+start
+sub Work [adhoc]
+  start
+  task A
+end

@@ -42,7 +42,12 @@ const keyword = (n: FlowNode): Range => ({
   start: n.source.start,
   end: n.source.start,
 });
-const isLink = (n: FlowNode) => n.eventType === 'link';
+const isLinkThrow = (n: FlowNode) =>
+  n.kind === 'intermediateThrowEvent' && n.eventType === 'link';
+const isLinkCatch = (n: FlowNode) =>
+  n.kind === 'intermediateCatchEvent' && n.eventType === 'link';
+const normalise = (name: string) =>
+  name.trim().replace(/\s+/g, ' ').toLowerCase();
 
 const counts = new WeakMap<Container, ReturnType<typeof countFlows>>();
 function flowCounts(c: Container) {
@@ -58,6 +63,18 @@ function countFlows(c: Container) {
   }
   return { incoming, outgoing };
 }
+
+/** Whether a catcher (unnamed: any) handles what `thrower` throws. */
+const catches = (catcher: FlowNode, thrower: FlowNode) =>
+  catcher.eventType === thrower.eventType &&
+  (!catcher.definitionRef ||
+    !thrower.definitionRef ||
+    catcher.definitionRef === thrower.definitionRef);
+/** Error end events, and escalation end and throw events. */
+const throwsUp = (n: FlowNode) =>
+  (n.eventType === 'error' && n.kind === 'endEvent') ||
+  (n.eventType === 'escalation' &&
+    (n.kind === 'endEvent' || n.kind === 'intermediateThrowEvent'));
 
 export const rules: Rule[] = [
   {
@@ -82,17 +99,143 @@ export const rules: Rule[] = [
     code: 'BT240',
     check(model) {
       const out: Diagnostic[] = [];
-      for (const [n] of modelNodes(model)) {
+      for (const [n, c] of modelNodes(model)) {
         if (
-          n.kind === 'boundaryEvent' &&
           n.interrupting === false &&
           (n.eventType === 'error' || n.eventType === 'compensation')
         ) {
           out.push(
             diagnostic(
               'BT240',
-              `A boundary ${n.eventType} event always interrupts the activity; remove \`non-interrupting\`.`,
+              n.kind === 'startEvent'
+                ? `A start ${n.eventType} event always interrupts; remove \`non-interrupting\`.`
+                : `A boundary ${n.eventType} event always interrupts the activity; remove \`non-interrupting\`.`,
               n.attributeRanges['non-interrupting'] ?? keyword(n),
+            ),
+          );
+        }
+        if (
+          n.attachedTo &&
+          c.nodes.find((h) => h.id === n.attachedTo)?.triggeredByEvent
+        ) {
+          out.push(
+            diagnostic(
+              'BT240',
+              'An event subprocess cannot have boundary events: it is not part of the flow.',
+              keyword(n),
+            ),
+          );
+        }
+      }
+      return out;
+    },
+  },
+  {
+    code: 'BT260',
+    check(model) {
+      const out: Diagnostic[] = [];
+      for (const [n] of modelNodes(model)) {
+        if (!isLinkThrow(n) || n.linkTarget) continue;
+        out.push(
+          diagnostic(
+            'BT260',
+            n.name
+              ? `No \`catch link ${n.name}\` in this process level, so flow stops here.`
+              : 'A link throw event needs a name: it pairs with the `catch link` of the same name.',
+            keyword(n),
+          ),
+        );
+      }
+      return out;
+    },
+  },
+  {
+    code: 'BT261',
+    check(model) {
+      const out: Diagnostic[] = [];
+      for (const [n] of modelNodes(model)) {
+        if (!isLinkCatch(n) || n.linkSources?.length) continue;
+        out.push(
+          diagnostic(
+            'BT261',
+            n.name
+              ? `No \`throw link ${n.name}\` in this process level, so this can never be reached.`
+              : 'A link catch event needs a name: it pairs with the `throw link` of the same name.',
+            keyword(n),
+          ),
+        );
+      }
+      return out;
+    },
+  },
+  {
+    code: 'BT262',
+    check(model) {
+      const out: Diagnostic[] = [];
+      const seen = new Map<Container, Map<string, FlowNode>>();
+      for (const [n, c] of modelNodes(model)) {
+        if (!isLinkCatch(n) || !n.name) continue;
+        const names = seen.get(c) ?? new Map<string, FlowNode>();
+        seen.set(c, names);
+        const first = names.get(normalise(n.name));
+        if (!first) {
+          names.set(normalise(n.name), n);
+          continue;
+        }
+        out.push(
+          diagnostic(
+            'BT262',
+            `This process level already has a \`catch link ${n.name}\` on line ${first.source.start.line}: a throw event must lead to one place.`,
+            keyword(n),
+            { related: [{ message: 'First catch', range: first.source }] },
+          ),
+        );
+      }
+      return out;
+    },
+  },
+  {
+    code: 'BT270',
+    check(model) {
+      const out: Diagnostic[] = [];
+      for (const [n] of modelNodes(model)) {
+        if (!n.triggeredByEvent) continue;
+        const starts = (n.children?.nodes ?? []).filter(
+          (s) => s.kind === 'startEvent',
+        );
+        const message =
+          starts.length > 1
+            ? 'An event subprocess has exactly one start event; this one has several.'
+            : starts.length === 0
+              ? 'An event subprocess needs a typed start event, the event that starts it.'
+              : !starts[0]!.eventType
+                ? 'The start event of an event subprocess must be typed: message, timer, signal, conditional, error, escalation or compensation.'
+                : undefined;
+        if (message) out.push(diagnostic('BT270', message, keyword(n)));
+      }
+      return out;
+    },
+  },
+  {
+    code: 'BT280',
+    check(model) {
+      const out: Diagnostic[] = [];
+      for (const [n, c] of modelNodes(model)) {
+        if (c.adHoc && (n.kind === 'startEvent' || n.kind === 'endEvent')) {
+          out.push(
+            diagnostic(
+              'BT280',
+              'An ad-hoc subprocess has no start or end events: its activities are performed in any order until it is complete.',
+              keyword(n),
+            ),
+          );
+        }
+        if (n.adHoc && n.triggeredByEvent) {
+          out.push(
+            diagnostic(
+              'BT280',
+              'A subprocess cannot be both `adhoc` and `event`.',
+              n.attributeRanges.adhoc ?? keyword(n),
             ),
           );
         }
@@ -108,7 +251,13 @@ export const rules: Rule[] = [
       );
       const out: Diagnostic[] = [];
       for (const [n, c] of modelNodes(model)) {
-        if (n.kind === 'startEvent' || n.kind === 'boundaryEvent' || isLink(n))
+        if (
+          n.kind === 'startEvent' ||
+          n.kind === 'boundaryEvent' ||
+          n.triggeredByEvent ||
+          c.adHoc ||
+          isLinkCatch(n)
+        )
           continue;
         if (flowCounts(c).incoming.has(n.id) || messageTargets.has(n.id))
           continue;
@@ -128,7 +277,13 @@ export const rules: Rule[] = [
     check(model) {
       const out: Diagnostic[] = [];
       for (const [n, c] of modelNodes(model)) {
-        if (n.kind === 'endEvent' || n.endsOpenBoundaryChain || isLink(n))
+        if (
+          n.kind === 'endEvent' ||
+          n.endsOpenBoundaryChain ||
+          n.triggeredByEvent ||
+          c.adHoc ||
+          isLinkThrow(n)
+        )
           continue;
         if (flowCounts(c).outgoing.has(n.id)) continue;
         out.push(
@@ -162,6 +317,65 @@ export const rules: Rule[] = [
           ),
         );
       }
+      return out;
+    },
+  },
+  {
+    code: 'BT305',
+    check(model) {
+      const out: Diagnostic[] = [];
+      for (const [n, c] of modelNodes(model)) {
+        if (
+          n.kind !== 'boundaryEvent' ||
+          (n.eventType !== 'error' && n.eventType !== 'escalation')
+        )
+          continue;
+        const body = c.nodes.find((h) => h.id === n.attachedTo)?.children;
+        if (!body?.nodes.length) continue;
+        const thrown = [...allNodes(body)].some(
+          ([t]) => throwsUp(t) && catches(n, t),
+        );
+        if (thrown) continue;
+        out.push(
+          diagnostic(
+            'BT305',
+            `Nothing inside this subprocess throws ${n.name ? `\`${n.name}\`` : `an ${n.eventType}`}, so this boundary event never fires.`,
+            keyword(n),
+          ),
+        );
+      }
+      return out;
+    },
+  },
+  {
+    code: 'BT306',
+    check(model) {
+      const out: Diagnostic[] = [];
+      const walk = (c: Container, outer: FlowNode[], nested: boolean) => {
+        // An event subprocess's start event handles what its container throws.
+        const handlers = [
+          ...outer,
+          ...c.nodes
+            .filter((n) => n.triggeredByEvent)
+            .flatMap((n) => n.children?.nodes ?? [])
+            .filter((n) => n.kind === 'startEvent'),
+        ];
+        for (const n of c.nodes) {
+          if (nested && throwsUp(n) && !handlers.some((h) => catches(h, n))) {
+            out.push(
+              diagnostic(
+                'BT306',
+                `Nothing around this subprocess catches ${n.name ? `\`${n.name}\`` : `this ${n.eventType}`}. Add \`on ${n.eventType}\` under the \`sub\` if it should be handled.`,
+                keyword(n),
+              ),
+            );
+          }
+          if (!n.children) continue;
+          const hosted = c.nodes.filter((b) => b.attachedTo === n.id);
+          walk(n.children, [...handlers, ...hosted], true);
+        }
+      };
+      for (const p of model.pools) if (p.process) walk(p.process, [], false);
       return out;
     },
   },

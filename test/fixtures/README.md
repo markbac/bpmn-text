@@ -57,9 +57,9 @@ points at:
 | Syntax and lexical errors (BT001, BT004) | The first character that cannot be accepted, or the opening `[` or `"` that is never closed |
 | BT002 | The tab character |
 | BT003 | The first non-blank character of the line |
-| Element errors (BT101, BT102, BT222, BT230, BT250, BT301, BT302, BT304) | The keyword or word in error: the statement keyword, or the event type for BT102 |
-| Attribute errors (BT103, BT104, BT240, BT251) | The attribute key, or the value for BT104 |
-| Reference and flow errors (BT201, BT202, BT210, BT211, BT212) | The target reference |
+| Element errors (BT101, BT102, BT222, BT230, BT250, BT260, BT261, BT262, BT270, BT280, BT301, BT302, BT304, BT305, BT306) | The keyword or word in error: the statement keyword, or the event type for BT102 |
+| Attribute errors (BT103, BT104, BT105, BT240, BT251) | The attribute key, or the value for BT104 |
+| Reference and flow errors (BT201, BT202, BT210, BT211, BT212, BT263, BT271) | The target reference |
 | `@id` errors (BT203) | The `@` of the duplicate ID |
 | Branch errors (BT220, BT221) | The first token of the offending branch content (`task`, `else`) |
 | BT224 | The `fork` keyword |

@@ -34,6 +34,10 @@ export const diagnosticCodes = {
   },
   BT103: { severity: 'warning', meaning: 'Unknown attribute' },
   BT104: { severity: 'error', meaning: 'Invalid colour value' },
+  BT105: {
+    severity: 'warning',
+    meaning: 'Attribute has no effect on this element',
+  },
   BT201: { severity: 'error', meaning: 'Ambiguous reference' },
   BT202: {
     severity: 'error',
@@ -60,7 +64,10 @@ export const diagnosticCodes = {
     severity: 'error',
     meaning: 'Element before first lane in a pool with lanes',
   },
-  BT240: { severity: 'error', meaning: 'Invalid boundary event configuration' },
+  BT240: {
+    severity: 'error',
+    meaning: 'Invalid boundary or event subprocess event configuration',
+  },
   BT241: {
     severity: 'warning',
     meaning: 'Non-interrupting boundary chain ends open',
@@ -70,6 +77,32 @@ export const diagnosticCodes = {
     meaning: 'Nested group, element in two groups, or group inside a `sub`',
   },
   BT251: { severity: 'warning', meaning: 'Conflicting lane attributes' },
+  BT260: {
+    severity: 'warning',
+    meaning: 'Link throw event without a matching catch',
+  },
+  BT261: { severity: 'warning', meaning: 'Link catch event without any throw' },
+  BT262: {
+    severity: 'error',
+    meaning: 'Two link catch events with the same name in one process level',
+  },
+  BT263: {
+    severity: 'error',
+    meaning: 'Explicit flow out of a link throw or into a link catch',
+  },
+  BT270: {
+    severity: 'error',
+    meaning: 'Event subprocess without exactly one typed start event',
+  },
+  BT271: {
+    severity: 'error',
+    meaning: 'Flow into or out of an event subprocess',
+  },
+  BT280: {
+    severity: 'error',
+    meaning:
+      'Start or end event in an ad-hoc subprocess, or one that is also an event subprocess',
+  },
   BT301: {
     severity: 'warning',
     meaning:
@@ -83,6 +116,16 @@ export const diagnosticCodes = {
   BT304: {
     severity: 'info',
     meaning: 'Send/receive element without a message flow',
+  },
+  BT305: {
+    severity: 'info',
+    meaning:
+      'Error or escalation boundary event with nothing to catch in its subprocess',
+  },
+  BT306: {
+    severity: 'info',
+    meaning:
+      'Error or escalation thrown in a subprocess with nothing to catch it',
   },
 } as const satisfies Record<string, { severity: Severity; meaning: string }>;
 

@@ -2,7 +2,9 @@
 
 Short recipes for common process patterns, and for the errors you are most
 likely to meet. Every example here is compiled in CI, so it works as
-written. The [notation reference](notation.md) has the full rules.
+written. The [notation reference](notation.md) has the full rules, and
+[troubleshooting](troubleshooting.md) covers diagrams that do not look as you
+expected.
 
 ## Loops
 
@@ -25,6 +27,26 @@ xor Approved?
 ```
 
 ![Rework until done](images/cookbook-rework.png)
+
+### Approval loops
+
+A decision with three outcomes: two end the process, and the third goes back for
+changes. The jump ends its branch, so nothing joins.
+
+<!-- screenshot: cookbook-approval-loop -->
+
+```bpmnt
+start Request submitted
+user Review request
+xor Decision?
+  approved: end Approved
+  rejected: end Rejected
+  needs changes:
+    user Amend request
+    -> Review request
+```
+
+![An approval loop](images/cookbook-approval-loop.png)
 
 ### A repeated activity
 
@@ -91,6 +113,25 @@ end
 
 ![An explicit merge gateway](images/cookbook-merge.png)
 
+## Work in no fixed order
+
+An ad-hoc subprocess lists activities to perform in any order until the work is
+complete. Nothing flows between them unless you write an arrow.
+
+<!-- screenshot: cookbook-adhoc -->
+
+```bpmnt
+start Request received
+sub Prepare proposal [adhoc]
+  task Research customer
+  task Draft sections
+  task Gather quotes
+user Sign proposal
+end
+```
+
+![Work in no fixed order](images/cookbook-adhoc.png)
+
 ## Parallel work
 
 `and` runs all branches; the open ones are joined by an inserted parallel
@@ -109,6 +150,27 @@ end
 ```
 
 ![Parallel work](images/cookbook-parallel.png)
+
+### Parallel work with a join after each stage
+
+Each block's open branches join before the next statement, so two `and` blocks in a row
+make two stages. Nothing in the second stage starts until the first has finished.
+
+<!-- screenshot: cookbook-parallel-stages -->
+
+```bpmnt
+start Order paid
+and
+  - task Pick items
+  - task Print invoice
+and
+  - task Pack parcel
+  - task Book courier
+task Ship parcel
+end
+```
+
+![Two parallel stages](images/cookbook-parallel-stages.png)
 
 ### Without a gateway
 
@@ -148,6 +210,50 @@ end
 ```
 
 ![Escalations and timeouts](images/cookbook-escalation.png)
+
+### Escalation with timers
+
+A reminder that leaves the work running, then a handover that takes it away. The
+reminder ends on its own, and the handover merges back before the next step.
+
+<!-- screenshot: cookbook-escalation-timers -->
+
+```bpmnt
+start
+user Approve invoice
+  on timer 2 days [non-interrupting] -> send Remind approver -> end Reminder sent
+  on timer 5 days -> user Manager approves invoice
+task Pay invoice
+end
+```
+
+![Escalation with timers](images/cookbook-escalation-timers.png)
+
+### Something that can happen at any point
+
+A boundary event watches one activity. An event subprocess watches its whole
+parent: the pool or `sub` it is written in. Its start event says what starts it,
+and it stops the parent unless that event is `[non-interrupting]`.
+
+<!-- screenshot: cookbook-event-subprocess -->
+
+```bpmnt
+pool Shop
+  start Order placed
+  task Pick items
+  task Ship
+  end Shipped
+  sub Customer cancels [event]
+    start message Cancellation received
+    task Refund customer
+    end Cancelled
+  sub Status request [event]
+    start message Status asked [non-interrupting]
+    send Send order status
+    end
+```
+
+![Event subprocesses](images/cookbook-event-subprocess.png)
 
 ### Waiting for the first of several events
 
@@ -192,6 +298,56 @@ pool Supplier
 
 ![Request and response](images/cookbook-request-response.png)
 
+### Hand-offs between departments
+
+Inside one organisation, use lanes rather than pools. `lane` changes who does the steps
+that follow, and the flow carries on across the switch. A department can come back.
+
+<!-- screenshot: cookbook-handoffs -->
+
+```bpmnt
+pool Company
+  lane Sales
+  start Order received
+  task Check credit
+  lane Warehouse
+  task Pick items
+  task Pack parcel
+  lane Finance
+  task Issue invoice
+  lane Warehouse
+  task Ship parcel
+  end Shipped
+```
+
+![Hand-offs between departments](images/cookbook-handoffs.png)
+
+### Customer and supplier
+
+Separate organisations are pools, each with its own flow, and only messages cross
+between them. Pair each `send` with what receives it.
+
+<!-- screenshot: cookbook-customer-supplier -->
+
+```bpmnt
+pool Customer
+  start Stock low
+  send Place order ~> Order received
+  receive Order confirmation
+  receive Goods
+  task Check delivery
+  end Goods in stock
+
+pool Supplier
+  start message Order received
+  send Confirm order ~> Order confirmation
+  task Pick goods
+  send Deliver goods ~> Goods
+  end Delivered
+```
+
+![A customer and a supplier](images/cookbook-customer-supplier.png)
+
 ### A partner you do not model
 
 A collapsed pool is a black box. Message flows can attach to the pool
@@ -234,6 +390,9 @@ pool Company
 
 ![Phases as groups](images/cookbook-phases.png)
 
+Use `[fit]` for a box around the members alone rather than a band across the pool, and
+the same group name in several pools for one box across them.
+
 ## Data and notes
 
 `[reads: …]` and `[writes: …]` draw data associations; data objects are
@@ -253,6 +412,50 @@ end
 ```
 
 ![Data and notes](images/cookbook-data.png)
+
+### A document moving through states
+
+Write the state in brackets after the name. Each state gets its own shape, all
+of one data object.
+
+<!-- screenshot: cookbook-data-states -->
+
+```bpmnt
+start
+user Write contract [writes: Contract (draft)]
+user Review contract [reads: Contract (draft), writes: Contract (reviewed)]
+user Sign contract [reads: Contract (reviewed), writes: Contract (signed)]
+end
+```
+
+![A contract moving through states](images/cookbook-data-states.png)
+
+## Documenting a process
+
+`doc` writes text into the `.bpmn` file as `bpmn:documentation`, where modelling tools show
+it in their properties panel. It draws nothing, so a diagram can stay simple and still carry
+the detail. A `doc` before the first element documents the whole process.
+
+<!-- screenshot: cookbook-doc -->
+
+```bpmnt
+title "Expense claim"
+doc Handles employee expense claims of up to 1,000 euros.
+
+start Receipt collected
+doc Receipts older than 60 days are not accepted.
+user Fill in claim form
+doc
+  Employees use the finance portal, and attach a scan of each receipt.
+
+  The form rejects a claim with no cost centre -> see the finance handbook.
+service Submit to finance
+end Claim submitted
+```
+
+![The documented process: doc draws nothing](images/cookbook-doc.png)
+
+Inside `doc`, everything is raw text, so `->` and `#` mean nothing there.
 
 ## Common errors and how to fix them
 

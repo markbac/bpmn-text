@@ -12,6 +12,9 @@
     <bpmn:group id="Group_fulfilment" categoryValueRef="CategoryValue_fulfilment" />
     <bpmn:group id="Group_after_sales" categoryValueRef="CategoryValue_after_sales" />
   </bpmn:collaboration>
+  <bpmn:message id="Message_order_signed" name="Order signed" />
+  <bpmn:message id="Message_deposit_received" name="Deposit received" />
+  <bpmn:message id="Message_complaint_received" name="Complaint received" />
   <bpmn:process id="Process_installer" isExecutable="false">
     <bpmn:laneSet id="LaneSet_Process_installer">
       <bpmn:lane id="Lane_sales" name="Sales">
@@ -63,7 +66,7 @@
     <bpmn:startEvent id="Event_order_signed" name="Order signed">
       <bpmn:documentation>The customer has signed the quote in the portal.</bpmn:documentation>
       <bpmn:outgoing>Flow_order_signed__confirm_order</bpmn:outgoing>
-      <bpmn:messageEventDefinition id="Event_order_signed_definition" />
+      <bpmn:messageEventDefinition id="Event_order_signed_definition" messageRef="Message_order_signed" />
     </bpmn:startEvent>
     <bpmn:userTask id="Activity_confirm_order" name="Confirm order">
       <bpmn:documentation>Check the quote against the site survey and confirm the order.</bpmn:documentation>
@@ -95,7 +98,7 @@
       <bpmn:documentation>The deposit has arrived in the bank account.</bpmn:documentation>
       <bpmn:incoming>Flow_ask_for_deposit__deposit_received</bpmn:incoming>
       <bpmn:outgoing>Flow_deposit_received__join_after_publish_plan</bpmn:outgoing>
-      <bpmn:messageEventDefinition id="Event_deposit_received_definition" />
+      <bpmn:messageEventDefinition id="Event_deposit_received_definition" messageRef="Message_deposit_received" />
     </bpmn:intermediateCatchEvent>
     <bpmn:serviceTask id="Activity_publish_plan" name="Publish plan">
       <bpmn:documentation>Publishes the plan to the warehouse and logistics systems.</bpmn:documentation>
@@ -190,7 +193,7 @@
     <bpmn:startEvent id="Event_complaint_received" name="Complaint received">
       <bpmn:documentation>A customer complains by phone or e-mail.</bpmn:documentation>
       <bpmn:outgoing>Flow_complaint_received__log_complaint</bpmn:outgoing>
-      <bpmn:messageEventDefinition id="Event_complaint_received_definition" />
+      <bpmn:messageEventDefinition id="Event_complaint_received_definition" messageRef="Message_complaint_received" />
     </bpmn:startEvent>
     <bpmn:userTask id="Activity_log_complaint" name="Log complaint">
       <bpmn:documentation>Record the complaint and promise a call back within a day.</bpmn:documentation>

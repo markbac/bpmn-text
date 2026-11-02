@@ -1,0 +1,14 @@
+# States on data objects: quoted brackets stay in the name, and a bare declaration draws nothing.
+# covers: §4.4, §4.5
+title "Data states"
+
+data Report
+store Archive
+start
+task Write [writes: Report (draft), writes: "Report (copy)"]
+sub Review
+  start
+  task Check [reads: Report (draft), writes: Report (checked)]
+  end
+task File [reads: Report (checked), writes: Archive]
+end

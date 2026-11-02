@@ -1,0 +1,8 @@
+# BT262: A link name has one catch event in a process level.
+# expect: BT262 @ 7:1
+start
+throw link Next
+catch link Next
+end
+catch link Next
+end

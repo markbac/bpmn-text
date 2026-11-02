@@ -41,6 +41,7 @@ const KEYWORDS = new Set([
   'and',
   'or',
   'event',
+  'complex',
   'fork',
   'group',
   'pool',
@@ -230,7 +231,7 @@ function statement(s: Statement, indent: number, lines: Line[]) {
       emit(
         lines,
         indent,
-        `${s.kind} ${name(s.name, 'element')}${attrs(s.attrs)}`,
+        `${s.kind} ${dataName(s.name, 'element')}${attrs(s.attrs)}`,
         s.range,
       );
       break;
@@ -314,7 +315,7 @@ function attrs(list: Attr[]): string {
   if (!list.length) return '';
   const items = list.map((a) =>
     a.values.length
-      ? `${a.key.value}: ${a.values.map((v) => name(v, 'attr')).join(', ')}`
+      ? `${a.key.value}: ${a.values.map((v) => (a.key.value === 'reads' || a.key.value === 'writes' ? dataName(v, 'attr') : name(v, 'attr'))).join(', ')}`
       : a.key.value,
   );
   return ` [${items.join(', ')}]`;
@@ -325,6 +326,11 @@ type Context = 'element' | 'typed' | 'ref' | 'list' | 'label' | 'attr';
 /** A name as written: bare when that reads back the same, else quoted. */
 function name(t: Text, context: Context): string {
   return needsQuotes(t.value, context) ? quote(t.value) : t.value;
+}
+
+/** As `name`, but quotes keep brackets from reading as a state (notation §4.4). */
+function dataName(t: Text, context: Context): string {
+  return t.quoted && /\)\s*$/.test(t.value) ? quote(t.value) : name(t, context);
 }
 
 function needsQuotes(value: string, context: Context): boolean {

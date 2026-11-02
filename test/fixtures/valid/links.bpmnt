@@ -1,0 +1,22 @@
+# Link events pair by name: no flow across the link, several throws to one catch.
+# covers: §4.1, §5
+title "Link events"
+
+start
+task A
+xor Which way?
+  left:
+    task B
+    throw link Finish
+  right:
+    task C
+    throw link FINISH
+catch link Finish
+task D
+sub Packing
+  start
+  throw link Inner
+  catch link Inner
+  end
+task After packing
+end

@@ -17,6 +17,8 @@ export interface Model {
   pools: Pool[];
   messageFlows: MessageFlow[];
   dataStores: DataStore[];
+  /** Root-level messages, signals, errors and escalations events share. */
+  definitions: EventDefinition[];
   /** In document order, which is also their column order. */
   groups: Group[];
 }
@@ -55,11 +57,15 @@ export interface Container {
   nodes: FlowNode[];
   flows: SequenceFlow[];
   annotations: Annotation[];
+  /** The body of an ad-hoc subprocess: activities with no implied order. */
+  adHoc?: true;
 }
 
 export interface Process extends Container {
   id: string;
   dataObjects: DataObject[];
+  /** What is drawn: one reference per (data object, state) used. */
+  dataObjectReferences: DataObjectReference[];
   /** The data stores this process uses, one reference each. */
   dataStoreReferences: DataStoreReference[];
 }
@@ -83,7 +89,8 @@ export type NodeKind =
   | 'exclusiveGateway'
   | 'parallelGateway'
   | 'inclusiveGateway'
-  | 'eventBasedGateway';
+  | 'eventBasedGateway'
+  | 'complexGateway';
 
 export type Marker = 'loop' | 'parallel' | 'sequential';
 
@@ -95,15 +102,25 @@ export interface FlowNode {
   laneId?: string;
   groupId?: string;
   markers: Marker[];
+  /** Events and send/receive tasks: the shared definition they refer to. */
+  definitionRef?: string;
+  /** Link throw events: the ID of the catch event with the same name. */
+  linkTarget?: string;
+  /** Link catch events: the IDs of the throw events with the same name. */
+  linkSources?: string[];
   /** Boundary events: the activity they are attached to. */
   attachedTo?: string;
-  /** Boundary events: false for `[non-interrupting]`. */
+  /** Boundary events, and start events of event subprocesses: false for `[non-interrupting]`. */
   interrupting?: boolean;
   /** Activities: the IDs of their boundary events. */
   boundaries: string[];
   /** Subprocesses: the body. */
   children?: Container;
   collapsed?: boolean;
+  /** Ad-hoc subprocesses: the order their activities are performed in. */
+  adHoc?: 'Parallel' | 'Sequential';
+  /** Event subprocesses: outside the parent's flow, started by an event. */
+  triggeredByEvent?: true;
   /** Data input associations: from the data object or store references read. */
   reads: DataAssociation[];
   /** Data output associations: to the references written. */
@@ -145,20 +162,41 @@ export interface MessageFlow {
   sourceRef: string;
   targetRef: string;
   name?: string;
+  /** The message definition carried, where its ends agree on one. */
+  messageRef?: string;
+  source: Range;
+}
+
+export type DefinitionType = 'message' | 'signal' | 'error' | 'escalation';
+
+/** A definition events of one type and name refer to (notation §4.1). */
+export interface EventDefinition {
+  id: string;
+  type: DefinitionType;
+  name: string;
   source: Range;
 }
 
 export interface DataObject {
   id: string;
-  /** The ID of its one data object reference, which is what is drawn. */
-  reference: string;
-  /**
-   * The subprocess whose body holds the reference: where the object is
-   * first used. Absent for the process itself.
-   */
-  container?: string;
   name: string;
   collection: boolean;
+  source: Range;
+}
+
+/** A use of a data object in one state, which is what is drawn. */
+export interface DataObjectReference {
+  id: string;
+  /** The data object's ID. */
+  object: string;
+  /** The drawn label: the object's name, with the state under it. */
+  name: string;
+  state?: string;
+  /**
+   * The subprocess whose body holds the reference: where it is first used.
+   * Absent for the process itself.
+   */
+  container?: string;
   source: Range;
 }
 

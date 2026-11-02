@@ -27,15 +27,14 @@ export function sourceMap(model: Model): Record<string, Range> {
     if (p.process) {
       map[p.process.id] = p.source;
       container(p.process);
-      for (const o of p.process.dataObjects) {
-        add(o);
-        map[o.reference] = o.source;
-      }
+      p.process.dataObjects.forEach(add);
+      p.process.dataObjectReferences.forEach(add);
       p.process.dataStoreReferences.forEach(add);
     }
   }
   model.messageFlows.forEach(add);
   model.dataStores.forEach(add);
+  model.definitions.forEach(add);
   model.groups.forEach(add);
   return map;
 }

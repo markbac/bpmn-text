@@ -67,14 +67,17 @@ pool Support
     signal, error, escalation, conditional, compensation, terminate, link);
   * tasks (abstract, user, service, script, send, receive, manual, business
     rule), call activities;
-  * exclusive, parallel, inclusive and event-based gateways;
+  * exclusive, parallel, inclusive, event-based and complex gateways;
   * sequence flows (implicit and explicit, labelled, default flows);
   * pools (expanded and collapsed), lanes (lane switches) and message flows;
-  * embedded subprocesses (expanded and collapsed);
+  * embedded subprocesses (expanded and collapsed), event subprocesses and
+    ad-hoc subprocesses;
   * boundary events (interrupting and non-interrupting);
   * data objects, data stores, data associations;
   * text annotations;
   * loop and multi-instance markers;
+  * **shared definitions** for messages, signals, errors and escalations;
+  * **data object states**;
   * **groups** (phases drawn as dashed boxes);
   * **colours** on elements, pools, lanes and groups;
   * **documentation** text on any element (`bpmn:documentation`);
@@ -92,15 +95,42 @@ pool Support
 
 ### 3.2 Out of scope (v1)
 
+These are deliberate exclusions ([ADR-013](decisions.md)):
+
 * Execution semantics: engine-specific attributes (Camunda/Zeebe task
   types, forms, condition expressions, I/O mappings). The architecture leaves
-  room for this as an extension (see [architecture.md §9](architecture.md)).
-* Reverse conversion (`.bpmn` → text).
-* Nested lanes (child lane sets), nested or overlapping groups, event
-  subprocesses, transactions, conversations, choreographies.
+  room for this through an extension hook (see
+  [architecture.md §9](architecture.md)).
+* Nested lanes (child lane sets), nested or overlapping groups, conversations,
+  choreographies.
 * Colouring only a lane's header (BPMN DI can only colour the whole lane).
 * Manual layout hints or pinned coordinates.
 * Round-tripping manual edits made in a modeller back into the text.
+
+### 3.3 Not supported
+
+BPMN 2.0 elements the notation cannot produce today, and why. Most are rare in
+descriptive diagrams, and can be added when someone needs them
+([#85](https://github.com/markbac/bpmn-text/issues/85) records how they were
+chosen).
+
+| BPMN element | Reason |
+|---|---|
+| Instantiating and parallel event-based gateways | Deferred. Rare, and `event` covers the common exclusive form. |
+| Multiple and parallel-multiple events | Deferred. They need a way to write several triggers on one event. |
+| Transactions and cancel events | Deferred until someone needs them. They bring their own rules and a double border. |
+| Compensation handlers and compensation associations | Deferred. Compensation events exist, but nothing can be marked as their handler. |
+| Process-level data inputs and outputs (`ioSpecification`) | Deferred. Data objects cover the descriptive case. |
+| Call activity targets (`calledElement`) | Deferred. A `call` is drawn, but does not say what it calls. |
+| Notes on flows | Deferred. `note` attaches to the preceding flow node only. |
+| Sequence flow condition expressions, `activationCondition`, `completionCondition` | Execution semantics ([ADR-008](decisions.md)). Branch labels and `[rule: …]` describe them in words. |
+| Resources and performers, service operations and interfaces, correlation, item definitions | Execution semantics ([ADR-008](decisions.md)). Use the extension hook. |
+| Global tasks and reusable callable processes | Execution semantics ([ADR-008](decisions.md)). A document describes one diagram. |
+| Conversations and choreographies | Out of scope (§3.2). |
+| Nested lanes and nested groups | Out of scope (§3.2). |
+
+Conversion in the other direction is also not supported: **reverse conversion**
+(`.bpmn` to text) is a candidate for a v2 milestone of its own.
 
 ## 4. Functional requirements
 
@@ -110,7 +140,7 @@ pool Support
 |---|---|
 | FR-1 | Parse `.bpmnt` files according to [notation.md](notation.md). |
 | FR-2 | Infer sequence flows from story order (implicit flow), chains and jumps. |
-| FR-3 | Insert join gateways automatically for open gateway branches (AND→AND, OR→OR, XOR/event→XOR, with an option for direct XOR merges). |
+| FR-3 | Insert join gateways automatically for open gateway branches (AND→AND, OR→OR, complex→complex, XOR/event→XOR, with an option for direct XOR merges). |
 | FR-4 | Assign elements to lanes by lane switches, with branch scoping and `[lane: X]` overrides. |
 | FR-5 | Resolve references by `@id` or name (case-insensitive, whitespace-normalised) and report ambiguity. |
 | FR-6 | Report **all** syntax and semantic problems in one run, with stable codes, line/column ranges and, where possible, suggestions ("did you mean …?") and quick fixes. |
@@ -121,6 +151,8 @@ pool Support
 | FR-15 | Attach documentation text to elements, pools, lanes, groups and the process, emitted as `bpmn:documentation`. |
 | FR-16 | Apply fill and stroke colours, emitted as both OMG BPMN-in-Color and bpmn-js `bioc` attributes. |
 | FR-17 | Support groups: `bpmn:group` with a category value, spanning one or more pools. |
+| FR-18 | Pair link events by name within a process level, with no sequence flow across the link. |
+| FR-19 | Support event subprocesses, ad-hoc subprocesses, complex gateways, data object states and shared event definitions. |
 
 ### 4.2 Output
 

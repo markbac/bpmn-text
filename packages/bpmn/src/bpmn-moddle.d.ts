@@ -6,6 +6,11 @@ declare module 'bpmn-moddle' {
   }
   export class BpmnModdle {
     create(type: string, attrs?: Record<string, unknown>): ModdleElement;
+    createAny(
+      name: string,
+      namespace: string,
+      attrs?: Record<string, unknown>,
+    ): ModdleElement;
     toXML(
       element: ModdleElement,
       options?: { format?: boolean },

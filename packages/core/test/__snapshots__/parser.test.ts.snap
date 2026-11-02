@@ -1119,33 +1119,66 @@ exports[`parser on the corpus > examples/06-subprocess-data.bpmnt 1`] = `
           "type": "element-stmt",
         },
         {
-          "element": {
-            "attrs": [
-              {
-                "key": "writes",
-                "range": "13:25-13:40",
-                "values": [
-                  "Invoice",
-                ],
+          "branches": [
+            {
+              "form": "labelled",
+              "inline": {
+                "target": {
+                  "attrs": [
+                    {
+                      "key": "writes",
+                      "range": "14:32-14:47",
+                      "values": [
+                        "Invoice",
+                      ],
+                    },
+                  ],
+                  "keyword": "service",
+                  "kind": "service",
+                  "name": "Generate PDF",
+                  "range": "14:10-14:48",
+                  "type": "element",
+                },
               },
-            ],
-            "keyword": "service",
-            "kind": "service",
-            "name": "Generate PDF",
-            "range": "13:3-13:41",
+              "label": "yes",
+              "range": "14:5-14:48",
+              "type": "branch",
+            },
+            {
+              "form": "labelled",
+              "inline": {
+                "target": {
+                  "eventType": "error",
+                  "keyword": "end",
+                  "kind": "end",
+                  "name": "Missing rate",
+                  "range": "15:9-15:31",
+                  "type": "element",
+                },
+              },
+              "label": "no",
+              "range": "15:5-15:31",
+              "type": "branch",
+            },
+          ],
+          "element": {
+            "keyword": "xor",
+            "kind": "xor",
+            "name": "Rate known?",
+            "range": "13:3-13:18",
             "type": "element",
           },
-          "range": "13:3-13:41",
-          "type": "element-stmt",
+          "range": "13:3-15:31",
+          "type": "gateway",
         },
         {
           "element": {
             "keyword": "end",
             "kind": "end",
-            "range": "14:3-14:6",
+            "range": "16:3-16:6",
             "type": "element",
           },
-          "range": "14:3-14:6",
+          "range": "16:3-16:6",
           "type": "element-stmt",
         },
       ],
@@ -1156,33 +1189,33 @@ exports[`parser on the corpus > examples/06-subprocess-data.bpmnt 1`] = `
             "keyword": "on",
             "kind": "on",
             "name": "Missing rate",
-            "range": "15:3-15:24",
+            "range": "17:3-17:24",
             "type": "element",
           },
-          "range": "15:3-15:69",
+          "range": "17:3-17:69",
           "tail": [
             {
               "op": "sequence",
-              "range": "15:25-15:46",
+              "range": "17:25-17:46",
               "targets": [
                 {
                   "keyword": "user",
                   "kind": "user",
                   "name": "Fix rate card",
-                  "range": "15:28-15:46",
+                  "range": "17:28-17:46",
                   "type": "element",
                 },
               ],
             },
             {
               "op": "sequence",
-              "range": "15:47-15:69",
+              "range": "17:47-17:69",
               "targets": [
                 {
                   "keyword": "end",
                   "kind": "end",
                   "name": "Invoice skipped",
-                  "range": "15:50-15:69",
+                  "range": "17:50-17:69",
                   "type": "element",
                 },
               ],
@@ -1204,7 +1237,7 @@ exports[`parser on the corpus > examples/06-subprocess-data.bpmnt 1`] = `
         "range": "10:1-10:31",
         "type": "element",
       },
-      "range": "10:1-15:69",
+      "range": "10:1-17:69",
       "type": "sub",
     },
     {
@@ -1213,10 +1246,10 @@ exports[`parser on the corpus > examples/06-subprocess-data.bpmnt 1`] = `
           "element": {
             "keyword": "start",
             "kind": "start",
-            "range": "17:3-17:8",
+            "range": "19:3-19:8",
             "type": "element",
           },
-          "range": "17:3-17:8",
+          "range": "19:3-19:8",
           "type": "element-stmt",
         },
         {
@@ -1224,10 +1257,10 @@ exports[`parser on the corpus > examples/06-subprocess-data.bpmnt 1`] = `
             "keyword": "service",
             "kind": "service",
             "name": "Email invoice",
-            "range": "18:3-18:24",
+            "range": "20:3-20:24",
             "type": "element",
           },
-          "range": "18:3-18:24",
+          "range": "20:3-20:24",
           "type": "element-stmt",
         },
         {
@@ -1236,10 +1269,10 @@ exports[`parser on the corpus > examples/06-subprocess-data.bpmnt 1`] = `
             "keyword": "wait",
             "kind": "catch",
             "name": "30 days",
-            "range": "19:3-19:15",
+            "range": "21:3-21:15",
             "type": "element",
           },
-          "range": "19:3-19:15",
+          "range": "21:3-21:15",
           "type": "element-stmt",
         },
         {
@@ -1247,26 +1280,26 @@ exports[`parser on the corpus > examples/06-subprocess-data.bpmnt 1`] = `
             "attrs": [
               {
                 "key": "loop",
-                "range": "20:26-20:30",
+                "range": "22:26-22:30",
               },
             ],
             "keyword": "service",
             "kind": "service",
             "name": "Check payment",
-            "range": "20:3-20:31",
+            "range": "22:3-22:31",
             "type": "element",
           },
-          "range": "20:3-20:31",
+          "range": "22:3-22:31",
           "type": "element-stmt",
         },
         {
           "element": {
             "keyword": "end",
             "kind": "end",
-            "range": "21:3-21:6",
+            "range": "23:3-23:6",
             "type": "element",
           },
-          "range": "21:3-21:6",
+          "range": "23:3-23:6",
           "type": "element-stmt",
         },
       ],
@@ -1274,16 +1307,16 @@ exports[`parser on the corpus > examples/06-subprocess-data.bpmnt 1`] = `
         "attrs": [
           {
             "key": "collapsed",
-            "range": "16:20-16:29",
+            "range": "18:20-18:29",
           },
         ],
         "keyword": "sub",
         "kind": "sub",
         "name": "Send invoices",
-        "range": "16:1-16:30",
+        "range": "18:1-18:30",
         "type": "element",
       },
-      "range": "16:1-21:6",
+      "range": "18:1-23:6",
       "type": "sub",
     },
     {
@@ -1291,10 +1324,10 @@ exports[`parser on the corpus > examples/06-subprocess-data.bpmnt 1`] = `
         "keyword": "end",
         "kind": "end",
         "name": "Run complete",
-        "range": "22:1-22:17",
+        "range": "24:1-24:17",
         "type": "element",
       },
-      "range": "22:1-22:17",
+      "range": "24:1-24:17",
       "type": "element-stmt",
     },
   ],
@@ -1305,7 +1338,7 @@ exports[`parser on the corpus > examples/06-subprocess-data.bpmnt 1`] = `
       "value": ""Invoice run"",
     },
   ],
-  "range": "1:1-23:1",
+  "range": "1:1-25:1",
   "type": "document",
 }
 `;
@@ -4863,6 +4896,1324 @@ exports[`parser on the corpus > examples/08-broadband-provisioning.bpmnt 1`] = `
     },
   ],
   "range": "1:1-241:1",
+  "type": "document",
+}
+`;
+
+exports[`parser on the corpus > examples/09-shared-definitions.bpmnt 1`] = `
+{
+  "body": [
+    {
+      "body": [
+        {
+          "element": {
+            "keyword": "start",
+            "kind": "start",
+            "name": "Refund wanted",
+            "range": "6:3-6:22",
+            "type": "element",
+          },
+          "range": "6:3-6:22",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "attrs": [
+              {
+                "key": "message",
+                "range": "7:26-7:49",
+                "values": [
+                  "Refund request",
+                ],
+              },
+            ],
+            "keyword": "send",
+            "kind": "send",
+            "name": "Ask for a refund",
+            "range": "7:3-7:50",
+            "type": "element",
+          },
+          "range": "7:3-7:70",
+          "tail": [
+            {
+              "op": "message",
+              "range": "7:51-7:70",
+              "targets": [
+                {
+                  "name": "Request received",
+                  "range": "7:54-7:70",
+                  "type": "ref",
+                },
+              ],
+            },
+          ],
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "eventType": "message",
+            "keyword": "catch",
+            "kind": "catch",
+            "name": "Refund decision",
+            "range": "8:3-8:32",
+            "type": "element",
+          },
+          "range": "8:3-8:32",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "keyword": "end",
+            "kind": "end",
+            "name": "Answer received",
+            "range": "9:3-9:22",
+            "type": "element",
+          },
+          "range": "9:3-9:22",
+          "type": "element-stmt",
+        },
+      ],
+      "name": "Customer",
+      "range": "5:1-9:22",
+      "type": "pool",
+    },
+    {
+      "body": [
+        {
+          "name": "Service",
+          "range": "12:3-12:15",
+          "type": "lane",
+        },
+        {
+          "element": {
+            "attrs": [
+              {
+                "key": "message",
+                "range": "13:35-13:58",
+                "values": [
+                  "Refund request",
+                ],
+              },
+            ],
+            "eventType": "message",
+            "keyword": "start",
+            "kind": "start",
+            "name": "Request received",
+            "range": "13:3-13:59",
+            "type": "element",
+          },
+          "range": "13:3-13:59",
+          "type": "element-stmt",
+        },
+        {
+          "body": [
+            {
+              "element": {
+                "keyword": "start",
+                "kind": "start",
+                "range": "15:5-15:10",
+                "type": "element",
+              },
+              "range": "15:5-15:10",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "service",
+                "kind": "service",
+                "name": "Find order",
+                "range": "16:5-16:23",
+                "type": "element",
+              },
+              "range": "16:5-16:23",
+              "type": "element-stmt",
+            },
+            {
+              "branches": [
+                {
+                  "form": "labelled",
+                  "inline": {
+                    "target": {
+                      "keyword": "end",
+                      "kind": "end",
+                      "name": "Checked",
+                      "range": "18:12-18:23",
+                      "type": "element",
+                    },
+                  },
+                  "label": "yes",
+                  "range": "18:7-18:23",
+                  "type": "branch",
+                },
+                {
+                  "form": "labelled",
+                  "inline": {
+                    "target": {
+                      "eventType": "error",
+                      "keyword": "end",
+                      "kind": "end",
+                      "name": "Order unknown",
+                      "range": "19:11-19:34",
+                      "type": "element",
+                    },
+                  },
+                  "label": "no",
+                  "range": "19:7-19:34",
+                  "type": "branch",
+                },
+              ],
+              "element": {
+                "keyword": "xor",
+                "kind": "xor",
+                "name": "Order found?",
+                "range": "17:5-17:21",
+                "type": "element",
+              },
+              "range": "17:5-19:34",
+              "type": "gateway",
+            },
+          ],
+          "boundaries": [
+            {
+              "element": {
+                "eventType": "error",
+                "keyword": "on",
+                "kind": "on",
+                "name": "Order unknown",
+                "range": "20:5-20:27",
+                "type": "element",
+              },
+              "range": "20:5-20:85",
+              "tail": [
+                {
+                  "op": "sequence",
+                  "range": "20:28-20:50",
+                  "targets": [
+                    {
+                      "keyword": "send",
+                      "kind": "send",
+                      "name": "Reject request",
+                      "range": "20:31-20:50",
+                      "type": "element",
+                    },
+                  ],
+                },
+                {
+                  "op": "message",
+                  "range": "20:51-20:69",
+                  "targets": [
+                    {
+                      "name": "Refund decision",
+                      "range": "20:54-20:69",
+                      "type": "ref",
+                    },
+                  ],
+                },
+                {
+                  "op": "sequence",
+                  "range": "20:70-20:85",
+                  "targets": [
+                    {
+                      "keyword": "end",
+                      "kind": "end",
+                      "name": "Rejected",
+                      "range": "20:73-20:85",
+                      "type": "element",
+                    },
+                  ],
+                },
+              ],
+              "type": "boundary",
+            },
+          ],
+          "element": {
+            "keyword": "sub",
+            "kind": "sub",
+            "name": "Check the purchase",
+            "range": "14:3-14:25",
+            "type": "element",
+          },
+          "range": "14:3-20:85",
+          "type": "sub",
+        },
+        {
+          "name": "Finance",
+          "range": "21:3-21:15",
+          "type": "lane",
+        },
+        {
+          "element": {
+            "keyword": "service",
+            "kind": "service",
+            "name": "Pay refund",
+            "range": "22:3-22:21",
+            "type": "element",
+          },
+          "range": "22:3-22:21",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "eventType": "signal",
+            "keyword": "throw",
+            "kind": "throw",
+            "name": "Refund paid",
+            "range": "23:3-23:27",
+            "type": "element",
+          },
+          "range": "23:3-23:27",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "keyword": "send",
+            "kind": "send",
+            "name": "Confirm refund",
+            "range": "24:3-24:22",
+            "type": "element",
+          },
+          "range": "24:3-24:41",
+          "tail": [
+            {
+              "op": "message",
+              "range": "24:23-24:41",
+              "targets": [
+                {
+                  "name": "Refund decision",
+                  "range": "24:26-24:41",
+                  "type": "ref",
+                },
+              ],
+            },
+          ],
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "keyword": "end",
+            "kind": "end",
+            "name": "Refunded",
+            "range": "25:3-25:15",
+            "type": "element",
+          },
+          "range": "25:3-25:15",
+          "type": "element-stmt",
+        },
+        {
+          "name": "Service",
+          "range": "26:3-26:15",
+          "type": "lane",
+        },
+        {
+          "element": {
+            "eventType": "signal",
+            "keyword": "start",
+            "kind": "start",
+            "name": "Refund paid",
+            "range": "27:3-27:27",
+            "type": "element",
+          },
+          "range": "27:3-27:27",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "keyword": "task",
+            "kind": "task",
+            "name": "Close the case",
+            "range": "28:3-28:22",
+            "type": "element",
+          },
+          "range": "28:3-28:22",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "keyword": "end",
+            "kind": "end",
+            "name": "Case closed",
+            "range": "29:3-29:18",
+            "type": "element",
+          },
+          "range": "29:3-29:18",
+          "type": "element-stmt",
+        },
+      ],
+      "name": "Shop",
+      "range": "11:1-29:18",
+      "type": "pool",
+    },
+  ],
+  "directives": [
+    {
+      "range": "3:1-3:23",
+      "type": "title",
+      "value": ""Refund request"",
+    },
+  ],
+  "range": "1:1-30:1",
+  "type": "document",
+}
+`;
+
+exports[`parser on the corpus > examples/10-data-states.bpmnt 1`] = `
+{
+  "body": [
+    {
+      "body": [
+        {
+          "name": "Sales",
+          "range": "6:3-6:13",
+          "type": "lane",
+        },
+        {
+          "element": {
+            "keyword": "start",
+            "kind": "start",
+            "name": "Order shipped",
+            "range": "7:3-7:22",
+            "type": "element",
+          },
+          "range": "7:3-7:22",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "attrs": [
+              {
+                "key": "writes",
+                "range": "8:23-8:46",
+                "values": [
+                  "Invoice (draft)",
+                ],
+              },
+            ],
+            "keyword": "task",
+            "kind": "task",
+            "name": "Draft invoice",
+            "range": "8:3-8:47",
+            "type": "element",
+          },
+          "range": "8:3-8:47",
+          "type": "element-stmt",
+        },
+        {
+          "name": "Finance",
+          "range": "9:3-9:15",
+          "type": "lane",
+        },
+        {
+          "element": {
+            "attrs": [
+              {
+                "key": "reads",
+                "range": "10:25-10:47",
+                "values": [
+                  "Invoice (draft)",
+                ],
+              },
+              {
+                "key": "writes",
+                "range": "10:49-10:75",
+                "values": [
+                  "Invoice (approved)",
+                ],
+              },
+            ],
+            "keyword": "user",
+            "kind": "user",
+            "name": "Approve invoice",
+            "range": "10:3-10:76",
+            "type": "element",
+          },
+          "range": "10:3-10:76",
+          "type": "element-stmt",
+        },
+        {
+          "attrs": [
+            {
+              "key": "collection",
+              "range": "11:28-11:38",
+            },
+          ],
+          "kind": "data",
+          "name": "Invoice (approved)",
+          "range": "11:3-11:39",
+          "type": "data",
+        },
+        {
+          "element": {
+            "attrs": [
+              {
+                "key": "reads",
+                "range": "12:25-12:50",
+                "values": [
+                  "Invoice (approved)",
+                ],
+              },
+              {
+                "key": "writes",
+                "range": "12:52-12:74",
+                "values": [
+                  "Invoice (sent)",
+                ],
+              },
+            ],
+            "keyword": "service",
+            "kind": "service",
+            "name": "Send invoice",
+            "range": "12:3-12:75",
+            "type": "element",
+          },
+          "range": "12:3-12:75",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "keyword": "end",
+            "kind": "end",
+            "name": "Invoice sent",
+            "range": "13:3-13:19",
+            "type": "element",
+          },
+          "range": "13:3-13:19",
+          "type": "element-stmt",
+        },
+      ],
+      "name": "Company",
+      "range": "5:1-13:19",
+      "type": "pool",
+    },
+  ],
+  "directives": [
+    {
+      "range": "3:1-3:25",
+      "type": "title",
+      "value": ""Invoice approval"",
+    },
+  ],
+  "range": "1:1-14:1",
+  "type": "document",
+}
+`;
+
+exports[`parser on the corpus > examples/11-event-subprocesses.bpmnt 1`] = `
+{
+  "body": [
+    {
+      "body": [
+        {
+          "name": "Sales",
+          "range": "6:3-6:13",
+          "type": "lane",
+        },
+        {
+          "element": {
+            "eventType": "message",
+            "keyword": "start",
+            "kind": "start",
+            "name": "Order placed",
+            "range": "7:3-7:29",
+            "type": "element",
+          },
+          "range": "7:3-7:29",
+          "type": "element-stmt",
+        },
+        {
+          "body": [
+            {
+              "element": {
+                "keyword": "start",
+                "kind": "start",
+                "range": "9:5-9:10",
+                "type": "element",
+              },
+              "range": "9:5-9:10",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "task",
+                "kind": "task",
+                "name": "Pick items",
+                "range": "10:5-10:20",
+                "type": "element",
+              },
+              "range": "10:5-10:20",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "task",
+                "kind": "task",
+                "name": "Ship parcel",
+                "range": "11:5-11:21",
+                "type": "element",
+              },
+              "range": "11:5-11:21",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "end",
+                "kind": "end",
+                "range": "12:5-12:8",
+                "type": "element",
+              },
+              "range": "12:5-12:8",
+              "type": "element-stmt",
+            },
+            {
+              "body": [
+                {
+                  "element": {
+                    "eventType": "error",
+                    "keyword": "start",
+                    "kind": "start",
+                    "name": "Out of stock",
+                    "range": "14:7-14:31",
+                    "type": "element",
+                  },
+                  "range": "14:7-14:31",
+                  "type": "element-stmt",
+                },
+                {
+                  "element": {
+                    "keyword": "task",
+                    "kind": "task",
+                    "name": "Offer a substitute",
+                    "range": "15:7-15:30",
+                    "type": "element",
+                  },
+                  "range": "15:7-15:30",
+                  "type": "element-stmt",
+                },
+                {
+                  "element": {
+                    "keyword": "end",
+                    "kind": "end",
+                    "range": "16:7-16:10",
+                    "type": "element",
+                  },
+                  "range": "16:7-16:10",
+                  "type": "element-stmt",
+                },
+              ],
+              "element": {
+                "attrs": [
+                  {
+                    "key": "event",
+                    "range": "13:23-13:28",
+                  },
+                ],
+                "keyword": "sub",
+                "kind": "sub",
+                "name": "Item missing",
+                "range": "13:5-13:29",
+                "type": "element",
+              },
+              "range": "13:5-16:10",
+              "type": "sub",
+            },
+            {
+              "body": [
+                {
+                  "element": {
+                    "attrs": [
+                      {
+                        "key": "non-interrupting",
+                        "range": "18:35-18:51",
+                      },
+                    ],
+                    "eventType": "signal",
+                    "keyword": "start",
+                    "kind": "start",
+                    "name": "Count started",
+                    "range": "18:7-18:52",
+                    "type": "element",
+                  },
+                  "range": "18:7-18:52",
+                  "type": "element-stmt",
+                },
+                {
+                  "element": {
+                    "keyword": "task",
+                    "kind": "task",
+                    "name": "Report open orders",
+                    "range": "19:7-19:30",
+                    "type": "element",
+                  },
+                  "range": "19:7-19:30",
+                  "type": "element-stmt",
+                },
+                {
+                  "element": {
+                    "keyword": "end",
+                    "kind": "end",
+                    "range": "20:7-20:10",
+                    "type": "element",
+                  },
+                  "range": "20:7-20:10",
+                  "type": "element-stmt",
+                },
+              ],
+              "element": {
+                "attrs": [
+                  {
+                    "key": "event",
+                    "range": "17:22-17:27",
+                  },
+                ],
+                "keyword": "sub",
+                "kind": "sub",
+                "name": "Stock count",
+                "range": "17:5-17:28",
+                "type": "element",
+              },
+              "range": "17:5-20:10",
+              "type": "sub",
+            },
+          ],
+          "element": {
+            "keyword": "sub",
+            "kind": "sub",
+            "name": "Handle order",
+            "range": "8:3-8:19",
+            "type": "element",
+          },
+          "range": "8:3-20:10",
+          "type": "sub",
+        },
+        {
+          "name": "Billing",
+          "range": "21:3-21:15",
+          "type": "lane",
+        },
+        {
+          "element": {
+            "keyword": "service",
+            "kind": "service",
+            "name": "Take payment",
+            "range": "22:3-22:23",
+            "type": "element",
+          },
+          "range": "22:3-22:23",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "eventType": "message",
+            "keyword": "end",
+            "kind": "end",
+            "name": "Order paid",
+            "range": "23:3-23:25",
+            "type": "element",
+          },
+          "range": "23:3-23:25",
+          "type": "element-stmt",
+        },
+        {
+          "name": "Sales",
+          "range": "24:3-24:13",
+          "type": "lane",
+        },
+        {
+          "body": [
+            {
+              "element": {
+                "eventType": "message",
+                "keyword": "start",
+                "kind": "start",
+                "name": "Order cancelled",
+                "range": "26:5-26:34",
+                "type": "element",
+              },
+              "range": "26:5-26:34",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "service",
+                "kind": "service",
+                "name": "Refund customer",
+                "range": "27:5-27:28",
+                "type": "element",
+              },
+              "range": "27:5-27:28",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "end",
+                "kind": "end",
+                "name": "Refunded",
+                "range": "28:5-28:17",
+                "type": "element",
+              },
+              "range": "28:5-28:17",
+              "type": "element-stmt",
+            },
+          ],
+          "element": {
+            "attrs": [
+              {
+                "key": "event",
+                "range": "25:21-25:26",
+              },
+            ],
+            "keyword": "sub",
+            "kind": "sub",
+            "name": "Cancellation",
+            "range": "25:3-25:27",
+            "type": "element",
+          },
+          "range": "25:3-28:17",
+          "type": "sub",
+        },
+        {
+          "name": "Billing",
+          "range": "29:3-29:15",
+          "type": "lane",
+        },
+        {
+          "body": [
+            {
+              "element": {
+                "attrs": [
+                  {
+                    "key": "non-interrupting",
+                    "range": "31:32-31:48",
+                  },
+                ],
+                "eventType": "timer",
+                "keyword": "start",
+                "kind": "start",
+                "name": "Every morning",
+                "range": "31:5-31:49",
+                "type": "element",
+              },
+              "range": "31:5-31:49",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "service",
+                "kind": "service",
+                "name": "Update the ledger",
+                "range": "32:5-32:30",
+                "type": "element",
+              },
+              "range": "32:5-32:30",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "keyword": "end",
+                "kind": "end",
+                "range": "33:5-33:8",
+                "type": "element",
+              },
+              "range": "33:5-33:8",
+              "type": "element-stmt",
+            },
+          ],
+          "element": {
+            "attrs": [
+              {
+                "key": "event",
+                "range": "30:21-30:26",
+              },
+              {
+                "key": "collapsed",
+                "range": "30:28-30:37",
+              },
+            ],
+            "keyword": "sub",
+            "kind": "sub",
+            "name": "Daily report",
+            "range": "30:3-30:38",
+            "type": "element",
+          },
+          "range": "30:3-33:8",
+          "type": "sub",
+        },
+      ],
+      "name": "Shop",
+      "range": "5:1-33:8",
+      "type": "pool",
+    },
+  ],
+  "directives": [
+    {
+      "range": "3:1-3:23",
+      "type": "title",
+      "value": ""Order handling"",
+    },
+  ],
+  "range": "1:1-34:1",
+  "type": "document",
+}
+`;
+
+exports[`parser on the corpus > examples/12-adhoc-subprocesses.bpmnt 1`] = `
+{
+  "body": [
+    {
+      "element": {
+        "keyword": "start",
+        "kind": "start",
+        "name": "Invitation to tender",
+        "range": "5:1-5:27",
+        "type": "element",
+      },
+      "range": "5:1-5:27",
+      "type": "element-stmt",
+    },
+    {
+      "body": [
+        {
+          "element": {
+            "keyword": "task",
+            "kind": "task",
+            "name": "Research customer",
+            "range": "7:3-7:25",
+            "type": "element",
+          },
+          "range": "7:3-7:25",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "keyword": "task",
+            "kind": "task",
+            "name": "Draft sections",
+            "range": "8:3-8:22",
+            "type": "element",
+          },
+          "range": "8:3-8:22",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "keyword": "task",
+            "kind": "task",
+            "name": "Gather quotes",
+            "range": "9:3-9:21",
+            "type": "element",
+          },
+          "range": "9:3-9:21",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "keyword": "task",
+            "kind": "task",
+            "name": "Check the budget",
+            "range": "10:3-10:24",
+            "type": "element",
+          },
+          "range": "10:3-10:24",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "keyword": "task",
+            "kind": "task",
+            "name": "Review wording",
+            "range": "11:3-11:22",
+            "type": "element",
+          },
+          "range": "11:3-11:44",
+          "tail": [
+            {
+              "op": "sequence",
+              "range": "11:23-11:44",
+              "targets": [
+                {
+                  "keyword": "task",
+                  "kind": "task",
+                  "name": "Publish draft",
+                  "range": "11:26-11:44",
+                  "type": "element",
+                },
+              ],
+            },
+          ],
+          "type": "element-stmt",
+        },
+      ],
+      "element": {
+        "attrs": [
+          {
+            "key": "adhoc",
+            "range": "6:23-6:28",
+          },
+        ],
+        "keyword": "sub",
+        "kind": "sub",
+        "name": "Prepare proposal",
+        "range": "6:1-6:29",
+        "type": "element",
+      },
+      "range": "6:1-11:44",
+      "type": "sub",
+    },
+    {
+      "body": [
+        {
+          "element": {
+            "keyword": "task",
+            "kind": "task",
+            "name": "Ask past customers",
+            "range": "13:3-13:26",
+            "type": "element",
+          },
+          "range": "13:3-13:26",
+          "type": "element-stmt",
+        },
+        {
+          "element": {
+            "keyword": "task",
+            "kind": "task",
+            "name": "Write case studies",
+            "range": "14:3-14:26",
+            "type": "element",
+          },
+          "range": "14:3-14:26",
+          "type": "element-stmt",
+        },
+      ],
+      "element": {
+        "attrs": [
+          {
+            "key": "adhoc",
+            "range": "12:25-12:30",
+          },
+          {
+            "key": "sequential",
+            "range": "12:32-12:42",
+          },
+          {
+            "key": "collapsed",
+            "range": "12:44-12:53",
+          },
+        ],
+        "keyword": "sub",
+        "kind": "sub",
+        "name": "Collect references",
+        "range": "12:1-12:54",
+        "type": "element",
+      },
+      "range": "12:1-14:26",
+      "type": "sub",
+    },
+    {
+      "element": {
+        "keyword": "user",
+        "kind": "user",
+        "name": "Sign the bid",
+        "range": "15:1-15:18",
+        "type": "element",
+      },
+      "range": "15:1-15:18",
+      "type": "element-stmt",
+    },
+    {
+      "element": {
+        "keyword": "end",
+        "kind": "end",
+        "name": "Bid submitted",
+        "range": "16:1-16:18",
+        "type": "element",
+      },
+      "range": "16:1-16:18",
+      "type": "element-stmt",
+    },
+  ],
+  "directives": [
+    {
+      "range": "3:1-3:24",
+      "type": "title",
+      "value": ""Bid preparation"",
+    },
+  ],
+  "range": "1:1-17:1",
+  "type": "document",
+}
+`;
+
+exports[`parser on the corpus > examples/13-complex-gateway.bpmnt 1`] = `
+{
+  "body": [
+    {
+      "element": {
+        "keyword": "start",
+        "kind": "start",
+        "name": "Paper submitted",
+        "range": "5:1-5:22",
+        "type": "element",
+      },
+      "range": "5:1-5:22",
+      "type": "element-stmt",
+    },
+    {
+      "branches": [
+        {
+          "form": "labelled",
+          "inline": {
+            "target": {
+              "keyword": "user",
+              "kind": "user",
+              "name": "Review by the chair",
+              "range": "7:10-7:34",
+              "type": "element",
+            },
+          },
+          "label": "first",
+          "range": "7:3-7:34",
+          "type": "branch",
+        },
+        {
+          "form": "labelled",
+          "inline": {
+            "target": {
+              "keyword": "user",
+              "kind": "user",
+              "name": "Review by a member",
+              "range": "8:11-8:34",
+              "type": "element",
+            },
+          },
+          "label": "second",
+          "range": "8:3-8:34",
+          "type": "branch",
+        },
+        {
+          "form": "else",
+          "inline": {
+            "target": {
+              "keyword": "service",
+              "kind": "service",
+              "name": "Ask an external reviewer",
+              "range": "9:9-9:41",
+              "type": "element",
+            },
+          },
+          "range": "9:3-9:41",
+          "type": "branch",
+        },
+      ],
+      "element": {
+        "attrs": [
+          {
+            "key": "rule",
+            "range": "6:26-6:71",
+            "values": [
+              "Continue when 2 of the 3 reviews are in",
+            ],
+          },
+        ],
+        "keyword": "complex",
+        "kind": "complex",
+        "name": "Enough reviews?",
+        "range": "6:1-6:72",
+        "type": "element",
+      },
+      "range": "6:1-9:41",
+      "type": "gateway",
+    },
+    {
+      "element": {
+        "keyword": "task",
+        "kind": "task",
+        "name": "Decide",
+        "range": "10:1-10:12",
+        "type": "element",
+      },
+      "range": "10:1-10:12",
+      "type": "element-stmt",
+    },
+    {
+      "element": {
+        "keyword": "end",
+        "kind": "end",
+        "name": "Decision made",
+        "range": "11:1-11:18",
+        "type": "element",
+      },
+      "range": "11:1-11:18",
+      "type": "element-stmt",
+    },
+  ],
+  "directives": [
+    {
+      "range": "3:1-3:21",
+      "type": "title",
+      "value": ""Paper review"",
+    },
+  ],
+  "range": "1:1-12:1",
+  "type": "document",
+}
+`;
+
+exports[`parser on the corpus > examples/14-link-events.bpmnt 1`] = `
+{
+  "body": [
+    {
+      "element": {
+        "keyword": "start",
+        "kind": "start",
+        "name": "Parcel returned",
+        "range": "5:1-5:22",
+        "type": "element",
+      },
+      "range": "5:1-5:22",
+      "type": "element-stmt",
+    },
+    {
+      "element": {
+        "keyword": "task",
+        "kind": "task",
+        "name": "Inspect parcel",
+        "range": "6:1-6:20",
+        "type": "element",
+      },
+      "range": "6:1-6:20",
+      "type": "element-stmt",
+    },
+    {
+      "branches": [
+        {
+          "body": [
+            {
+              "element": {
+                "keyword": "task",
+                "kind": "task",
+                "name": "Restock items",
+                "range": "9:5-9:23",
+                "type": "element",
+              },
+              "range": "9:5-9:23",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "eventType": "link",
+                "keyword": "throw",
+                "kind": "throw",
+                "name": "Refund",
+                "range": "10:5-10:22",
+                "type": "element",
+              },
+              "range": "10:5-10:22",
+              "type": "element-stmt",
+            },
+          ],
+          "form": "labelled",
+          "label": "good",
+          "range": "8:3-10:22",
+          "type": "branch",
+        },
+        {
+          "body": [
+            {
+              "element": {
+                "keyword": "task",
+                "kind": "task",
+                "name": "Write off items",
+                "range": "12:5-12:25",
+                "type": "element",
+              },
+              "range": "12:5-12:25",
+              "type": "element-stmt",
+            },
+            {
+              "element": {
+                "eventType": "link",
+                "keyword": "throw",
+                "kind": "throw",
+                "name": "Refund",
+                "range": "13:5-13:22",
+                "type": "element",
+              },
+              "range": "13:5-13:22",
+              "type": "element-stmt",
+            },
+          ],
+          "form": "labelled",
+          "label": "damaged",
+          "range": "11:3-13:22",
+          "type": "branch",
+        },
+        {
+          "form": "else",
+          "inline": {
+            "target": {
+              "keyword": "end",
+              "kind": "end",
+              "name": "Rejected",
+              "range": "14:9-14:21",
+              "type": "element",
+            },
+          },
+          "range": "14:3-14:21",
+          "type": "branch",
+        },
+      ],
+      "element": {
+        "keyword": "xor",
+        "kind": "xor",
+        "name": "Condition?",
+        "range": "7:1-7:15",
+        "type": "element",
+      },
+      "range": "7:1-14:21",
+      "type": "gateway",
+    },
+    {
+      "element": {
+        "eventType": "link",
+        "keyword": "catch",
+        "kind": "catch",
+        "name": "Refund",
+        "range": "15:1-15:18",
+        "type": "element",
+      },
+      "range": "15:1-15:18",
+      "type": "element-stmt",
+    },
+    {
+      "element": {
+        "keyword": "service",
+        "kind": "service",
+        "name": "Refund customer",
+        "range": "16:1-16:24",
+        "type": "element",
+      },
+      "range": "16:1-16:24",
+      "type": "element-stmt",
+    },
+    {
+      "element": {
+        "keyword": "end",
+        "kind": "end",
+        "name": "Refunded",
+        "range": "17:1-17:13",
+        "type": "element",
+      },
+      "range": "17:1-17:13",
+      "type": "element-stmt",
+    },
+  ],
+  "directives": [
+    {
+      "range": "3:1-3:16",
+      "type": "title",
+      "value": ""Returns"",
+    },
+  ],
+  "range": "1:1-18:1",
   "type": "document",
 }
 `;

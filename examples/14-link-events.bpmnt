@@ -1,0 +1,17 @@
+# Link events in place of long flows, with several throws to one catch.
+# covers: §4.1, §5
+title "Returns"
+
+start Parcel returned
+task Inspect parcel
+xor Condition?
+  good:
+    task Restock items
+    throw link Refund
+  damaged:
+    task Write off items
+    throw link Refund
+  else: end Rejected
+catch link Refund
+service Refund customer
+end Refunded

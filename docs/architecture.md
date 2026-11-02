@@ -290,7 +290,8 @@ interface Container {            // a process or a subprocess body
 }
 interface Process extends Container {
   id;
-  dataObjects: DataObject[];    // { id, reference, container? }: one reference each
+  dataObjects: DataObject[];    // { id, name, collection }
+  dataObjectReferences: DataObjectReference[];   // { id, object, state?, container? }: one per state used
   dataStoreReferences: DataStoreReference[];   // the stores this process uses
 }
 interface FlowNode { id; kind; eventType?; name?; laneId?; groupId?; markers;
@@ -455,6 +456,12 @@ tracks each channel needs, and the channels are then widened to fit them.
 | 8 | **Labels** | External labels for events (below), gateways (above), and flows (next to the first segment, avoiding shapes). |
 | 9 | **Groups** | Each group box covers its column range (with padding into the column gaps). Vertically it spans the full height of every pool the group occurs in, or with `[fit]` the bounding box of its members. Group labels go at the top centre. Gaps between columns at group boundaries are widened so the dashed borders never touch shapes or labels. |
 
+**Event subprocesses** take no part in layering, since no flow orders them and
+they must not widen a column. Each band has a strip below its rows and any back
+edge gutter, where they sit side by side. **Ad-hoc bodies** are laid out as
+usual, then activities no flow connects are given columns in a compact grid, in
+document order.
+
 ### 6.3 Layout quality checks
 
 `@bpmn-text/layout` exports a `checkLayout(model, result)` function used in
@@ -475,7 +482,11 @@ tests and benchmarks. It reports:
   with a `laneSet`, `flowNodeRef`s, `sequenceFlow`s with `default` on
   gateways, `dataObject`/`dataObjectReference`/`dataStoreReference`,
   `textAnnotation` with `association`, `boundaryEvent` with `attachedToRef`
-  and `cancelActivity`, and event definitions.
+  and `cancelActivity`, event definitions, and `subProcess` with
+  `triggeredByEvent` or `adHocSubProcess` with `ordering`.
+* **Shared definitions:** one root-level `bpmn:message`, `signal`, `error` or
+  `escalation` per type and name, referred to by the events that use it and,
+  for a message, by message flows (notation §4.1).
 * **Groups:** a `bpmn:category` with one `categoryValue` per group, and
   `bpmn:group` elements (`categoryValueRef`) in the collaboration, or in the
   process when there is no collaboration.
@@ -512,35 +523,72 @@ flowchart TD
 * Flows: `Flow_<source>__<target>`, with a numeric suffix if repeated.
 * Collisions get a numeric suffix in document order.
 * `@id` from the source is used unchanged.
+* Shared definitions: `Message_<name>`, `Signal_<name>`, `Error_<name>`,
+  `Escalation_<name>`. Data references add the state:
+  `DataObjectReference_invoice_draft`.
+
+Notation §6.5 explains these for people who meet them in the `.bpmn` output.
 
 ## 9. Extensibility
 
 * **Unknown attributes** are kept on the IR node (`extra: Record<string,
-  string>`). A generator **extension hook** (`(irNode, moddleElement) =>
-  void`) can turn them into vendor extension elements. This is how
-  executable Camunda/Zeebe support could be added later without changing the
-  grammar.
-* **Layout options** (spacing, row height, xor-join style) are passed
-  through `compile()` options and the `option` directive.
+  string>`) and reported as warning BT103. On their own they write nothing.
+* **Extension hook.** The `extend` option of `compile()` and `generate()`,
+  `(node, element, factory) => void`, is called for each flow node, pool, lane
+  and group that becomes a BPMN element. It can turn `node.extra` into vendor
+  extension elements. This is how executable Camunda/Zeebe support could be
+  added later without changing the grammar.
+
+  ```ts
+  await compile(source, {
+    extend(node, element, factory) {
+      if (!('extra' in node) || !node.extra.job) return;
+      element.extensionElements = factory.create('bpmn:ExtensionElements', {
+        values: [
+          factory.createAny('acme:job', 'http://acme.example/bpmn', {
+            type: node.extra.job,
+          }),
+        ],
+      });
+    },
+  });
+  ```
+
+* **Layout options** are API-only, through the `layout` option of `compile()`:
+  `nodeSpacing` (space between columns, default 50) and `elk` (the ELK instance
+  to use, for example one in a Web Worker). Row height and the other spacings
+  are fixed.
+* **The xor-join style** is set by `option xor-join` in the source, or by the
+  `xorJoin` option of `check()` and `compile()`, which the directive overrides.
+  It is the only `option` directive.
 
 ## 10. Public API
 
 ```ts
 import { compile, parse, check, format } from 'bpmn-text';
 
-const { xml, diagnostics, model, layout } = await compile(source, {
-  filename: 'order.bpmnt',
+const { xml, diagnostics, model, layout, sourceMap } = await compile(source, {
   layout: { nodeSpacing: 50 },
+  rules: { BT304: false },
 });
 ```
 
-* `parse(source)` → `{ ast, diagnostics }`
-* `check(source)` → `{ model, diagnostics }` (no layout; fast, used by the
-  LSP)
-* `compile(source, opts)` → `{ xml, model, layout, diagnostics }`
+* `parse(source)` → `{ ast, comments, diagnostics }`
+* `check(source, options)` → `{ model, diagnostics }` (no layout; fast, used by
+  the LSP)
+* `compile(source, options)` → `{ xml, model, layout, diagnostics, sourceMap }`
 * `format(source)` → `string`
-* `sourceMap` on the result maps BPMN element IDs to source ranges, for
-  click-to-source in the editors.
+* `sourceMap(model)` maps BPMN element IDs to source ranges, for click-to-source
+  in the editors. `compile()` returns the result of calling it.
+
+`check()` and `compile()` take these options:
+
+| Option | Meaning |
+|---|---|
+| `rules` | Turns checks off by code: `{ rules: { BT304: false } }`. Only the checks on the model can be turned off: BT222, BT240, BT260, BT261, BT262, BT270, BT280 and BT301 to BT306. The others are found while reading and building the source, and always report. |
+| `xorJoin` | The default for `option xor-join`: `'gateway'` or `'direct'`. |
+| `layout` | `compile()` only: `nodeSpacing` and `elk` (§9). |
+| `extend` | `compile()` only: the extension hook (§9). |
 
 ## 11. Front ends
 

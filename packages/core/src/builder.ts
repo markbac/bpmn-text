@@ -11,13 +11,17 @@ import type {
   Ref,
   Statement,
   SubStmt,
+  Text,
 } from './ast.js';
 import { diagnostic, type Diagnostic, type Range } from './diagnostics.js';
 import type {
   Container,
   DataObject,
+  DataObjectReference,
   DataStore,
   DataStoreReference,
+  DefinitionType,
+  EventDefinition,
   FlowNode,
   Group,
   Lane,
@@ -69,6 +73,7 @@ const NODE_KIND: Record<ElementKind, NodeKind> = {
   and: 'parallelGateway',
   or: 'inclusiveGateway',
   event: 'eventBasedGateway',
+  complex: 'complexGateway',
 };
 const ACTIVITIES = new Set<NodeKind>([
   'task',
@@ -89,11 +94,22 @@ const JOIN_KIND = {
   and: 'parallelGateway',
   fork: 'parallelGateway',
   or: 'inclusiveGateway',
+  complex: 'complexGateway',
 } as const;
 type SplitKind = keyof typeof JOIN_KIND;
 const MARKERS = new Set(['loop', 'parallel', 'sequential']);
+const DEFINITION_TYPES = new Set<string>([
+  'message',
+  'signal',
+  'error',
+  'escalation',
+] satisfies DefinitionType[]);
 /** Attributes that become model fields; any other is kept in `extra`. */
 const HANDLED = new Set([
+  ...DEFINITION_TYPES,
+  'event',
+  'adhoc',
+  'rule',
   'id',
   'loop',
   'parallel',
@@ -130,9 +146,15 @@ interface Open {
 }
 const isEnd = (x: End | Open): x is End => 'node' in x;
 const none = (): Open => ({ items: [] });
-/** Flow continues from `node` unless it is an end event. */
+const isLinkThrow = (n: FlowNode) =>
+  n.kind === 'intermediateThrowEvent' && n.eventType === 'link';
+const isLinkCatch = (n: FlowNode) =>
+  n.kind === 'intermediateCatchEvent' && n.eventType === 'link';
+/** Flow continues from `node` unless it is an end event or a link throw. */
 const from = (node: FlowNode): Open =>
-  node.kind === 'endEvent' ? none() : { items: [{ node }] };
+  node.kind === 'endEvent' || isLinkThrow(node)
+    ? none()
+    : { items: [{ node }] };
 const ends = (o: Open): End[] =>
   o.items.flatMap((i) => (isEnd(i) ? [i] : ends(i)));
 
@@ -148,6 +170,10 @@ interface Ctx {
   sub?: FlowNode;
   lane?: Lane;
   group?: Group | undefined;
+  /** The body of an event subprocess. */
+  eventSubprocess?: boolean;
+  /** The body of an ad-hoc subprocess: statements do not flow into each other. */
+  adHoc?: boolean;
 }
 interface NodeInfo {
   pool: PoolBuild;
@@ -157,11 +183,15 @@ interface NodeInfo {
   group?: Group;
   host?: FlowNode;
   explicitId?: string | undefined;
-  reads: (DataObject | DataStoreReference)[];
-  writes: (DataObject | DataStoreReference)[];
+  reads: DataRef[];
+  writes: DataRef[];
   /** Inserted joins: the element the join leads into, for its ID. */
   joinTarget?: FlowNode;
+  /** `[message: …]` and the like: the definition's name, if not the event's. */
+  definitionName?: string;
+  definition?: EventDefinition;
 }
+type DataRef = DataObjectReference | DataStoreReference;
 interface FlowBuild {
   flow: SequenceFlow;
   from: FlowNode;
@@ -199,6 +229,7 @@ class Builder {
     pools: [],
     messageFlows: [],
     dataStores: [],
+    definitions: [],
     groups: [],
   };
   private readonly pools: PoolBuild[] = [];
@@ -208,6 +239,8 @@ class Builder {
   private readonly pendingSequence: PendingSequence[] = [];
   private readonly pendingMessages: PendingMessage[] = [];
   private readonly messageEnds = new Map<MessageFlow, [Endpoint, Endpoint]>();
+  private readonly definitions = new Map<string, EventDefinition>();
+  private readonly flowMessages = new Map<MessageFlow, EventDefinition>();
   private readonly annotationHosts = new Map<Annotation, FlowNode>();
   private readonly groups = new Map<string, Group>();
   private readonly stores = new Map<string, DataStore>();
@@ -216,12 +249,16 @@ class Builder {
     Process,
     Map<DataStore, DataStoreReference>
   >();
-  /** Data references first used or declared inside a subprocess. */
-  private readonly dataContainer = new Map<
-    DataObject | DataStoreReference,
-    FlowNode | undefined
+  /** Each object's references, by state ('' for none). */
+  private readonly objectRefs = new Map<
+    DataObject,
+    Map<string, DataObjectReference>
   >();
-  private readonly usedData = new Set<DataObject | DataStoreReference>();
+  /** The reference's data object, until IDs are assigned. */
+  private readonly refObject = new Map<DataObjectReference, DataObject>();
+  /** Data references first used or declared inside a subprocess. */
+  private readonly dataContainer = new Map<DataRef, FlowNode | undefined>();
+  private readonly usedData = new Set<DataRef>();
   /** Explicit `@id`s, with where each was first written. */
   private readonly explicitIds = new Map<string, Range>();
 
@@ -267,7 +304,10 @@ class Builder {
       this.walkPool(pb, body, this.model);
     }
     this.resolve();
+    this.shareDefinitions();
+    this.dropUnusedStatelessReferences();
     this.assignIds();
+    this.pairLinks();
     this.model.groups = [...this.groups.values()];
     this.model.dataStores = [...this.stores.values()];
     return { model: this.model, diagnostics: this.diagnostics };
@@ -364,6 +404,7 @@ class Builder {
         flows: [],
         annotations: [],
         dataObjects: [],
+        dataObjectReferences: [],
         dataStoreReferences: [],
       };
       this.dataObjects.set(pool.process, new Map());
@@ -507,13 +548,15 @@ class Builder {
             const collection = s.attrs.some(
               (a) => a.key.value === 'collection',
             );
-            const object = this.dataObject(
+            const { name, state } = dataName(s.name);
+            const ref = this.objectReference(
               ctx.process,
-              s.name.value,
+              name,
+              state,
               s.range,
               collection,
             );
-            this.placeData(object, ctx, false);
+            this.placeData(ref, ctx, false);
           }
           break;
         case 'pool':
@@ -524,9 +567,31 @@ class Builder {
     return open;
   }
 
-  /** Implicit flow into `node`: never into a start event (notation §5). */
+  /** Implicit flow into `node`: never into a start or link catch (notation §5). */
   private enter(open: Open, node: FlowNode, ctx: Ctx) {
-    if (node.kind !== 'startEvent') this.connect(open, node, ctx);
+    if (!ctx.adHoc && node.kind !== 'startEvent' && !isLinkCatch(node))
+      this.connect(open, node, ctx);
+  }
+
+  /** Reports an explicit flow that a link event does not allow (BT263). */
+  private linkFlow(from: FlowNode, to: FlowNode, range: Range): boolean {
+    if (from.triggeredByEvent || to.triggeredByEvent) {
+      this.diagnostics.push(
+        diagnostic(
+          'BT271',
+          'An event subprocess has no incoming or outgoing flows: its start event starts it.',
+          range,
+        ),
+      );
+      return true;
+    }
+    const message = isLinkThrow(from)
+      ? 'A link throw event has no outgoing flow: flow continues at its link catch event.'
+      : isLinkCatch(to)
+        ? 'A link catch event has no incoming flow: flow arrives through its link throw event.'
+        : undefined;
+    if (message) this.diagnostics.push(diagnostic('BT263', message, range));
+    return message !== undefined;
   }
 
   private createNode(
@@ -587,25 +652,78 @@ class Builder {
     if (e.name) node.name = e.name.value;
     if (e.eventType) node.eventType = e.eventType;
     if (e.id) info.explicitId = this.explicitId(e.id.value, e.id.range);
+    const adHoc =
+      kind === 'subProcess' && e.attrs.some((a) => a.key.value === 'adhoc');
+    if (adHoc) node.adHoc = 'Parallel';
     for (const a of e.attrs) {
       const key = a.key.value;
       node.attributeRanges[key] = a.key.range;
       const first = a.values[0];
       if (key === 'id' && first)
         info.explicitId = this.explicitId(first.value, first.range);
+      else if (adHoc && (key === 'parallel' || key === 'sequential'))
+        node.adHoc = key === 'parallel' ? 'Parallel' : 'Sequential';
       else if (MARKERS.has(key) && ACTIVITIES.has(kind))
         node.markers.push(key as Marker);
+      else if (key === 'rule') {
+        // Conditions are out of scope (ADR-008), so the rule is documentation.
+        if (kind !== 'complexGateway')
+          this.noEffect(
+            a.key.range,
+            '`rule` states the activation rule of a `complex` gateway',
+          );
+        else if (first)
+          this.document(node, a.values.map((v) => v.value).join(', '));
+      } else if (key === 'adhoc' && !adHoc)
+        this.noEffect(
+          a.key.range,
+          '`adhoc` declares an ad-hoc subprocess, on a `sub`',
+        );
       else if (key === 'reads' || key === 'writes') {
-        for (const v of a.values)
-          info[key].push(this.data(ctx, v.value, v.range, true));
+        for (const v of a.values) info[key].push(this.data(ctx, v, true));
       } else if (key === 'collapsed' && kind === 'subProcess')
         node.collapsed = true;
       else if (key === 'non-interrupting' && kind === 'boundaryEvent')
         node.interrupting = false;
+      else if (key === 'non-interrupting' && kind === 'startEvent') {
+        if (ctx.eventSubprocess) node.interrupting = false;
+        else
+          this.noEffect(
+            a.key.range,
+            'Only the start event of an event subprocess can be non-interrupting',
+          );
+      } else if (key === 'event') {
+        if (kind === 'subProcess') node.triggeredByEvent = true;
+        else
+          this.noEffect(
+            a.key.range,
+            '`event` declares an event subprocess, on a `sub`',
+          );
+      } else if (DEFINITION_TYPES.has(key) && first) {
+        if (
+          e.eventType === key ||
+          (key === 'message' && (kind === 'sendTask' || kind === 'receiveTask'))
+        )
+          info.definitionName = first.value;
+        else
+          this.diagnostics.push(
+            diagnostic(
+              'BT105',
+              `\`${key}:\` names the definition of ${key === 'message' ? 'a message event or a send or receive task' : `${key === 'error' || key === 'escalation' ? 'an' : 'a'} ${key} event`}; it has no effect here.`,
+              a.key.range,
+            ),
+          );
+      }
     }
     if (kind === 'boundaryEvent') node.interrupting ??= true;
     this.commonAttrs(node, e.attrs);
     return node;
+  }
+
+  private noEffect(range: Range, why: string) {
+    this.diagnostics.push(
+      diagnostic('BT105', `${why}; it has no effect here.`, range),
+    );
   }
 
   private explicitId(id: string, range: Range): string | undefined {
@@ -678,8 +796,10 @@ class Builder {
       }
       const labelled = sources.map((e) => (label ? { ...e, label } : e));
       if (target) {
-        for (const e of labelled)
-          this.flow(e.node, target, step.range, e.label, e.isDefault);
+        for (const e of labelled) {
+          if (!this.linkFlow(e.node, target, first!.range))
+            this.flow(e.node, target, step.range, e.label, e.isDefault);
+        }
         current = target;
         continue;
       }
@@ -712,7 +832,7 @@ class Builder {
     for (const b of list) {
       const event = this.declare(b.element, ctx);
       this.info.get(event)!.host = host;
-      const inner = { ...ctx };
+      const inner = { ...ctx, adHoc: false }; // a chain has an order of its own
       let chain = this.chain(event, b.tail, inner, none());
       chain = this.walk(b.body, inner, chain, event);
       const dangling = ends(chain);
@@ -744,7 +864,7 @@ class Builder {
     const g = this.declare(s.element, ctx);
     this.enter(open, g, ctx);
     if (!s.branches) return [from(g), g];
-    const kind = s.element.kind as 'xor' | 'and' | 'or' | 'event';
+    const kind = s.element.kind as 'xor' | 'and' | 'or' | 'event' | 'complex';
     g.branches = s.branches.length;
     const items = s.branches.map((b) => {
       if (kind === 'event') this.checkEventBranch(b);
@@ -788,7 +908,8 @@ class Builder {
   }
 
   private branch(b: Branch, ctx: Ctx, open: Open, docTarget: Documented): Open {
-    const inner = { ...ctx }; // lane switches are scoped to the branch
+    // Lane switches are scoped to the branch, which has an order of its own.
+    const inner = { ...ctx, adHoc: false };
     if (b.inline) {
       const { target, tail } = b.inline;
       if (target.type === 'element') {
@@ -882,8 +1003,15 @@ class Builder {
         'A `sub` without a body must be `[collapsed]`, as a placeholder for detail documented elsewhere.',
       );
     }
-    this.enter(open, node, ctx);
-    const children: Container = { nodes: [], flows: [], annotations: [] };
+    const eventSubprocess = node.triggeredByEvent === true;
+    if (eventSubprocess) delete this.info.get(node)!.group;
+    else this.enter(open, node, ctx);
+    const children: Container = {
+      nodes: [],
+      flows: [],
+      annotations: [],
+      ...(node.adHoc ? { adHoc: true as const } : {}),
+    };
     node.children = children;
     if (st.body) {
       this.walk(
@@ -893,12 +1021,23 @@ class Builder {
           process: ctx.process,
           container: children,
           sub: node,
+          ...(eventSubprocess ? { eventSubprocess } : {}),
+          ...(node.adHoc ? { adHoc: true } : {}),
         },
         none(),
         node,
       );
     }
-    return [this.boundaries(node, st.boundaries, ctx, from(node)), node];
+    // An event subprocess is not part of the story: flow passes it by.
+    return [
+      this.boundaries(
+        node,
+        st.boundaries,
+        ctx,
+        eventSubprocess ? open : from(node),
+      ),
+      node,
+    ];
   }
 
   // Data
@@ -922,7 +1061,7 @@ class Builder {
     const objects = this.dataObjects.get(process)!;
     let object = objects.get(normalise(name));
     if (!object) {
-      object = { id: '', reference: '', name, collection, source };
+      object = { id: '', name, collection, source };
       objects.set(normalise(name), object);
       process.dataObjects.push(object);
     }
@@ -930,20 +1069,56 @@ class Builder {
     return object;
   }
 
+  /** The reference to a data object in `state`, created on first use. */
+  private objectReference(
+    process: Process,
+    name: string,
+    state: string | undefined,
+    source: Range,
+    collection = false,
+  ): DataObjectReference {
+    const object = this.dataObject(process, name, source, collection);
+    const refs = this.objectRefs.get(object) ?? new Map();
+    this.objectRefs.set(object, refs);
+    const key = state ? normalise(state) : '';
+    let ref = refs.get(key);
+    if (!ref) {
+      ref = {
+        id: '',
+        object: '',
+        name: state ? `${object.name}\n[${state}]` : object.name,
+        ...(state ? { state } : {}),
+        source,
+      };
+      refs.set(key, ref);
+      this.refObject.set(ref, object);
+      process.dataObjectReferences.push(ref);
+    }
+    return ref!;
+  }
+
   /**
    * The process's reference to a data store if one has this name, else a
-   * data object, created on first use.
+   * reference to a data object in the state written, created on first use.
    */
-  private data(
-    ctx: Ctx,
-    name: string,
-    source: Range,
-    use: boolean,
-  ): DataObject | DataStoreReference {
+  private data(ctx: Ctx, written: Text, use: boolean): DataRef {
     const process = ctx.process;
-    const store = this.stores.get(normalise(name));
-    let data: DataObject | DataStoreReference;
-    if (!store) data = this.dataObject(process, name, source);
+    const source = written.range;
+    const { name, state } = dataName(written);
+    let store = this.stores.get(normalise(written.value));
+    if (!store && state) {
+      store = this.stores.get(normalise(name));
+      if (store)
+        this.diagnostics.push(
+          diagnostic(
+            'BT105',
+            `\`${store.name}\` is a data store, which has no state; \`(${state})\` has no effect. Quote the name if the brackets are part of it.`,
+            source,
+          ),
+        );
+    }
+    let data: DataRef;
+    if (!store) data = this.objectReference(process, name, state, source);
     else {
       const refs = this.storeRefs.get(process)!;
       let ref = refs.get(store);
@@ -962,11 +1137,7 @@ class Builder {
    * Records the container of a data reference: where it is first used, or
    * where it is declared if it is never used.
    */
-  private placeData(
-    data: DataObject | DataStoreReference,
-    ctx: Ctx,
-    use: boolean,
-  ) {
+  private placeData(data: DataRef, ctx: Ctx, use: boolean) {
     if (this.usedData.has(data)) return;
     if (use) this.usedData.add(data);
     else if (this.dataContainer.has(data)) return;
@@ -1125,7 +1296,7 @@ class Builder {
             p.ref.range,
           ),
         );
-      } else {
+      } else if (!this.linkFlow(p.from, to, p.ref.range)) {
         if (p.from.generated) a.joinTarget ??= to;
         this.flow(p.from, to, p.ref.range, p.label, p.isDefault);
       }
@@ -1158,6 +1329,32 @@ class Builder {
     }
   }
 
+  /**
+   * Pairs link events by name within one process level: the body of a
+   * process or a subprocess, which sequence flow cannot leave either.
+   */
+  private pairLinks() {
+    const catches = new Map<Container, Map<string, FlowNode[]>>();
+    for (const n of this.nodes) {
+      if (!isLinkCatch(n) || !n.name) continue;
+      const { container } = this.info.get(n)!;
+      const byName = catches.get(container) ?? new Map<string, FlowNode[]>();
+      catches.set(container, byName);
+      const key = normalise(n.name);
+      byName.set(key, [...(byName.get(key) ?? []), n]);
+    }
+    for (const n of this.nodes) {
+      if (!isLinkThrow(n) || !n.name) continue;
+      const targets = catches
+        .get(this.info.get(n)!.container)
+        ?.get(normalise(n.name));
+      if (!targets) continue;
+      // A second catch of the same name is BT262; the first one is the target.
+      n.linkTarget = targets[0]!.id;
+      for (const t of targets) (t.linkSources ??= []).push(n.id);
+    }
+  }
+
   private unknown(
     ref: Ref,
     written: string,
@@ -1184,6 +1381,75 @@ class Builder {
           : {},
       ),
     );
+  }
+
+  /**
+   * Events of one type and name refer to one definition across the document
+   * (notation §4.1). A message flow carries the message its ends agree on.
+   */
+  private shareDefinitions() {
+    const definition = (type: DefinitionType, name: string, source: Range) => {
+      const key = `${type}|${normalise(name)}`;
+      let d = this.definitions.get(key);
+      if (!d) {
+        d = { id: '', type, name, source };
+        this.definitions.set(key, d);
+      }
+      return d;
+    };
+    for (const n of this.nodes) {
+      const info = this.info.get(n)!;
+      const type = n.eventType ?? '';
+      const name = info.definitionName ?? (n.eventType ? n.name : undefined);
+      if (name && DEFINITION_TYPES.has(type))
+        info.definition = definition(type as DefinitionType, name, n.source);
+      else if (info.definitionName)
+        info.definition = definition('message', info.definitionName, n.source);
+    }
+    for (const [flow, [from, to]] of this.messageEnds) {
+      const ends = [from, to].flatMap((e) => (isPool(e) ? [] : [e]));
+      // A send and a receive with one name pass a message of that name.
+      const [a, b] = ends;
+      if (
+        a?.kind === 'sendTask' &&
+        b?.kind === 'receiveTask' &&
+        a.name &&
+        normalise(a.name) === normalise(b.name ?? '') &&
+        !this.info.get(a)!.definition &&
+        !this.info.get(b)!.definition
+      ) {
+        const d = definition('message', a.name, a.source);
+        this.info.get(a)!.definition = d;
+        this.info.get(b)!.definition = d;
+      }
+      const carried = new Set(
+        ends.flatMap((e) => {
+          const d = this.info.get(e)!.definition;
+          return d?.type === 'message' ? [d] : [];
+        }),
+      );
+      if (carried.size === 1) this.flowMessages.set(flow, [...carried][0]!);
+    }
+  }
+
+  /**
+   * `data Invoice` only declares the object: without a state of its own, it
+   * draws nothing once the object is used in some state.
+   */
+  private dropUnusedStatelessReferences() {
+    for (const [object, refs] of this.objectRefs) {
+      const plain = refs.get('');
+      if (!plain || refs.size < 2 || this.usedData.has(plain)) continue;
+      refs.delete('');
+      for (const pb of this.pools) {
+        const process = pb.pool.process;
+        if (!process?.dataObjects.includes(object)) continue;
+        process.dataObjectReferences = process.dataObjectReferences.filter(
+          (r) => r !== plain,
+        );
+      }
+      this.dataContainer.delete(plain);
+    }
   }
 
   // IDs (architecture §8)
@@ -1233,6 +1499,11 @@ class Builder {
       );
     }
 
+    for (const d of this.definitions.values()) {
+      const prefix = d.type[0]!.toUpperCase() + d.type.slice(1);
+      d.id = take(`${prefix}_${slug(d.name)}`);
+      this.model.definitions.push(d);
+    }
     for (const g of this.groups.values()) g.id = take(`Group_${slug(g.name)}`);
     for (const s of this.stores.values())
       s.id = take(`DataStore_${slug(s.name)}`);
@@ -1245,7 +1516,12 @@ class Builder {
     );
     for (const [o, id] of qualify(objects, poolSlug)) {
       o.id = take(id);
-      o.reference = take(`DataObjectReference_${stripPrefix(o.id)}`);
+      for (const [state, ref] of this.objectRefs.get(o) ?? []) {
+        ref.object = o.id;
+        ref.id = take(
+          `DataObjectReference_${stripPrefix(o.id)}${state ? `_${slug(state)}` : ''}`,
+        );
+      }
     }
     const storeOf = new Map(
       [...this.storeRefs.values()].flatMap((refs) =>
@@ -1273,11 +1549,9 @@ class Builder {
     for (const [data, sub] of this.dataContainer) {
       if (sub) data.container = sub.id;
     }
-    const drawn = (d: DataObject | DataStoreReference) =>
-      'reference' in d ? d.reference : d.id;
-
     for (const n of this.nodes) {
       const info = this.info.get(n)!;
+      if (info.definition) n.definitionRef = info.definition.id;
       if (info.lane) n.laneId = info.lane.id;
       if (info.group) {
         n.groupId = info.group.id;
@@ -1289,15 +1563,15 @@ class Builder {
       }
       n.reads = info.reads.map((d) => ({
         id: take(
-          `DataInputAssociation_${stripPrefix(n.id)}__${stripPrefix(drawn(d))}`,
+          `DataInputAssociation_${stripPrefix(n.id)}__${stripPrefix(d.id)}`,
         ),
-        dataRef: drawn(d),
+        dataRef: d.id,
       }));
       n.writes = info.writes.map((d) => ({
         id: take(
-          `DataOutputAssociation_${stripPrefix(n.id)}__${stripPrefix(drawn(d))}`,
+          `DataOutputAssociation_${stripPrefix(n.id)}__${stripPrefix(d.id)}`,
         ),
-        dataRef: drawn(d),
+        dataRef: d.id,
       }));
     }
     for (const { flow, from, to } of this.flows) {
@@ -1310,6 +1584,8 @@ class Builder {
     for (const [flow, [from, to]] of this.messageEnds) {
       flow.sourceRef = endpointId(from);
       flow.targetRef = endpointId(to);
+      const message = this.flowMessages.get(flow);
+      if (message) flow.messageRef = message.id;
       flow.id = take(
         `MessageFlow_${stripPrefix(flow.sourceRef)}__${stripPrefix(flow.targetRef)}`,
       );
@@ -1356,6 +1632,7 @@ const KIND_WORD: Partial<Record<NodeKind, string>> = {
   parallelGateway: 'and',
   inclusiveGateway: 'or',
   eventBasedGateway: 'event',
+  complexGateway: 'complex',
 };
 
 /** Whether a pool body uses lanes: `lane`, `lanes` or `[lane: …]` outside subprocesses. */
@@ -1397,6 +1674,17 @@ function containsLanes(stmts: Statement[]): boolean {
         return false;
     }
   });
+}
+
+/**
+ * `Invoice (approved)` as the data object `Invoice` in state `approved`. A
+ * quoted name keeps its brackets (notation §4.4).
+ */
+function dataName(t: Text): { name: string; state?: string } {
+  const m = t.quoted
+    ? null
+    : /^(.*\S)\s*\(\s*([^()]*[^()\s])\s*\)$/.exec(t.value);
+  return m ? { name: m[1]!, state: m[2]! } : { name: t.value };
 }
 
 /** A readable, ID-safe slug: lower case, `_` between words. */

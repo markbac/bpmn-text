@@ -50,6 +50,10 @@ const ATTACH_GAP = 15;
 /** Space between data shapes side by side. */
 const DATA_GAP = 10;
 const ANNOTATION_WIDTH = 100;
+/** Space between event subprocesses side by side. */
+const STRIP_GAP = 30;
+/** The row of an event subprocess: the strip below a band's rows. */
+const STRIP = -1;
 /** Space between a group border and the shapes and labels inside. */
 const GROUP_PAD = 10;
 
@@ -104,7 +108,8 @@ interface Laid {
  * Lays out `model` (architecture §6.2): pools, lanes, flow nodes, expanded
  * subprocesses with their bodies, boundary events, data, annotations and
  * groups. Collapsed subprocesses get task size; their bodies are laid out
- * on planes of their own.
+ * on planes of their own. Event subprocesses take no part in layering: they
+ * sit in a strip below the rows of their band.
  */
 export async function layout(
   model: Model,
@@ -150,13 +155,15 @@ function bodyModel(model: Model, sub: FlowNode, process: Process): Model {
         process: {
           id: `${sub.id}__process`,
           ...sub.children!,
-          dataObjects: mine(process.dataObjects),
+          dataObjects: [],
+          dataObjectReferences: mine(process.dataObjectReferences),
           dataStoreReferences: mine(process.dataStoreReferences),
         },
       },
     ],
     messageFlows: [],
     dataStores: model.dataStores,
+    definitions: [],
     groups: [],
   };
 }
@@ -259,6 +266,7 @@ async function layoutModel(
 
   // Phase 0: the nodes that take part, and the flows between them.
   const layerNodes: LayerNode[] = [];
+  const strips: LayerNode[] = [];
   const boundaries: FlowNode[] = [];
   /** Any flow node, boundary event or pool ID → its drawn ancestor. */
   const top = new Map<string, string>();
@@ -278,17 +286,6 @@ async function layoutModel(
         boundaries.push(node);
         continue;
       }
-      const g = node.groupId ? groupIndex.get(node.groupId)! : undefined;
-      if (g !== undefined) lastGroup = g;
-      layerNodes.push({
-        node,
-        pool,
-        band: node.laneId ?? pool.id,
-        size: sizeOf(node),
-        ...(grouped
-          ? { partition: g !== undefined ? 2 * g + 1 : 2 * lastGroup + 2 }
-          : {}),
-      });
       const descend = (c: Container | undefined) => {
         for (const child of c?.nodes ?? []) {
           top.set(child.id, node.id);
@@ -298,6 +295,22 @@ async function layoutModel(
       };
       top.set(node.id, node.id);
       descend(node.children);
+      const band = node.laneId ?? pool.id;
+      if (node.triggeredByEvent) {
+        strips.push({ node, pool, band, size: sizeOf(node) });
+        continue;
+      }
+      const g = node.groupId ? groupIndex.get(node.groupId)! : undefined;
+      if (g !== undefined) lastGroup = g;
+      layerNodes.push({
+        node,
+        pool,
+        band,
+        size: sizeOf(node),
+        ...(grouped
+          ? { partition: g !== undefined ? 2 * g + 1 : 2 * lastGroup + 2 }
+          : {}),
+      });
     }
     for (const b of boundaries) top.set(b.id, b.attachedTo!);
   }
@@ -311,9 +324,13 @@ async function layoutModel(
       to: top.get(f.targetRef)!,
       ...(f.name ? { name: f.name } : {}),
     }));
+  const layered = new Set(layerNodes.map((n) => n.node.id));
+  const inStrip = new Set(strips.map((n) => n.node.id));
   const layerEdges: LayerEdge[] = [
     ...flows
-      .filter((f) => f.from !== f.to)
+      .filter(
+        (f) => f.from !== f.to && layered.has(f.from) && layered.has(f.to),
+      )
       .map((f) => ({ id: f.id, source: f.from, target: f.to, message: false })),
     ...model.messageFlows
       .map((f) => ({
@@ -322,7 +339,7 @@ async function layoutModel(
         target: top.get(f.targetRef)!,
         message: true,
       }))
-      .filter((e) => nodeById.has(e.source) && nodeById.has(e.target)),
+      .filter((e) => layered.has(e.source) && layered.has(e.target)),
   ];
 
   // Phase 7 input: data references next to the activity that first uses
@@ -337,8 +354,8 @@ async function layoutModel(
         [...n.reads, ...n.writes].some((a) => a.dataRef === ref),
       );
     const data = [
-      ...p.dataObjects.map(
-        (o) => [o.reference, o.name, false, o.container] as const,
+      ...p.dataObjectReferences.map(
+        (o) => [o.id, o.name, false, o.container] as const,
       ),
       ...p.dataStoreReferences.map(
         (r) =>
@@ -406,13 +423,27 @@ async function layoutModel(
   }
 
   // Phase 2: columns.
-  const { column, order, columns } = await layer(
-    layerNodes,
-    layerEdges,
-    model.pools,
-    options.elk,
+  const {
+    column,
+    order,
+    columns: layeredColumns,
+  } = await layer(layerNodes, layerEdges, model.pools, options.elk);
+  // An ad-hoc body: activities no flow orders go in a compact grid, in
+  // document order, below any that are connected.
+  const connected = new Set(flows.flatMap((f) => [f.from, f.to]));
+  const inGrid = layerNodes.filter(
+    (n) => n.pool.process?.adHoc && !connected.has(n.node.id),
   );
-  const col = (id: string) => column.get(top.get(id)!)!;
+  const gridColumns = Math.ceil(Math.sqrt(inGrid.length));
+  inGrid.forEach((n, i) => {
+    column.set(n.node.id, i % gridColumns);
+    order.set(n.node.id, i);
+  });
+  const columns = Math.max(layeredColumns, gridColumns);
+  const belowConnected = new Set(
+    connected.size > 0 ? inGrid.map((n) => n.node.id) : [],
+  );
+  const col = (id: string) => column.get(top.get(id)!) ?? 0;
   const isBack = (f: Flow) => col(f.to) <= col(f.from);
 
   // Phase 3: rows. Within a band and column, nodes stack in ELK order, and
@@ -432,9 +463,11 @@ async function layoutModel(
     main.add(id);
     queue.push(...(next.get(id) ?? []));
   }
-  const bandOf = new Map(layerNodes.map((n) => [n.node.id, n.band]));
-  const row = new Map<string, number>();
-  const bandRows = new Map<string, number>();
+  const bandOf = new Map(
+    [...layerNodes, ...strips].map((n) => [n.node.id, n.band]),
+  );
+  const row = new Map<string, number>(strips.map((n) => [n.node.id, STRIP]));
+  const bandRows = new Map<string, number>(strips.map((n) => [n.band, 0]));
   const cells = new Map<string, LayerNode[]>();
   for (const n of layerNodes) {
     const k = `${n.band}\n${col(n.node.id)}`;
@@ -479,7 +512,7 @@ async function layoutModel(
         outIndex.get(f.id)!,
       ])
       .sort((a, b) => a[0]! - b[0]! || a[1]! - b[1]!);
-    const rank = main.has(n.node.id) ? 0 : 1;
+    const rank = main.has(n.node.id) && !belowConnected.has(n.node.id) ? 0 : 1;
     const [pred, index] = keys[0] ?? [-1, 0];
     const furthest = -reachOf(n.node.id).size;
     return [rank, pred!, furthest, index!, order.get(n.node.id)!];
@@ -562,6 +595,7 @@ async function layoutModel(
       });
     }
     data.forEach((d, i) => dataOffset.set(d.id, centres[i]!));
+    if (inStrip.has(anchor)) continue;
     const c = col(anchor);
     const half = Math.max(
       ...data.map((d) => Math.abs(dataOffset.get(d.id)!) + d.size.width / 2),
@@ -569,13 +603,18 @@ async function layoutModel(
     colWidth[c] = Math.max(colWidth[c]!, even(2 * half));
   }
   for (const a of attachments) {
-    if (a.kind !== 'annotation') continue;
+    if (a.kind !== 'annotation' || inStrip.has(a.anchor)) continue;
     const c = col(a.anchor);
     colWidth[c] = Math.max(colWidth[c]!, ANNOTATION_WIDTH);
   }
   for (const a of attachments) {
     if (a.kind === 'annotation')
-      a.size = annotationSize(a.text!, colWidth[col(a.anchor)]!);
+      a.size = annotationSize(
+        a.text!,
+        inStrip.has(a.anchor)
+          ? sizeOf(nodeById.get(a.anchor)!).width
+          : colWidth[col(a.anchor)]!,
+      );
   }
 
   // Row heights: the tallest shape of each row, and the attachment strips
@@ -584,7 +623,7 @@ async function layoutModel(
   const rowHeight = new Map<string, number>();
   const above = new Map<string, number>();
   const below = new Map<string, number>();
-  for (const n of layerNodes) {
+  for (const n of [...layerNodes, ...strips]) {
     const k = rowKey(n.band, row.get(n.node.id)!);
     rowHeight.set(
       k,
@@ -636,6 +675,31 @@ async function layoutModel(
   const rowH = (band: string, r: number) =>
     rowHeight.get(rowKey(band, r)) ?? ROW_H;
   const gutters = new Set(flows.filter(isBack).map((f) => bandOf.get(f.from)!));
+  // The strip of each band: its height, and each event subprocess's x, left
+  // to right from where the first column would start.
+  const stripHeight = (band: string) => {
+    if (!strips.some((n) => n.band === band)) return 0;
+    const k = rowKey(band, STRIP);
+    return (above.get(k) ?? 0) + rowH(band, STRIP) + (below.get(k) ?? 0);
+  };
+  const stripX = new Map<string, number>();
+  let stripWidth = 0;
+  for (const band of new Set(strips.map((n) => n.band))) {
+    let x = POOL_LABEL + LANE_LABEL + PAD_X;
+    for (const n of strips.filter((s) => s.band === band)) {
+      stripX.set(n.node.id, x);
+      const half = Math.max(
+        n.size.width / 2,
+        ...(attachedTo.get(n.node.id) ?? []).map((d) =>
+          d.kind === 'data'
+            ? Math.abs(dataOffset.get(d.id)!) + d.size.width / 2
+            : 0,
+        ),
+      );
+      x += Math.max(n.size.width, even(2 * half)) + STRIP_GAP;
+    }
+    stripWidth = Math.max(stripWidth, x - STRIP_GAP + PAD_X);
+  }
 
   // Groups: the columns each one spans, and the label overhang next to
   // them, which their borders must clear.
@@ -653,7 +717,7 @@ async function layoutModel(
         .filter((n) => n.node.kind.endsWith('Event') || isGateway(n.node))
         .map((n) => labelSize(n.node.name!).width),
       ...attachments
-        .filter((a) => a.label && col(a.anchor) === c)
+        .filter((a) => a.label && !inStrip.has(a.anchor) && col(a.anchor) === c)
         .map((a) => labelSize(a.label!).width),
     ];
     return Math.max(0, ...widths.map((w) => (w - colWidth[c]!) / 2));
@@ -682,8 +746,10 @@ async function layoutModel(
       colX.push(x);
       x += colWidth[c] ?? 0;
     }
-    const width =
-      channelX[columns]! + gapOf(columns) + tracks[columns]! * TRACK;
+    const width = Math.max(
+      stripWidth,
+      channelX[columns]! + gapOf(columns) + tracks[columns]! * TRACK,
+    );
     const shapes = new Map<string, Placed>();
     const pools = new Map<string, Bounds>();
     const bands = new Map<string, Bounds>();
@@ -701,7 +767,8 @@ async function layoutModel(
           PAD_Y +
           (gutters.has(band)
             ? GUTTER + extraGap(gapTracks, gutterKey(band))
-            : 0);
+            : 0) +
+          stripHeight(band);
         bands.set(band, {
           x: POOL_LABEL,
           y,
@@ -729,6 +796,24 @@ async function layoutModel(
         band: n.band,
       });
     }
+    /** The top of a strip's row, from its band's bounds. */
+    const stripTop = (id: string) => {
+      const b = bands.get(id)!;
+      return (
+        b.y + b.height - stripHeight(id) + (above.get(rowKey(id, STRIP)) ?? 0)
+      );
+    };
+    for (const n of strips) {
+      const r = rowH(n.band, STRIP);
+      shapes.set(n.node.id, {
+        x: stripX.get(n.node.id)!,
+        y: Math.round(stripTop(n.band) + (r - n.size.height) / 2),
+        ...n.size,
+        column: 0,
+        row: STRIP,
+        band: n.band,
+      });
+    }
     // Phase 7: boundary events spread along the host's bottom.
     for (const [host, events] of hosted) {
       const h = shapes.get(host)!;
@@ -750,12 +835,13 @@ async function layoutModel(
     for (const a of attachments) {
       const h = shapes.get(a.anchor)!;
       const band = bands.get(h.band)!;
-      const top = band.y + rowTop(h.band, h.row);
+      const top =
+        h.row === STRIP ? stripTop(h.band) : band.y + rowTop(h.band, h.row);
       attached.set(
         a.id,
         a.kind === 'annotation'
           ? {
-              x: colX[h.column]!,
+              x: h.row === STRIP ? h.x : colX[h.column]!,
               y: top - ATTACH_GAP - a.size.height,
               ...a.size,
             }
@@ -882,6 +968,7 @@ async function layoutModel(
         const gy =
           bands.get(band)!.y +
           bands.get(band)!.height -
+          stripHeight(band) -
           GUTTER / 2 -
           extraGap(gapTracks, k) +
           (final ? (usedGap.get(k) ?? 0) : 0) * GAP_TRACK;
@@ -1374,6 +1461,16 @@ function associate(
     { x: sAway.x, y: away },
     { x: tV.x, y: away },
     tV,
+  ]);
+  // Around the source and up the near side of the target, when data under
+  // the target closes its bottom.
+  const beside = tH.x + (rightward ? -ATTACH_GAP : ATTACH_GAP);
+  candidates.push([
+    sAway,
+    { x: sAway.x, y: away },
+    { x: beside, y: away },
+    { x: beside, y: tH.y },
+    tH,
   ]);
   return simplify(candidates.find(clear) ?? candidates.at(-1)!).map((p) => ({
     x: Math.round(p.x),

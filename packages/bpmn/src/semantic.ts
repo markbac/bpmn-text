@@ -47,6 +47,8 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
   const named = (name: string | undefined) => (name ? { name } : {});
   /** The current process's data references, by subprocess ID. */
   const dataRefs = new Map<string | undefined, ModdleElement[]>();
+  /** Link event definitions by event ID, linked once they all exist. */
+  const linkDefinitions = new Map<string, [FlowNode, ModdleElement]>();
   const documented = (text: string | undefined) =>
     text
       ? {
@@ -72,11 +74,18 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
         definition.condition = moddle.create('bpmn:FormalExpression');
       }
       if (n.eventType === 'link') definition.name = n.name ?? '';
-      attrs.eventDefinitions = [
-        moddle.create(definitionType[n.eventType], definition),
-      ];
+      if (n.definitionRef)
+        definition[`${n.eventType}Ref`] = elements.get(n.definitionRef);
+      const element = moddle.create(definitionType[n.eventType], definition);
+      if (n.eventType === 'link') linkDefinitions.set(n.id, [n, element]);
+      attrs.eventDefinitions = [element];
+    } else if (n.definitionRef)
+      attrs.messageRef = elements.get(n.definitionRef);
+    if (n.interrupting === false) {
+      attrs[n.kind === 'startEvent' ? 'isInterrupting' : 'cancelActivity'] =
+        false;
     }
-    if (n.interrupting === false) attrs.cancelActivity = false;
+    if (n.triggeredByEvent) attrs.triggeredByEvent = true;
     const marker = n.markers[0];
     if (marker === 'loop') {
       attrs.loopCharacteristics = moddle.create(
@@ -95,7 +104,8 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
       ];
       attrs.artifacts = artifacts(n.children);
     }
-    return create(typeOf(n.kind), attrs);
+    if (n.adHoc) attrs.ordering = n.adHoc;
+    return create(n.adHoc ? 'bpmn:AdHocSubProcess' : typeOf(n.kind), attrs);
   }
 
   /**
@@ -179,21 +189,30 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
     dataRefs.clear();
     const addRef = (container: string | undefined, ref: ModdleElement) =>
       dataRefs.set(container, [...(dataRefs.get(container) ?? []), ref]);
-    const objects = p.dataObjects.map((o) => {
-      const object = create('bpmn:DataObject', {
+    const objects = p.dataObjects.map((o) =>
+      create('bpmn:DataObject', {
         id: o.id,
         ...(o.collection ? { isCollection: true } : {}),
-      });
+      }),
+    );
+    for (const r of p.dataObjectReferences) {
       addRef(
-        o.container,
+        r.container,
         create('bpmn:DataObjectReference', {
-          id: o.reference,
-          name: o.name,
-          dataObjectRef: object,
+          id: r.id,
+          name: r.name,
+          dataObjectRef: elements.get(r.object),
+          ...(r.state
+            ? {
+                dataState: moddle.create('bpmn:DataState', {
+                  id: `${r.id}_state`,
+                  name: r.state,
+                }),
+              }
+            : {}),
         }),
       );
-      return object;
-    });
+    }
     for (const r of p.dataStoreReferences) {
       const store = elements.get(r.store)!;
       addRef(
@@ -243,8 +262,22 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
   const stores = model.dataStores.map((s) =>
     create('bpmn:DataStore', { id: s.id, name: s.name }),
   );
+  // Created before the processes, whose events refer to them.
+  const definitionElements = model.definitions.map((d) =>
+    create(`bpmn:${d.type[0]!.toUpperCase()}${d.type.slice(1)}`, {
+      id: d.id,
+      name: d.name,
+    }),
+  );
   const processes = model.pools.filter((p) => p.process).map(process);
-  const rootElements = [...stores, ...processes];
+  for (const [n, definition] of linkDefinitions.values()) {
+    if (n.linkTarget) definition.target = linkDefinitions.get(n.linkTarget)![1];
+    if (n.linkSources)
+      definition.source = n.linkSources.map(
+        (id) => linkDefinitions.get(id)![1],
+      );
+  }
+  const rootElements = [...definitionElements, ...stores, ...processes];
   let root = processes[0]!;
 
   // Groups: one category value each, and the group in the root element.
@@ -287,6 +320,7 @@ export function semantic(model: Model, moddle: BpmnModdle): Semantic {
         ...named(f.name),
         sourceRef: elements.get(f.sourceRef),
         targetRef: elements.get(f.targetRef),
+        ...(f.messageRef ? { messageRef: elements.get(f.messageRef) } : {}),
       }),
     );
     root = moddle.create('bpmn:Collaboration', {

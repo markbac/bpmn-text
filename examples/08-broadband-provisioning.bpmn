@@ -23,7 +23,7 @@
     </bpmn:participant>
     <bpmn:participant id="Participant_credit_agency" name="Credit agency" />
     <bpmn:participant id="Participant_one_touch_switch_hub" name="One Touch Switch hub" />
-    <bpmn:messageFlow id="MessageFlow_request_a_quote__quote_requested" sourceRef="Activity_request_a_quote" targetRef="Event_quote_requested" />
+    <bpmn:messageFlow id="MessageFlow_request_a_quote__quote_requested" sourceRef="Activity_request_a_quote" targetRef="Event_quote_requested" messageRef="Message_quote_requested" />
     <bpmn:messageFlow id="MessageFlow_place_order__customer_order_received" sourceRef="Activity_place_order" targetRef="Activity_customer_order_received" />
     <bpmn:messageFlow id="MessageFlow_courier__router_arrives" sourceRef="Participant_courier" targetRef="Activity_router_arrives" />
     <bpmn:messageFlow id="MessageFlow_courier__delivery_confirmed" sourceRef="Participant_courier" targetRef="Activity_delivery_confirmed" />
@@ -31,16 +31,16 @@
     <bpmn:messageFlow id="MessageFlow_reject_cityfibre_order__order_rejected" sourceRef="Activity_reject_cityfibre_order" targetRef="Activity_order_rejected" />
     <bpmn:messageFlow id="MessageFlow_commit_cityfibre_date__committed_date_received" sourceRef="Activity_commit_cityfibre_date" targetRef="Activity_committed_date_received" />
     <bpmn:messageFlow id="MessageFlow_send_cityfibre_completion__completion_notice" sourceRef="Activity_send_cityfibre_completion" targetRef="Activity_completion_notice" />
-    <bpmn:messageFlow id="MessageFlow_ask_openreach_for_availability__openreach_availability_request" sourceRef="Activity_ask_openreach_for_availability" targetRef="Event_openreach_availability_request" />
-    <bpmn:messageFlow id="MessageFlow_ask_cityfibre_for_availability__cityfibre_availability_request" sourceRef="Activity_ask_cityfibre_for_availability" targetRef="Event_cityfibre_availability_request" />
+    <bpmn:messageFlow id="MessageFlow_ask_openreach_for_availability__openreach_availability_request" sourceRef="Activity_ask_openreach_for_availability" targetRef="Event_openreach_availability_request" messageRef="Message_openreach_availability_request" />
+    <bpmn:messageFlow id="MessageFlow_ask_cityfibre_for_availability__cityfibre_availability_request" sourceRef="Activity_ask_cityfibre_for_availability" targetRef="Event_cityfibre_availability_request" messageRef="Message_cityfibre_availability_request" />
     <bpmn:messageFlow id="MessageFlow_send_offer__offer_received" sourceRef="Activity_send_offer" targetRef="Activity_offer_received" />
     <bpmn:messageFlow id="MessageFlow_request_switch_match__one_touch_switch_hub" name="name, address, current provider" sourceRef="Activity_request_switch_match" targetRef="Participant_one_touch_switch_hub" />
     <bpmn:messageFlow id="MessageFlow_tell_customer_no_service__no_service_at_the_address" sourceRef="Activity_tell_customer_no_service" targetRef="Activity_no_service_at_the_address" />
     <bpmn:messageFlow id="MessageFlow_run_credit_check__credit_agency" name="applicant details" sourceRef="Activity_run_credit_check" targetRef="Participant_credit_agency" />
     <bpmn:messageFlow id="MessageFlow_decline_order__order_declined" sourceRef="Activity_decline_order" targetRef="Activity_order_declined" />
     <bpmn:messageFlow id="MessageFlow_confirm_order__order_confirmed" sourceRef="Activity_confirm_order" targetRef="Activity_order_confirmed" />
-    <bpmn:messageFlow id="MessageFlow_order_from_openreach__openreach_order_received" sourceRef="Activity_order_from_openreach" targetRef="Event_openreach_order_received" />
-    <bpmn:messageFlow id="MessageFlow_order_from_cityfibre__cityfibre_order_received" sourceRef="Activity_order_from_cityfibre" targetRef="Event_cityfibre_order_received" />
+    <bpmn:messageFlow id="MessageFlow_order_from_openreach__openreach_order_received" sourceRef="Activity_order_from_openreach" targetRef="Event_openreach_order_received" messageRef="Message_openreach_order_received" />
+    <bpmn:messageFlow id="MessageFlow_order_from_cityfibre__cityfibre_order_received" sourceRef="Activity_order_from_cityfibre" targetRef="Event_cityfibre_order_received" messageRef="Message_cityfibre_order_received" />
     <bpmn:messageFlow id="MessageFlow_tell_customer_the_date__installation_date" sourceRef="Activity_tell_customer_the_date" targetRef="Activity_installation_date" />
     <bpmn:messageFlow id="MessageFlow_port_phone_number__one_touch_switch_hub" sourceRef="Activity_port_phone_number" targetRef="Participant_one_touch_switch_hub" />
     <bpmn:messageFlow id="MessageFlow_dispatch_router__courier" name="shipping order" sourceRef="Activity_dispatch_router" targetRef="Participant_courier" />
@@ -59,6 +59,12 @@
     <bpmn:group id="Group_go_live" categoryValueRef="CategoryValue_go_live" />
     <bpmn:group id="Group_aftercare" categoryValueRef="CategoryValue_aftercare" />
   </bpmn:collaboration>
+  <bpmn:message id="Message_cityfibre_availability_request" name="CityFibre availability request" />
+  <bpmn:message id="Message_cityfibre_order_received" name="CityFibre order received" />
+  <bpmn:message id="Message_quote_requested" name="Quote requested" />
+  <bpmn:error id="Error_activation_failed" name="Activation failed" />
+  <bpmn:message id="Message_openreach_availability_request" name="Openreach availability request" />
+  <bpmn:message id="Message_openreach_order_received" name="Openreach order received" />
   <bpmn:dataStore id="DataStore_address_database" name="Address database" />
   <bpmn:dataStore id="DataStore_product_catalogue" name="Product catalogue" />
   <bpmn:dataStore id="DataStore_oss_inventory" name="OSS inventory" />
@@ -151,7 +157,7 @@
   <bpmn:process id="Process_cityfibre" isExecutable="false">
     <bpmn:startEvent id="Event_cityfibre_availability_request" name="CityFibre availability request">
       <bpmn:outgoing>Flow_cityfibre_availability_request__check_cityfibre_coverage</bpmn:outgoing>
-      <bpmn:messageEventDefinition id="Event_cityfibre_availability_request_definition" />
+      <bpmn:messageEventDefinition id="Event_cityfibre_availability_request_definition" messageRef="Message_cityfibre_availability_request" />
     </bpmn:startEvent>
     <bpmn:serviceTask id="Activity_check_cityfibre_coverage" name="Check CityFibre coverage">
       <bpmn:incoming>Flow_cityfibre_availability_request__check_cityfibre_coverage</bpmn:incoming>
@@ -166,7 +172,7 @@
     </bpmn:endEvent>
     <bpmn:startEvent id="Event_cityfibre_order_received" name="CityFibre order received">
       <bpmn:outgoing>Flow_cityfibre_order_received__validate_cityfibre_order</bpmn:outgoing>
-      <bpmn:messageEventDefinition id="Event_cityfibre_order_received_definition" />
+      <bpmn:messageEventDefinition id="Event_cityfibre_order_received_definition" messageRef="Message_cityfibre_order_received" />
     </bpmn:startEvent>
     <bpmn:serviceTask id="Activity_validate_cityfibre_order" name="Validate CityFibre order">
       <bpmn:incoming>Flow_cityfibre_order_received__validate_cityfibre_order</bpmn:incoming>
@@ -303,7 +309,7 @@
     <bpmn:startEvent id="Event_quote_requested" name="Quote requested">
       <bpmn:documentation>Quote requests arrive from the website with the address and, for a transfer, the current provider.</bpmn:documentation>
       <bpmn:outgoing>Flow_quote_requested__find_address_key</bpmn:outgoing>
-      <bpmn:messageEventDefinition id="Event_quote_requested_definition" />
+      <bpmn:messageEventDefinition id="Event_quote_requested_definition" messageRef="Message_quote_requested" />
     </bpmn:startEvent>
     <bpmn:serviceTask id="Activity_find_address_key" name="Find address key">
       <bpmn:documentation>Looks up the UPRN and each network's address key for it.</bpmn:documentation>
@@ -591,7 +597,7 @@
       </bpmn:endEvent>
       <bpmn:endEvent id="Event_activation_failed" name="Activation failed">
         <bpmn:incoming>Flow_tests_pass__activation_failed</bpmn:incoming>
-        <bpmn:errorEventDefinition id="Event_activation_failed_definition" />
+        <bpmn:errorEventDefinition id="Event_activation_failed_definition" errorRef="Error_activation_failed" />
       </bpmn:endEvent>
       <bpmn:sequenceFlow id="Flow_activate_service_start_1__bind_service_id_to_the_ont" sourceRef="Event_activate_service_start_1" targetRef="Activity_bind_service_id_to_the_ont" />
       <bpmn:sequenceFlow id="Flow_bind_service_id_to_the_ont__push_configuration" sourceRef="Activity_bind_service_id_to_the_ont" targetRef="Activity_push_configuration" />
@@ -602,7 +608,7 @@
     </bpmn:subProcess>
     <bpmn:boundaryEvent id="Event_activation_failed_2" name="Activation failed" attachedToRef="Activity_activate_service">
       <bpmn:outgoing>Flow_activation_failed_2__troubleshoot_with_the_customer</bpmn:outgoing>
-      <bpmn:errorEventDefinition id="Event_activation_failed_2_definition" />
+      <bpmn:errorEventDefinition id="Event_activation_failed_2_definition" errorRef="Error_activation_failed" />
     </bpmn:boundaryEvent>
     <bpmn:userTask id="Activity_troubleshoot_with_the_customer" name="Troubleshoot with the customer">
       <bpmn:documentation>Remote checks first; a second network visit is booked only if the fault is on the network side.</bpmn:documentation>
@@ -766,7 +772,7 @@
     </bpmn:laneSet>
     <bpmn:startEvent id="Event_openreach_availability_request" name="Openreach availability request">
       <bpmn:outgoing>Flow_openreach_availability_request__check_openreach_line_plant</bpmn:outgoing>
-      <bpmn:messageEventDefinition id="Event_openreach_availability_request_definition" />
+      <bpmn:messageEventDefinition id="Event_openreach_availability_request_definition" messageRef="Message_openreach_availability_request" />
     </bpmn:startEvent>
     <bpmn:serviceTask id="Activity_check_openreach_line_plant" name="Check Openreach line plant">
       <bpmn:incoming>Flow_openreach_availability_request__check_openreach_line_plant</bpmn:incoming>
@@ -781,7 +787,7 @@
     </bpmn:endEvent>
     <bpmn:startEvent id="Event_openreach_order_received" name="Openreach order received">
       <bpmn:outgoing>Flow_openreach_order_received__validate_openreach_order</bpmn:outgoing>
-      <bpmn:messageEventDefinition id="Event_openreach_order_received_definition" />
+      <bpmn:messageEventDefinition id="Event_openreach_order_received_definition" messageRef="Message_openreach_order_received" />
     </bpmn:startEvent>
     <bpmn:serviceTask id="Activity_validate_openreach_order" name="Validate Openreach order">
       <bpmn:incoming>Flow_openreach_order_received__validate_openreach_order</bpmn:incoming>

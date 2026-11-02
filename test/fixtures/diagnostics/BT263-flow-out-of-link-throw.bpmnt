@@ -1,0 +1,10 @@
+# BT263: Explicit flows do not leave a link throw or enter a link catch.
+# expect: BT263 @ 7:27
+# expect: BT302 @ 8:7
+# expect: BT263 @ 9:4
+start
+xor Which way?
+  yes: throw link Next -> Finish
+  no: task Other
+-> catch link Next
+end Finish

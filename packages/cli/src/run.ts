@@ -1,7 +1,14 @@
 import { existsSync, statSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { basename, dirname, extname, join, resolve } from 'node:path';
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  resolve,
+} from 'node:path';
 import { format as formatSource, parse } from '@bpmn-text/core';
 import type { Renderer } from '@bpmn-text/render';
 import { watch } from 'chokidar';
@@ -69,7 +76,11 @@ export async function run(args: string[], io: Io): Promise<number> {
       if (pattern === '-') {
         result.push({ name: '<stdin>' });
       } else if (isDynamicPattern(pattern)) {
-        const files = await glob(pattern, { cwd: io.cwd });
+        const files = await glob(pattern, {
+          cwd: io.cwd,
+          // Relative results cannot reach another drive on Windows.
+          absolute: isAbsolute(pattern),
+        });
         if (files.length === 0) {
           throw new UsageError(`No files match ${pattern}.`);
         }

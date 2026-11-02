@@ -1,0 +1,6 @@
+# BT261: Nothing throws to this link.
+# expect: BT261 @ 5:1
+start
+end
+catch link Nowhere
+end

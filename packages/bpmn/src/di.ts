@@ -91,7 +91,8 @@ export function addDiagrams(
         if (type === 'bpmn:Participant' || type === 'bpmn:Lane') {
           attrs.isHorizontal = true;
         }
-        if (type === 'bpmn:SubProcess') attrs.isExpanded = expanded.has(id);
+        if (type === 'bpmn:SubProcess' || type === 'bpmn:AdHocSubProcess')
+          attrs.isExpanded = expanded.has(id);
         if (shape.label) {
           attrs.label = moddle.create('bpmndi:BPMNLabel', {
             bounds: bounds(shape.label),
@@ -146,7 +147,10 @@ export function addDiagrams(
   for (const p of model.pools) if (p.process) assign(p.process, undefined);
   for (const p of model.pools) {
     for (const d of [
-      ...(p.process?.dataObjects ?? []).map((o) => [o.reference, o.container]),
+      ...(p.process?.dataObjectReferences ?? []).map((o) => [
+        o.id,
+        o.container,
+      ]),
       ...(p.process?.dataStoreReferences ?? []).map((r) => [r.id, r.container]),
     ] as [string, string | undefined][]) {
       const [id, container] = d;
