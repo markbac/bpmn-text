@@ -24,6 +24,7 @@ import {
   lineNumbers,
 } from '@codemirror/view';
 import { tags } from '@lezer/highlight';
+import { composeLegend, type Legend } from '@bpmn-text/bpmn';
 import NavigatedViewerModule from 'bpmn-js/lib/NavigatedViewer.js';
 import type { Compiled } from './compile.js';
 import { Compiler } from './compiler.js';
@@ -57,6 +58,7 @@ interface Shape {
 interface Viewer {
   importXML(xml: string): Promise<unknown>;
   saveSVG(): Promise<{ svg: string }>;
+  destroy(): void;
   on(
     event: string,
     callback: (e: { element: Shape; originalEvent?: MouseEvent }) => void,
@@ -78,7 +80,7 @@ interface Viewer {
 // bpmn-js ships ES modules without `"type": "module"`, so TypeScript sees
 // a CommonJS default here; the bundler gives the class itself.
 const NavigatedViewer = NavigatedViewerModule as unknown as new (options: {
-  container: string;
+  container: string | HTMLElement;
 }) => Viewer;
 const viewer = new NavigatedViewer({ container: '#diagram' });
 const canvas = viewer.get('canvas');
@@ -87,6 +89,7 @@ const registry = viewer.get('elementRegistry');
 let last: Compiled | undefined;
 /** The XML on screen: the last compile that had no errors, or the first. */
 let shown: string | undefined;
+let shownLegend: Legend | undefined;
 let fit = true;
 let highlighted: string | undefined;
 /** Set while the diagram moves the cursor, so the cursor does not echo back. */
@@ -189,6 +192,7 @@ async function showResult(result: Compiled, source: string) {
   const box = shown && !fit ? canvas.viewbox() : undefined;
   await viewer.importXML(result.xml);
   shown = result.xml;
+  shownLegend = result.legend;
   if (box)
     canvas.viewbox({
       x: box.x,
@@ -308,7 +312,29 @@ menu.addEventListener('click', async (event) => {
       save(new Blob([svg], { type: 'image/svg+xml' }), `${name}.svg`);
     else save(await png(svg), `${name}.png`);
   }
+  if ((format === 'key-svg' || format === 'key-png') && shownLegend) {
+    const svg = await keyImage(shownLegend);
+    if (format === 'key-svg')
+      save(new Blob([svg], { type: 'image/svg+xml' }), `${name}.legend.svg`);
+    else save(await png(svg), `${name}.legend.png`);
+  }
 });
+
+/** Draws the symbols of a key off screen, where the diagram stays as it is. */
+async function keyImage(key: Legend): Promise<string> {
+  const container = document.createElement('div');
+  container.style.cssText =
+    'position:absolute;left:-10000px;width:1000px;height:1000px';
+  document.body.append(container);
+  const drawer = new NavigatedViewer({ container });
+  try {
+    await drawer.importXML(key.xml);
+    return composeLegend(key, (await drawer.saveSVG()).svg);
+  } finally {
+    drawer.destroy();
+    container.remove();
+  }
+}
 
 function save(blob: Blob, name: string) {
   const a = document.createElement('a');

@@ -144,6 +144,19 @@ a new chain, so the step above it has no way out (BT302).
 `start` or a chain of its own. A jump cannot enter from outside (BT212). An ad-hoc
 subprocess is the exception, as its activities need no flow.
 
+## My colours look wrong
+
+| What you see | Why | Fix |
+|---|---|---|
+| A pool or lane is much paler than the colour you wrote | bpmn-js draws lanes at a quarter strength, and pools are written to match, so diagrams stay readable | Write a stronger colour |
+| A pool's header has no fill | A lane in that pool has its own `color`, and would mix with the pool's | Remove the lane's `color`, or accept the plain header |
+| A note ignores `color` | Notes have no fill | Use `stroke`, which colours its text and bracket |
+| A flow line is black under `option colors` | A scheme leaves flows alone | Write `stroke` on the element it leaves |
+| A colour is missing from the key | The key shows only the colours of `option colors`, as it cannot know what your own colours mean | Say what they mean in a `note` |
+| A word in `option colors` is rejected (BT001) | Only `none`, `types`, `lanes` and `all` exist | Use one of those |
+
+See [notation §4.7](notation.md#47-colours).
+
 ## Why is nothing drawn?
 
 The file has errors and the output shows what could be built, or the shape has no body:

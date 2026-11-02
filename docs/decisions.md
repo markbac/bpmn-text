@@ -218,7 +218,12 @@ Color* (`color:background-color`, `color:border-color`) and bpmn-js
 
 **Consequences.** Colours show in bpmn.io, Camunda Modeler and other tools
 that support the OMG extension. Lane colours fill the whole lane, since DI
-cannot colour only the lane header.
+cannot colour only the lane header. bpmn-js draws a pool's fill almost solid and a
+lane's at a quarter strength, so a pool's colour is written as the tint it would
+have on a lane, not as the value in the source: one value should look the same on
+both. Tools that draw fills solid show the paler tint. If a lane has its own fill,
+the pool has none, as the lane is drawn over it and the two would mix; its other lanes
+take the pool's colour instead.
 
 ---
 
@@ -291,3 +296,17 @@ everything the notation cannot produce.
 is `complex` must be quoted, and a bare data name ending in brackets now means a
 state. Example 06 and the golden files gain shared definitions, with stable IDs.
 
+---
+
+## ADR-014: The key is drawn from the model, with real symbols — *Accepted*
+
+**Decision.** `legend(model)` lists each symbol the model uses, and places them on
+an internal BPMN plane that bpmn-js draws. Text, and the symbols that need a
+collaboration or connected ends around them (flows, pools, lanes, groups, notes), are
+SVG added to that export. A key is an image, never a `.bpmn` file, as its symbols are
+not a process.
+
+**Consequences.** Events, activities, gateways and data look exactly as they do in
+the diagram, and follow bpmn-js when it changes. Flows, pools, lanes, groups and notes
+are drawn by hand to match. Colours written on single elements are left out of the
+key, as nothing says what they mean.

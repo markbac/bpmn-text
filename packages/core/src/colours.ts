@@ -1,3 +1,5 @@
+import type { Container, Model, NodeKind, Style } from './model.js';
+
 /**
  * The bpmn-js colour palette (notation §4.7). Its names mean a light fill
  * and a dark stroke of the same hue, as in the bpmn-js colour picker.
@@ -54,6 +56,84 @@ const CSS: Record<string, string> = {
   violet: 'EE82EE', wheat: 'F5DEB3', white: 'FFFFFF', whitesmoke: 'F5F5F5',
   yellow: 'FFFF00', yellowgreen: '9ACD32',
 };
+
+export const COLOR_SCHEMES = ['none', 'types', 'lanes', 'all'] as const;
+
+/** Light fill and dark stroke by element type, for `option colors types`. */
+export function typeStyle(kind: NodeKind | 'data'): Style {
+  switch (kind) {
+    case 'startEvent':
+      return PALETTE.green!;
+    case 'endEvent':
+      return PALETTE.red!;
+    case 'intermediateCatchEvent':
+    case 'intermediateThrowEvent':
+    case 'boundaryEvent':
+      return PALETTE.orange!;
+    case 'exclusiveGateway':
+    case 'parallelGateway':
+    case 'inclusiveGateway':
+    case 'eventBasedGateway':
+    case 'complexGateway':
+      return { fill: '#FFF9C4', stroke: '#5F5200' };
+    case 'subProcess':
+    case 'callActivity':
+      return { fill: '#F3E5F5', stroke: '#5B176D' };
+    case 'data':
+      return { fill: '#ECEFF1', stroke: '#37474F' };
+    default:
+      return PALETTE.blue!;
+  }
+}
+
+/** Fills that lanes and pools take in turn, for `option colors lanes`. */
+const BAND_FILLS = [
+  '#90CAF9',
+  '#A5D6A7',
+  '#FFCC80',
+  '#CE93D8',
+  '#EF9A9A',
+  '#80DEEA',
+  '#FFF176',
+  '#BCAAA4',
+];
+
+/**
+ * The colours `option colors` gives each element, by ID. Colours written in
+ * the source (`style`) go on top of these, property by property.
+ */
+export function schemeStyles(model: Model): Map<string, Style> {
+  const styles = new Map<string, Style>();
+  const scheme = model.colors ?? 'none';
+  if (scheme === 'types' || scheme === 'all') {
+    const walk = (c: Container) => {
+      for (const n of c.nodes) {
+        styles.set(n.id, typeStyle(n.kind));
+        if (n.children) walk(n.children);
+      }
+    };
+    for (const p of model.pools) {
+      if (!p.process) continue;
+      walk(p.process);
+      const data = typeStyle('data');
+      for (const d of p.process.dataObjectReferences) styles.set(d.id, data);
+      for (const d of p.process.dataStoreReferences) styles.set(d.id, data);
+    }
+  }
+  if (scheme === 'lanes' || scheme === 'all') {
+    let next = 0;
+    const band = () => ({ fill: BAND_FILLS[next++ % BAND_FILLS.length]! });
+    for (const p of model.pools) {
+      // A pool's own colour is for its lanes too.
+      if (p.style?.fill) continue;
+      if (p.lanes.length === 0) {
+        if (!p.implicit) styles.set(p.id, band());
+      }
+      for (const l of p.lanes) styles.set(l.id, band());
+    }
+  }
+  return styles;
+}
 
 /**
  * Normalises a colour value to `#RRGGBB` for a fill or a stroke, or

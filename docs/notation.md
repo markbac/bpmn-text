@@ -106,6 +106,10 @@ body       := statement*
 | `title "Name"` | Name of the collaboration/process and the default output filename. |
 | `option xor-join gateway` | Default. Open XOR branches merge through an inserted XOR gateway. |
 | `option xor-join direct` | Open XOR branches connect straight to the next step (implicit merge). |
+| `option colors none` | Default. Only colours written with `[color:]` and `[stroke:]` are used. |
+| `option colors types` | Colours each element by its type (§4.7). |
+| `option colors lanes` | Gives each lane, and each pool without lanes, a colour of its own (§4.7). |
+| `option colors all` | Both of those. |
 
 ---
 
@@ -275,7 +279,7 @@ end Shipped
 |---|---|
 | `data <name> [collection]?` | Data object reference (optional; data objects are also created automatically on first use) |
 | `store <name>` | Data store reference |
-| `note <text>` | Text annotation, associated with the **preceding** element |
+| `note <text>` | Text annotation, associated with the **preceding** element. It can take `[stroke:]` (§4.7). |
 | `[reads: A, B]` on an activity | Data input associations from A, B |
 | `[writes: C]` on an activity | Data output association to C |
 
@@ -361,8 +365,8 @@ pool Shop
 | `rule: …` | key/value | `complex` | Activation rule, as documentation (§7.5) |
 | `message: x`, `signal: x`, `error: x`, `escalation: x` | key/value | events of that type; `message` also on send and receive tasks | The shared definition this refers to (§4.1) |
 | `doc: "…"` | key/value | any element, pool, lane, group | Documentation (§4.6) |
-| `color: c` | key/value | any element, pool, lane, group | Fill colour (§4.7) |
-| `stroke: c` | key/value | any element, pool, lane, group | Border/line colour (§4.7) |
+| `color: c` | key/value | any element, pool, lane, group, `data`, `store`, `note` | Fill colour (§4.7) |
+| `stroke: c` | key/value | any element, pool, lane, group, `data`, `store`, `note` | Border/line colour (§4.7) |
 
 Unknown attributes produce warning **BT103**, not an error. They are kept on the
 model for the extension hook ([architecture §9](architecture.md)). A known
@@ -419,7 +423,8 @@ end Order valid
 ### 4.7 Colours
 
 `[color: …]` sets the fill and `[stroke: …]` sets the border and text
-colour. They can be used on elements, pools, lanes and groups.
+colour. They can be used on elements, pools, lanes, groups, `data`, `store` and
+`note`.
 
 <!-- screenshot: notation-colours -->
 
@@ -440,8 +445,80 @@ task Escalate [color: #FFE0E0, stroke: red]
   tools.
 * **Lane colour** fills the whole lane band. BPMN DI has no way to colour
   only the lane header.
+* **Pool colour** looks the same as that colour on a lane, and its lanes take it
+  unless they have their own colours. bpmn-js draws pool fills almost solid and
+  lane fills at a quarter strength, so the `.bpmn` file holds the pale tint of the
+  colour you wrote. If any lane in the pool has its own `color`, the pool's header
+  stays unfilled, because a lane is drawn over its pool and the two would mix.
+* **Data and notes.** `data Invoice [color: green]` colours every use of
+  `Invoice`, in any state. A `note` has no fill, so only `stroke` shows.
+* **Flows** take the `stroke` written on the element they leave.
 * **Lane attributes** may be given wherever the lane is named (`lanes`,
   `lane`). Conflicting values are warning **BT251**, and the last one wins.
+
+A pool's colour reaches its lanes, and other pools and data can have colours too:
+
+<!-- screenshot: notation-pool-colours -->
+
+```bpmnt
+pool Shop [color: #1F4E79, stroke: #1F4E79]
+  lanes Sales, Warehouse [color: orange]
+  lane Sales
+  start
+  task Take order [writes: Order]
+  lane Warehouse
+  task Pack
+  end
+
+pool Courier [collapsed, color: green]
+Pack ~> Courier
+```
+
+![A coloured pool whose first lane takes its colour, and a coloured black-box pool](images/notation-pool-colours.png)
+
+`option colors` picks the colours for you. Anything you write yourself goes on
+top of them, one property at a time, and flows stay black unless you give their
+source element a `stroke`.
+
+<!-- screenshot: notation-color-scheme -->
+
+```bpmnt
+option colors all
+store Orders
+pool Shop
+  lanes Sales, Warehouse
+  lane Sales
+  start message Order received
+  user Check order [reads: Orders]
+  lane Warehouse
+  xor In stock?
+    yes: service Reserve stock -> end Reserved
+    no:
+      sub Back order [collapsed]
+      end Waiting
+```
+
+![Elements coloured by type, and a colour for each lane](images/notation-color-scheme.png)
+
+| Type, with `types` or `all` | Colour |
+|---|---|
+| Start events | Green |
+| Intermediate and boundary events | Orange |
+| End events | Red |
+| Tasks | Blue |
+| Subprocesses and call activities | Purple |
+| Gateways | Yellow |
+| Data objects and stores | Grey |
+
+With `lanes` or `all`, lanes and lane-less pools take colours in turn from a list of
+eight. A pool with its own `color` keeps that colour for its lanes.
+
+`bpmn-text legend` or `build --legend` draws a key to the symbols a diagram uses, as
+an image of its own. It has the colours of the scheme, but not colours written on
+single elements, as it cannot know what they mean
+([README](../README.md#key-to-the-symbols)).
+
+![The key to example 08](images/08-broadband-provisioning.legend.png)
 
 ### 4.8 Collapsed subprocess placeholders
 
@@ -2174,7 +2251,7 @@ lane_stmt    = "lane" , name , [ attrs ] , NL ;
 lanes_stmt   = "lanes" , name , [ attrs ] , { "," , name , [ attrs ] } , NL ;
 goto_stmt    = flow_op , target , { "," , reference } , NL ;
 msg_stmt     = reference , ( "~>" | "~(" , label , ")~>" ) , reference , NL ;
-note_stmt    = "note" , name , NL ;
+note_stmt    = "note" , name , [ attrs ] , NL ;
 data_stmt    = ( "data" | "store" ) , name , [ attrs ] , NL ;
 attrs        = "[" , attr , { "," , attr } , "]" ;
 attr         = WORD , [ ":" , value , { "," , value } ] ;

@@ -441,8 +441,14 @@ class Parser {
       case 'note': {
         this.next();
         const text = this.name('note', rest);
+        const attrs = this.attrs();
         this.endLine();
-        return { type: 'note', text, range: this.span(t.range, text.range) };
+        return {
+          type: 'note',
+          text,
+          attrs,
+          range: this.span(t.range, this.previousEnd()),
+        };
       }
       case 'doc':
         return this.doc();

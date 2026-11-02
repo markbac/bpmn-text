@@ -9,7 +9,7 @@ import {
   join,
   resolve,
 } from 'node:path';
-import { format as formatSource, parse } from '@bpmn-text/core';
+import { format as formatSource, parse, type Model } from '@bpmn-text/core';
 import type { Renderer } from '@bpmn-text/render';
 import { watch } from 'chokidar';
 import {
@@ -20,7 +20,7 @@ import {
 } from 'commander';
 import { glob, isDynamicPattern } from 'tinyglobby';
 import { codeFrame, paint, summary } from './frame.js';
-import { check, compile } from './index.js';
+import { check, compile, composeLegend, legend } from './index.js';
 
 /** Where the CLI reads and writes, so that tests can run it in-process. */
 export interface Io {
@@ -100,6 +100,28 @@ export async function run(args: string[], io: Io): Promise<number> {
   const read = (input: Input) =>
     input.path ? readFile(input.path, 'utf8') : (stdin ??= io.stdin.read());
 
+  /** The key to a model's symbols, as an image. */
+  async function keyImage(
+    renderer: Renderer,
+    model: Model,
+    format: 'svg' | 'png',
+    scale: number,
+  ): Promise<string | Uint8Array> {
+    const key = legend(model);
+    const svg = composeLegend(key, await renderer.svg(key.xml));
+    return format === 'svg' ? svg : renderer.svgToPng(svg, { scale });
+  }
+  const startRenderer = () =>
+    import('@bpmn-text/render').then((r) => r.createRenderer());
+
+  /** Whether `out` means a directory for these inputs. */
+  const outIsDirectory = (out: string | undefined, files: Input[]) =>
+    out !== undefined &&
+    (files.length > 1 ||
+      /[\\/]$/.test(out) ||
+      (existsSync(resolve(io.cwd, out)) &&
+        statSync(resolve(io.cwd, out)).isDirectory()));
+
   const program = new Command('bpmn-text')
     .description('Write BPMN diagrams as text and get laid-out BPMN 2.0 XML.')
     .version(version)
@@ -120,6 +142,10 @@ export async function run(args: string[], io: Io): Promise<number> {
         .default('bpmn'),
     )
     .option('--scale <n>', 'PNG pixels per diagram unit', parseScale, 1)
+    .option(
+      '--legend',
+      'also write a key to the symbols used, as <name>.legend.svg or .png',
+    )
     .option('-w, --watch', 'rebuild when a file changes')
     .action(
       async (
@@ -128,6 +154,7 @@ export async function run(args: string[], io: Io): Promise<number> {
           out?: string;
           format: 'bpmn' | 'svg' | 'png';
           scale: number;
+          legend?: boolean;
           watch?: boolean;
         },
       ) => {
@@ -135,12 +162,10 @@ export async function run(args: string[], io: Io): Promise<number> {
         if (opts.watch && files.some((f) => !f.path)) {
           throw new UsageError('--watch needs files, not stdin.');
         }
-        const toDirectory =
-          opts.out !== undefined &&
-          (files.length > 1 ||
-            /[\\/]$/.test(opts.out) ||
-            (existsSync(resolve(io.cwd, opts.out)) &&
-              statSync(resolve(io.cwd, opts.out)).isDirectory()));
+        const toDirectory = outIsDirectory(opts.out, files);
+        if (opts.legend && opts.out === undefined) {
+          throw new UsageError('--legend needs -o <path> to write beside.');
+        }
         if (files.length > 1 && opts.out === undefined) {
           throw new UsageError('Use -o <directory> to build several files.');
         }
@@ -150,9 +175,7 @@ export async function run(args: string[], io: Io): Promise<number> {
         let renderer: Promise<Renderer> | undefined;
         const render = async (xml: string): Promise<string | Uint8Array> => {
           if (opts.format === 'bpmn') return xml;
-          renderer ??= import('@bpmn-text/render').then((r) =>
-            r.createRenderer(),
-          );
+          renderer ??= startRenderer();
           const r = await renderer;
           return opts.format === 'svg'
             ? r.svg(xml)
@@ -181,6 +204,20 @@ export async function run(args: string[], io: Io): Promise<number> {
               : resolve(io.cwd, opts.out);
             await mkdir(dirname(target), { recursive: true });
             await writeFile(target, output);
+            if (opts.legend) {
+              // A .bpmn file has no image format to follow, so SVG.
+              const format = opts.format === 'png' ? 'png' : 'svg';
+              renderer ??= startRenderer();
+              await writeFile(
+                `${target.slice(0, -extname(target).length || undefined)}.legend.${format}`,
+                await keyImage(
+                  await renderer,
+                  result.model,
+                  format,
+                  opts.scale,
+                ),
+              );
+            }
           }
           return OK;
         }
@@ -209,6 +246,69 @@ export async function run(args: string[], io: Io): Promise<number> {
           });
           await watcher.close();
           code = OK;
+        } finally {
+          await (await renderer)?.close();
+        }
+      },
+    );
+
+  program
+    .command('legend')
+    .description('Draw a key to the BPMN symbols .bpmnt files use.')
+    .argument('[files...]', 'files or globs; - or none for stdin')
+    .option('-o, --out <path>', 'output file or directory (default: stdout)')
+    .addOption(
+      new Option('-f, --format <format>', 'output format')
+        .choices(['svg', 'png'])
+        .default('svg'),
+    )
+    .option('--scale <n>', 'PNG pixels per diagram unit', parseScale, 1)
+    .action(
+      async (
+        patterns: string[],
+        opts: { out?: string; format: 'svg' | 'png'; scale: number },
+      ) => {
+        const files = await inputs(patterns);
+        const toDirectory = outIsDirectory(opts.out, files);
+        if (files.length > 1 && opts.out === undefined) {
+          throw new UsageError('Use -o <directory> to draw several files.');
+        }
+        if (toDirectory && files.some((f) => !f.path)) {
+          throw new UsageError('Use -o <file> to draw from stdin.');
+        }
+        let renderer: Promise<Renderer> | undefined;
+        try {
+          for (const input of files) {
+            const source = await read(input);
+            const { model, diagnostics } = check(source);
+            for (const d of diagnostics) {
+              if (d.severity !== 'info')
+                io.stderr.write(codeFrame(d, source, input.name, err));
+            }
+            if (diagnostics.some((d) => d.severity === 'error')) {
+              fail(INPUT_ERRORS);
+              continue;
+            }
+            renderer ??= startRenderer();
+            const image = await keyImage(
+              await renderer,
+              model,
+              opts.format,
+              opts.scale,
+            );
+            if (opts.out === undefined) {
+              io.stdout.write(image);
+              continue;
+            }
+            const target = toDirectory
+              ? join(
+                  resolve(io.cwd, opts.out),
+                  `${basename(input.path!, extname(input.path!))}.legend.${opts.format}`,
+                )
+              : resolve(io.cwd, opts.out);
+            await mkdir(dirname(target), { recursive: true });
+            await writeFile(target, image);
+          }
         } finally {
           await (await renderer)?.close();
         }

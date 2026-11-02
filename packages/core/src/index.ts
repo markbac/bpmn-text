@@ -8,6 +8,7 @@ export {
   type TokenKind,
 } from './lexer.js';
 export type * from './ast.js';
+export type { EventType } from './ast.js';
 export { parse, vocabulary, type ParseResult } from './parser.js';
 export type * from './model.js';
 export { build, slug, type BuildOptions, type BuildResult } from './builder.js';
@@ -19,5 +20,5 @@ export {
 } from './validator.js';
 export { check, type CheckOptions, type CheckResult } from './check.js';
 export { format } from './formatter.js';
-export { normaliseColour } from './colours.js';
+export { normaliseColour, schemeStyles, typeStyle } from './colours.js';
 export { sourceMap } from './source-map.js';

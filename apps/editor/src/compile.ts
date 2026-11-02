@@ -1,4 +1,4 @@
-import { generate } from '@bpmn-text/bpmn';
+import { generate, legend, type Legend } from '@bpmn-text/bpmn';
 import {
   check,
   sourceMap,
@@ -10,6 +10,8 @@ import { layout } from '@bpmn-text/layout';
 
 export interface Compiled {
   xml: string;
+  /** The key to the symbols the diagram uses. */
+  legend: Legend;
   diagnostics: Diagnostic[];
   /** BPMN element ID → source range, for selection sync. */
   sourceMap: Record<string, Range>;
@@ -69,6 +71,7 @@ export async function compileSource(source: string): Promise<Compiled> {
   }
   return {
     xml,
+    legend: legend(model),
     diagnostics,
     sourceMap: sourceMap(model),
     documentation,

@@ -1,7 +1,25 @@
+import { schemeStyles } from '@bpmn-text/core';
 import type { Container, Model, Style } from '@bpmn-text/core';
 import type { Bounds, LayoutResult } from '@bpmn-text/layout';
 import type { BpmnModdle, ModdleElement } from 'bpmn-moddle';
 import type { Semantic } from './semantic.js';
+
+/** How much of its fill bpmn-js lets show through on a lane. */
+const LANE_OPACITY = 0.25;
+
+/**
+ * bpmn-js draws a pool's fill nearly solid but a lane's at a quarter strength,
+ * so a pool's colour is written as the tint it would have on a lane.
+ */
+function poolFill(fill: string): string {
+  const tint = (from: number) =>
+    Math.round(
+      255 - (255 - parseInt(fill.slice(from, from + 2), 16)) * LANE_OPACITY,
+    )
+      .toString(16)
+      .padStart(2, '0');
+  return `#${tint(1)}${tint(3)}${tint(5)}`.toUpperCase();
+}
 
 /**
  * Adds diagram interchange to `semantic.definitions`: one plane for the
@@ -35,8 +53,9 @@ export function addDiagrams(
   };
   for (const p of model.pools) if (p.process) walk(p.process);
 
-  // Colours (ADR-011): shapes by their own style, edges by the stroke of
-  // their source element.
+  // Colours (ADR-011): shapes by their own style, over what `option colors`
+  // picks; edges by the stroke written on their source element.
+  const scheme = schemeStyles(model);
   const styles = new Map<string, Style>();
   const edgeSource = new Map<string, string>();
   const styled = (c: Container) => {
@@ -45,11 +64,37 @@ export function addDiagrams(
       if (n.children) styled(n.children);
     }
     for (const f of c.flows) edgeSource.set(f.id, f.sourceRef);
+    for (const a of c.annotations) if (a.style) styles.set(a.id, a.style);
   };
+  const stores = new Map(model.dataStores.map((s) => [s.id, s]));
   for (const p of model.pools) {
-    if (p.style) styles.set(p.id, p.style);
-    for (const l of p.lanes) if (l.style) styles.set(l.id, l.style);
-    if (p.process) styled(p.process);
+    const own = { ...scheme.get(p.id), ...p.style };
+    // A lane takes its pool's colours unless it has its own. Over the pool's
+    // tint it looks the same as the pool, which the header shows. A lane
+    // with a fill of its own would mix with that tint, turning orange on navy
+    // grey, so then the pool has no fill and its other lanes the colour itself.
+    const mixes = p.lanes.some((l) => l.style?.fill);
+    const inherited = { ...(p.style && own) };
+    if (own.fill) {
+      if (mixes) delete own.fill;
+      else inherited.fill = own.fill = poolFill(own.fill);
+    }
+    if (own.fill || own.stroke) styles.set(p.id, own);
+    for (const l of p.lanes) {
+      const lane = { ...inherited, ...l.style };
+      if (lane.fill || lane.stroke) styles.set(l.id, lane);
+    }
+    if (!p.process) continue;
+    styled(p.process);
+    const objects = new Map(p.process.dataObjects.map((o) => [o.id, o]));
+    for (const r of p.process.dataObjectReferences) {
+      const style = objects.get(r.object)?.style;
+      if (style) styles.set(r.id, style);
+    }
+    for (const r of p.process.dataStoreReferences) {
+      const style = stores.get(r.store)?.style;
+      if (style) styles.set(r.id, style);
+    }
   }
   for (const g of model.groups) if (g.style) styles.set(g.id, g.style);
   for (const f of model.messageFlows) edgeSource.set(f.id, f.sourceRef);
@@ -80,7 +125,7 @@ export function addDiagrams(
       const edge = layout.edges.get(id);
       const bpmnElement = elements.get(id)!;
       if (shape) {
-        const style = styles.get(id);
+        const style = { ...scheme.get(id), ...styles.get(id) };
         const attrs: Record<string, unknown> = {
           id: `${id}_di`,
           bpmnElement,
