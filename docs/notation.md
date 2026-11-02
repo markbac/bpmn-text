@@ -255,13 +255,14 @@ Gateways can be nested. Each one merges its own open branches first (§7.1):
 
 ```bpmnt
 start
-xor Order size?
-  small: task Post parcel
-  large:
+xor In stock?
+  yes:
     and
-      - task Book courier
-      - task Print labels
-end
+      - task Pick items
+      - task Print invoice
+    task Ship
+  no: end Cancelled
+end Shipped
 ```
 
 ![Nested gateways](images/notation-gateways.png)
@@ -871,7 +872,7 @@ end
 
 The `and` row is shown above, and the `complex` row in §7.5.
 
-**Nested splits.** Joins are built from the innermost split outwards. An `and`
+**Nested splits.** Joins are built from the innermost split outwards. Each `and`
 inside an `xor` branch gets its own parallel join first, and that join is then one
 open end of the `xor`:
 
@@ -884,7 +885,10 @@ xor Express?
     and
       - task Pick items
       - task Book courier
-  no: task Post parcel
+  no:
+    and
+      - task Print label
+      - task Book post
 task Send confirmation
 end
 ```
