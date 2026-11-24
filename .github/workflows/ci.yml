@@ -29,7 +29,8 @@ jobs:
       - run: npm run typecheck
       - run: npm run test:coverage
       - name: Editor and preview speed without coverage (NFR-4)
-        run: npx vitest run --project apps/editor --project apps/vscode -t "NFR-4"
+        # One file at a time, so that the two timings do not compete.
+        run: npx vitest run --project apps/editor --project apps/vscode -t "NFR-4" --no-file-parallelism
       - run: npm run build
       - name: Package the VS Code extension
         if: matrix.os == 'ubuntu-latest' && matrix.node == 22
