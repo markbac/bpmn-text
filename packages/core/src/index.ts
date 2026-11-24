@@ -19,6 +19,12 @@ export {
   type ValidateOptions,
 } from './validator.js';
 export { check, type CheckOptions, type CheckResult } from './check.js';
+export {
+  referenceText,
+  suggest,
+  type CompletionData,
+  type Suggestion,
+} from './completion.js';
 export { format } from './formatter.js';
 export { normaliseColour, schemeStyles, typeStyle } from './colours.js';
-export { sourceMap } from './source-map.js';
+export { elementAt, sourceMap } from './source-map.js';

@@ -343,6 +343,9 @@ function needsQuotes(value: string, context: Context): boolean {
   // Inside brackets only these separate tokens; `#` is not a comment there.
   if (context === 'attr') return /[,:@[\]]/.test(value);
   if (/->|-\(|~>|~\(|\)->|\)~>|@|\[|\]|(^|\s)#/.test(value)) return true;
+  // `Name:` only reads as a name when `[` or `->` follows at once, and the
+  // formatter puts a space or a line end after it.
+  if (value.endsWith(':')) return true;
   const first = value.split(/\s/)[0]!;
   switch (context) {
     case 'typed':

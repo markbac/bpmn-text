@@ -37,8 +37,8 @@ export interface Elk {
 
 export interface LayoutOptions {
   /**
-   * The ELK instance to use. Defaults to the bundled, in-thread elkjs;
-   * pass `new ELK({ workerUrl })` to run it in a Web Worker.
+   * The ELK instance to use. Defaults to elkjs run synchronously in this
+   * thread; pass `new ELK({ workerUrl })` to run it in a Web Worker.
    */
   elk?: Elk;
   /** Horizontal space between columns, before edge tracks. Default 50. */

@@ -20,7 +20,12 @@ const workspaces = {
   ],
   'packages/language-server': ['packages/core'],
   'apps/editor': ['packages/core', 'packages/layout', 'packages/bpmn'],
-  'apps/vscode': ['packages/language-server'],
+  'apps/vscode': [
+    'packages/language-server',
+    'packages/core',
+    'packages/layout',
+    'packages/bpmn',
+  ],
   'packages/test-utils': [],
 };
 

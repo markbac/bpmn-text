@@ -159,5 +159,7 @@ Tell ~> Customer
     for (const file of readdirSync(dir).filter((f) => f.endsWith('.bpmnt'))) {
       await expectSchemaValid(key(readFileSync(join(dir, file), 'utf8')).xml);
     }
-  });
+    // Every example through the schema validator: about 3 s on a Windows
+    // runner with coverage, and past the 5 s default on a slow one.
+  }, 30_000);
 });

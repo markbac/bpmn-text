@@ -60,6 +60,17 @@ describe('formatter (#16)', () => {
     expect(format(source)).toBe(source.replace('xor "Ok?"', 'xor Ok?'));
   });
 
+  it('quotes a name ending in a colon, which a space would end', () => {
+    // Found by the mutation test below: `Every morning :` is a name only
+    // while `[` follows at once.
+    const source = 'start timer Every morning :[non-interrupting]\n';
+    const once = format(source);
+    expect(once).toBe('start timer "Every morning :" [non-interrupting]\n');
+    expect(parse(once).diagnostics).toEqual([]);
+    expect(format('task A:[lane: X]\n')).toBe('task "A:" [lane: X]\n');
+    expect(format('task A:-> B\n')).toBe('task "A:" -> B\n');
+  });
+
   it('keeps every comment, in place', () => {
     const source =
       '# head\n\npool P  # trailing\n  start\n  # inside\n  task A\n    # deeper\n  end\n# tail\n';

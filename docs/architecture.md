@@ -209,6 +209,7 @@ Dependency direction (no cycles):
 ```text
 core ← layout ← bpmn ← cli
 core ← language-server ← apps/vscode
+core, layout, bpmn ← apps/vscode (the live preview compiles in the extension host)
 core, layout, bpmn ← apps/editor
 bpmn ← render ← cli (optional)
 test-utils ← tests of any workspace

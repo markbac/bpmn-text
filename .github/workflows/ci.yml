@@ -28,9 +28,19 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test:coverage
-      - name: Editor speed without coverage (NFR-4)
-        run: npx vitest run --project apps/editor -t "NFR-4"
+      - name: Editor and preview speed without coverage (NFR-4)
+        # One file at a time, so that the two timings do not compete.
+        run: npx vitest run --project apps/editor --project apps/vscode -t "NFR-4" --no-file-parallelism
       - run: npm run build
+      - name: Package the VS Code extension
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 22
+        run: npm run package -w bpmn-text-vscode
+      - name: Upload the VS Code extension
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 22
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-extension
+          path: apps/vscode/*.vsix
       - name: Coverage summary
         if: matrix.os == 'ubuntu-latest' && matrix.node == 22
         run: node scripts/coverage-summary.js >> "$GITHUB_STEP_SUMMARY"
