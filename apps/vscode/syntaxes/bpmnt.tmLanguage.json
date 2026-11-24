@@ -1,0 +1,137 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "bpmn-text",
+  "scopeName": "source.bpmnt",
+  "patterns": [
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#doc"
+    },
+    {
+      "include": "#flow-label"
+    },
+    {
+      "include": "#arrow"
+    },
+    {
+      "include": "#event"
+    },
+    {
+      "include": "#keyword"
+    },
+    {
+      "include": "#attributes"
+    },
+    {
+      "include": "#string"
+    },
+    {
+      "include": "#id"
+    },
+    {
+      "include": "#branch-label"
+    }
+  ],
+  "repository": {
+    "comment": {
+      "match": "(?:^|(?<=\\s))#.*$",
+      "name": "comment.line.number-sign.bpmnt"
+    },
+    "doc": {
+      "match": "^(\\s*)(doc)\\b(.*)$",
+      "captures": {
+        "2": {
+          "name": "keyword.control.bpmnt"
+        },
+        "3": {
+          "name": "string.unquoted.doc.bpmnt"
+        }
+      }
+    },
+    "string": {
+      "begin": "\"",
+      "end": "\"",
+      "name": "string.quoted.double.bpmnt",
+      "patterns": [
+        {
+          "match": "\\\\.",
+          "name": "constant.character.escape.bpmnt"
+        }
+      ]
+    },
+    "arrow": {
+      "match": "->|~>",
+      "name": "keyword.operator.flow.bpmnt"
+    },
+    "flow-label": {
+      "match": "(-\\(|~\\()([^)]*)(\\)->|\\)~>)",
+      "captures": {
+        "1": {
+          "name": "keyword.operator.flow.bpmnt"
+        },
+        "2": {
+          "name": "string.unquoted.label.bpmnt"
+        },
+        "3": {
+          "name": "keyword.operator.flow.bpmnt"
+        }
+      }
+    },
+    "id": {
+      "match": "@[A-Za-z_][\\w.-]*",
+      "name": "variable.other.id.bpmnt"
+    },
+    "event": {
+      "match": "(?:^\\s*|(?<=->|~>|:)\\s*)(start|end|catch|throw|on)\\s+(compensation|conditional|error|escalation|link|message|signal|terminate|timer)\\b",
+      "captures": {
+        "1": {
+          "name": "keyword.control.bpmnt"
+        },
+        "2": {
+          "name": "support.type.event.bpmnt"
+        }
+      }
+    },
+    "keyword": {
+      "match": "(?:^\\s*(?:-\\s+)?|(?<=->|~>|:)\\s*)(start|end|catch|throw|wait|task|user|service|script|send|receive|manual|rule|call|xor|and|or|event|complex|sub|fork|group|pool|lane|lanes|note|doc|data|store|title|option|on|else)(?=\\s|$)",
+      "captures": {
+        "1": {
+          "name": "keyword.control.bpmnt"
+        }
+      }
+    },
+    "attributes": {
+      "begin": "\\[",
+      "end": "\\]",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.attributes.bpmnt"
+        }
+      },
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.attributes.bpmnt"
+        }
+      },
+      "patterns": [
+        {
+          "match": "\\b(adhoc|collapsed|collection|color|doc|error|escalation|event|fit|id|lane|loop|message|non-interrupting|parallel|reads|rule|sequential|signal|stroke|writes)(?=\\s*(?::|,|\\]))",
+          "name": "variable.parameter.attribute.bpmnt"
+        },
+        {
+          "include": "#string"
+        }
+      ]
+    },
+    "branch-label": {
+      "match": "^\\s*(?:-\\s+)?([^:\\[\\]\"@#]+?)(?=:(?:\\s|$))",
+      "captures": {
+        "1": {
+          "name": "entity.name.tag.label.bpmnt"
+        }
+      }
+    }
+  }
+}

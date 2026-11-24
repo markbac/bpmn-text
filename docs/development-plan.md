@@ -14,7 +14,7 @@ repository's issues.
 | **M3 – CLI** | bpmn-text build / check / fmt and SVG/PNG rendering. | #27–#30 | Done |
 | **M4 – Common extras** | Intermediate & boundary events, subprocesses, data, annotations, markers, groups, colours, fan-out and documentation end-to-end. | #31–#36, #59–#65 | Done |
 | **M5 – Web editor** | Live split-view editor running fully client-side. | #37–#42 | Done |
-| **M6 – VS Code extension** | Language server, extension, live preview, packaging. | #43–#46 | Open |
+| **M6 – VS Code extension** | Language server, extension, live preview, packaging. | #43–#46 | Done |
 | **M7 – Docs & release** | Tutorial, cookbook, benchmarks, release workflow. | #47–#50 | Done |
 
 ## Critical path
@@ -31,11 +31,10 @@ flowchart LR
   M4 --> M7
   classDef done fill:#C8E6C9,stroke:#205022
   classDef open fill:#FFF8E1,stroke:#6B3C00
-  class M0,M1,M2,M3,M4,M5,M7 done
-  class M6 open
+  class M0,M1,M2,M3,M4,M5,M6,M7 done
 ```
 
-Green milestones are done; M6 (VS Code) is open.
+All milestones are done.
 
 * The **layout spike (#3)** is the main technical risk, so it runs first. Its
   outcome may change the layout issues in M2.

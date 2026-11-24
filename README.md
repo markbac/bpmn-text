@@ -155,7 +155,7 @@ Web Worker.
 | **Compiler library** | `parse` / `check` / `compile` / `format`. Runs in Node and the browser. |
 | **CLI** | `bpmn-text build \| legend \| check \| fmt`, outputs `.bpmn`, `.svg` and `.png`, with watch mode. |
 | **Web editor** | Text on the left, live diagram on the right, fully client-side. |
-| **VS Code extension** | Highlighting, diagnostics, completion, navigation and live preview. |
+| **VS Code extension** | Highlighting, diagnostics, completion, navigation, rename, formatting, live preview and export. See [apps/vscode](apps/vscode/README.md). |
 
 ## Documentation
 
@@ -282,7 +282,8 @@ uploads them to the run instead of a release:
 - `bpmn-text-<version>.tgz`: the CLI and library as one npm package, with
   the workspace packages bundled in;
 - `bpmn-text-editor-<version>.zip`: the static web editor;
-- the VS Code extension's `.vsix`, once it can be packaged (milestone M6).
+- `bpmn-text-vscode-<version>.vsix`: the VS Code extension. Install it with
+  `code --install-extension bpmn-text-vscode-<version>.vsix`.
 
 npm publishing is not set up while the repository is private.
 

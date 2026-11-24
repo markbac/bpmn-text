@@ -20,7 +20,7 @@ describe('workspace dependency direction', () => {
     ['packages/render/src/index.ts', '@bpmn-text/core'],
     ['packages/language-server/src/index.ts', '@bpmn-text/layout'],
     ['apps/editor/src/index.ts', '@bpmn-text/render'],
-    ['apps/vscode/src/index.ts', '@bpmn-text/core/internal'],
+    ['apps/vscode/src/index.ts', '@bpmn-text/render'],
     ['packages/core/src/index.ts', '@bpmn-text/test-utils'],
     ['packages/test-utils/src/index.ts', '@bpmn-text/core'],
   ])('%s may not import %s', async (file, specifier) => {
@@ -35,6 +35,7 @@ describe('workspace dependency direction', () => {
     ['packages/language-server/src/index.ts', '@bpmn-text/core'],
     ['apps/editor/src/index.ts', '@bpmn-text/bpmn'],
     ['apps/vscode/src/index.ts', '@bpmn-text/language-server'],
+    ['apps/vscode/src/index.ts', '@bpmn-text/bpmn'],
     ['packages/core/test/parser.test.ts', '@bpmn-text/test-utils'],
     ['packages/cli/test/compile.test.ts', '@bpmn-text/render'],
   ])('%s may import %s', async (file, specifier) => {

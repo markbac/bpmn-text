@@ -1,24 +1,116 @@
 {
   "name": "bpmn-text-vscode",
+  "displayName": "bpmn-text",
   "version": "0.0.0",
   "private": true,
+  "publisher": "markbac",
   "description": "VS Code extension for bpmn-text.",
   "type": "module",
-  "exports": {
-    ".": {
-      "source": "./src/index.ts",
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+  "main": "./dist/extension.cjs",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Visualization"
+  ],
+  "activationEvents": [],
+  "contributes": {
+    "languages": [
+      {
+        "id": "bpmnt",
+        "aliases": [
+          "bpmn-text",
+          "bpmnt"
+        ],
+        "extensions": [
+          ".bpmnt"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "bpmnt",
+        "scopeName": "source.bpmnt",
+        "path": "./syntaxes/bpmnt.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "bpmnText.openPreview",
+        "title": "Open Preview to the Side",
+        "category": "bpmn-text",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "bpmnText.exportBpmn",
+        "title": "Export BPMN",
+        "category": "bpmn-text"
+      },
+      {
+        "command": "bpmnText.exportSvg",
+        "title": "Export SVG",
+        "category": "bpmn-text"
+      },
+      {
+        "command": "bpmnText.exportPng",
+        "title": "Export PNG",
+        "category": "bpmn-text"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "bpmnText.openPreview",
+          "when": "editorLangId == bpmnt",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "bpmnText.openPreview",
+          "when": "editorLangId == bpmnt"
+        },
+        {
+          "command": "bpmnText.exportBpmn",
+          "when": "editorLangId == bpmnt"
+        },
+        {
+          "command": "bpmnText.exportSvg",
+          "when": "editorLangId == bpmnt"
+        },
+        {
+          "command": "bpmnText.exportPng",
+          "when": "editorLangId == bpmnt"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "bpmn-text",
+      "properties": {
+        "bpmnText.buildOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Write a .bpmn file next to each .bpmnt file when it is saved without errors."
+        }
+      }
     }
   },
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
   "scripts": {
-    "build": "tsup --config ../../tsup.config.ts"
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsup",
+    "package": "npm run build && vsce package --no-dependencies --skip-license"
   },
   "dependencies": {
-    "@bpmn-text/language-server": "0.0.0"
+    "@bpmn-text/bpmn": "0.0.0",
+    "@bpmn-text/core": "0.0.0",
+    "@bpmn-text/language-server": "0.0.0",
+    "@bpmn-text/layout": "0.0.0",
+    "bpmn-js": "^18.31.1",
+    "vscode-languageclient": "^11.0.1"
+  },
+  "devDependencies": {
+    "@types/vscode": "~1.90.0",
+    "@vscode/vsce": "^4.1.1"
   }
 }
