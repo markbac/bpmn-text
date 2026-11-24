@@ -81,6 +81,71 @@ describe('rename', () => {
   it('is undefined off a name', () => {
     expect(rename(source, at('title'), 'x')).toBeUndefined();
   });
+
+  it('refuses a name another element has', () => {
+    const found = rename(source, at('Take order'), 'ship')!;
+    expect(found.error).toContain('already the name');
+    expect(found.edits).toEqual([]);
+  });
+
+  it('refuses an empty name', () => {
+    expect(rename(source, at('Take order'), '  ')!.error).toContain('empty');
+  });
+});
+
+describe('data objects', () => {
+  const data = [
+    'data Invoice (draft)',
+    'start',
+    'task Draft [writes: Invoice (draft)]',
+    'task Approve [reads: Invoice (draft), writes: Invoice (approved)]',
+    'task File [reads: "Invoice (copy)"]',
+    'end',
+    '',
+  ].join('\n');
+  const after = (s: string, from = 0) => data.indexOf(s, from) + 1;
+
+  it('goes from a use in reads: to the data line', () => {
+    const [target] = definition(data, after('Invoice (approved)'));
+    expect(data.slice(target!.start, target!.end)).toBe('Invoice');
+    expect(target!.start).toBe(data.indexOf('Invoice'));
+  });
+
+  it('finds every use, in any state, but not a quoted name', () => {
+    expect(references(data, after('Invoice'))).toHaveLength(4);
+  });
+
+  it('renames the name and keeps each state', () => {
+    const found = rename(data, after('Invoice'), 'Bill')!;
+    expect(found.edits).toHaveLength(4);
+    let out = data;
+    for (const e of [...found.edits].sort(
+      (a, b) => b.range.start - a.range.start,
+    ))
+      out = out.slice(0, e.range.start) + e.newText + out.slice(e.range.end);
+    expect(out).toContain('writes: Bill (draft)]');
+    expect(out).toContain('writes: Bill (approved)]');
+    expect(out).toContain('"Invoice (copy)"');
+  });
+
+  it('refuses a new name that would read as a state', () => {
+    expect(rename(data, after('Invoice'), 'Bill (x)')!.error).toContain(
+      'state',
+    );
+  });
+
+  it('gives a hover for data', () => {
+    expect(hover(data, after('Invoice (approved)'))!.markdown).toContain(
+      '**data** Invoice',
+    );
+  });
+
+  it('leaves data out of the names offered after an arrow', () => {
+    const names = complete(`${data}x -> `, data.length + 5)!.options.map(
+      (o) => o.label,
+    );
+    expect(names).not.toContain('Invoice');
+  });
 });
 
 describe('hover', () => {

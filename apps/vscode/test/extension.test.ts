@@ -73,6 +73,41 @@ describe('compile', () => {
   it('counts errors and still draws', async () => {
     const result = await compile('start\ntask A\n-> Nowhere\n');
     expect(result.errors).toBeGreaterThan(0);
-    expect(result.xml).not.toBe('');
+    expect(result.xml).toContain('<bpmn:task');
+  });
+
+  it('skips the layout of text with errors when asked', async () => {
+    const result = await compile('start\ntask A\n-> Nowhere\n', {
+      draw: 'without-errors',
+    });
+    expect(result.errors).toBeGreaterThan(0);
+    expect(result.xml).toBeUndefined();
+    expect(Object.keys(result.sourceMap).length).toBeGreaterThan(0);
+  });
+
+  it('updates a 60-element diagram in well under 200 ms (NFR-4)', async () => {
+    const lines = ['start'];
+    for (let i = 0; i < 20; i++) {
+      lines.push(
+        `task Step ${i}`,
+        `xor Check ${i}?`,
+        `  yes: task Fine ${i}`,
+        `  no: task Fix ${i}`,
+      );
+    }
+    lines.push('end');
+    const source = `${lines.join('\n')}\n`;
+    await compile(source); // warm up
+    // The best of five, so that other tests running at the same time do
+    // not decide the result.
+    const times = [];
+    for (let i = 0; i < 5; i++) {
+      const started = performance.now();
+      expect((await compile(source)).errors).toBe(0);
+      times.push(performance.now() - started);
+    }
+    // As in the editor: CI checks 200 ms in a step without coverage.
+    const limit = process.env.BPMN_TEXT_COVERAGE ? 1000 : 200;
+    expect(Math.min(...times)).toBeLessThan(limit);
   });
 });

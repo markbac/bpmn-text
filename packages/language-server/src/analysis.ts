@@ -58,14 +58,16 @@ interface Declaration {
   id?: Text | undefined;
   lane?: string | undefined;
   documentation?: string | undefined;
-  /** What the name resolves for: a node or pool, or a lane. */
-  namespace: 'node' | 'lane';
+  /** What the name resolves for: a node or pool, a lane, or data. */
+  namespace: Namespace;
 }
+
+type Namespace = 'node' | 'lane' | 'data';
 
 interface Reference {
   name?: Text;
   id?: Text;
-  namespace: 'node' | 'lane';
+  namespace: Namespace;
 }
 
 export interface Index {
@@ -75,6 +77,40 @@ export interface Index {
 }
 
 const text = (t: Text | undefined) => t?.value ?? '';
+
+/** Data names written with a state, whose `(state)` follows the name. */
+const withState = new WeakSet<Text>();
+
+/** `Name (state)`, as the compiler reads a data name. */
+const STATE = /^(.*\S)\s*\(\s*[^()]*[^()\s]\s*\)$/;
+
+/** IDs as the lexer reads them. */
+const ID = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+
+/**
+ * The data object a data name refers to: `Invoice (draft)` is `Invoice`
+ * in state `draft`, and the name covers `Invoice` only. A quoted name keeps
+ * its brackets (notation §4.4), as the compiler reads it.
+ */
+function dataText(t: Text): Text {
+  const m = t.quoted ? null : STATE.exec(t.value);
+  if (!m) return t;
+  const length = m[1]!.length;
+  const name: Text = {
+    value: m[1]!,
+    quoted: false,
+    range: {
+      start: t.range.start,
+      end: {
+        line: t.range.start.line,
+        col: t.range.start.col + length,
+        offset: t.range.start.offset + length,
+      },
+    },
+  };
+  withState.add(name);
+  return name;
+}
 
 /** Lays out a document: its symbols, declarations and references. */
 export function index(source: string): Index {
@@ -86,8 +122,12 @@ export function index(source: string): Index {
 
   const attrs = (list: Attr[]) => {
     for (const a of list) {
-      if (a.key.value !== 'lane') continue;
-      for (const v of a.values) refer({ name: v, namespace: 'lane' });
+      if (a.key.value === 'lane') {
+        for (const v of a.values) refer({ name: v, namespace: 'lane' });
+      } else if (a.key.value === 'reads' || a.key.value === 'writes') {
+        for (const v of a.values)
+          refer({ name: dataText(v), namespace: 'data' });
+      }
     }
     return list.find((a) => a.key.value === 'lane')?.values[0]?.value;
   };
@@ -258,11 +298,7 @@ export function index(source: string): Index {
             selection: span(s.name.range),
             children: [],
           });
-          for (const a of s.attrs) {
-            if (a.key.value === 'reads' || a.key.value === 'writes') {
-              for (const v of a.values) refer({ name: v, namespace: 'node' });
-            }
-          }
+          declare({ kind: s.kind, name: dataText(s.name), namespace: 'data' });
           break;
         case 'note':
         case 'doc':
@@ -302,8 +338,17 @@ function at(idx: Index, offset: number) {
 function targets(idx: Index, offset: number): Declaration[] {
   const hit = at(idx, offset);
   if (!hit) return [];
-  if (hit.declaration) return [hit.declaration];
-  return idx.declarations.filter((d) => matches(d, hit.reference!));
+  const declaration = hit.declaration;
+  if (!declaration) {
+    return idx.declarations.filter((d) => matches(d, hit.reference!));
+  }
+  // A data object can be declared once per state.
+  if (declaration.namespace !== 'data' || !declaration.name)
+    return [declaration];
+  const name = declaration.name;
+  return idx.declarations.filter(
+    (d) => d === declaration || matches(d, { name, namespace: 'data' }),
+  );
 }
 
 /** Go to definition: a reference's declarations, or none off a name. */
@@ -347,6 +392,8 @@ export interface Rename {
   range: Span;
   placeholder: string;
   edits: { range: Span; newText: string }[];
+  /** Why the new name cannot be used; there are no edits then. */
+  error?: string;
 }
 
 /**
@@ -364,6 +411,14 @@ export function rename(
   const byId =
     hit.text === hit.declaration?.id || hit.text === hit.reference?.id;
   const { decls, refs } = occurrences(idx, offset);
+  const result = (edits: Rename['edits'], error?: string): Rename => ({
+    range: span(hit.text.range),
+    placeholder: hit.text.value,
+    edits,
+    ...(error === undefined ? {} : { error }),
+  });
+  const problem = renameProblem(idx, decls, refs, byId, to);
+  if (problem) return result([], problem);
   const edits: Rename['edits'] = [];
   const replace = (t: Text) => {
     const newText = byId
@@ -380,11 +435,48 @@ export function rename(
     for (const d of decls) if (d.name) replace(d.name);
     for (const r of refs) if (!r.id && r.name) replace(r.name);
   }
-  return {
-    range: span(hit.text.range),
-    placeholder: hit.text.value,
-    edits,
-  };
+  return result(edits);
+}
+
+/** Why `to` cannot replace the names or IDs being renamed, if it cannot. */
+function renameProblem(
+  idx: Index,
+  decls: Declaration[],
+  refs: Reference[],
+  byId: boolean,
+  to: string,
+): string | undefined {
+  if (byId) {
+    if (!ID.test(to)) {
+      return `\`@${to}\` is not an ID: use letters, digits, \`_\` and \`-\`, starting with a letter or \`_\`.`;
+    }
+    const taken = idx.declarations.some(
+      (d) => d.id?.value === to && !decls.includes(d),
+    );
+    return taken ? `The ID \`@${to}\` is already used.` : undefined;
+  }
+  if (!to.trim()) return 'The new name is empty.';
+  const namespace = decls[0]?.namespace ?? refs[0]?.namespace ?? 'node';
+  const taken = idx.declarations.some(
+    (d) =>
+      d.namespace === namespace &&
+      !decls.includes(d) &&
+      !!d.name &&
+      normalise(d.name.value) === normalise(to),
+  );
+  if (taken) {
+    const what = { node: 'an element or pool', lane: 'a lane', data: 'data' };
+    return `\`${to}\` is already the name of ${what[namespace]}.`;
+  }
+  if (namespace === 'data') {
+    const texts = [...decls.map((d) => d.name), ...refs.map((r) => r.name)];
+    const stated = texts.some((t) => t && withState.has(t));
+    if (STATE.test(to))
+      return `\`${to}\` would read as a data object with a state. Rename it without the brackets.`;
+    if (stated && referenceText(to) !== to)
+      return `\`${to}\` needs quotes, and a quoted name cannot have a state.`;
+  }
+  return undefined;
 }
 
 /** Markdown for the hover over an element: its type, lane and notes. */
@@ -414,7 +506,8 @@ export function completionData(source: string): CompletionData {
   const lanes = new Set<string>();
   for (const d of idx.declarations) {
     if (!d.name) continue;
-    (d.namespace === 'lane' ? lanes : names).add(d.name.value);
+    if (d.namespace === 'lane') lanes.add(d.name.value);
+    else if (d.namespace === 'node') names.add(d.name.value);
   }
   return { names: [...names], lanes: [...lanes] };
 }

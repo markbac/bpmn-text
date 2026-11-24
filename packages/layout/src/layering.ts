@@ -1,12 +1,8 @@
 import type { FlowNode, Pool } from '@bpmn-text/core';
-import ELK from 'elkjs/lib/elk.bundled.js';
 import type { ElkNode } from 'elkjs/lib/elk-api.js';
+import { defaultElk } from './elk.js';
 import type { Size } from './sizing.js';
 import type { Elk } from './types.js';
-
-// elkjs is CommonJS: Node's ESM loader exposes the class as `default` of
-// the module object, while bundlers may return the class itself.
-const ElkConstructor = ELK.default ?? (ELK as unknown as typeof ELK.default);
 
 /** A flow node that takes part in layering: boundary events do not. */
 export interface LayerNode {
@@ -98,7 +94,7 @@ export async function layer(
   nodes: LayerNode[],
   edges: LayerEdge[],
   pools: Pool[],
-  elk: Elk = new ElkConstructor(),
+  elk: Elk = defaultElk,
 ): Promise<Layering> {
   const partitioned = nodes.some((n) => n.partition !== undefined);
   const graph: ElkNode = {

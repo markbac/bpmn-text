@@ -34,7 +34,8 @@ export function activate(context: vscode.ExtensionContext) {
       const editor = bpmnEditor();
       if (!editor) return;
       const { xml } = await compile(editor.document.getText());
-      await save(editor.document, 'bpmn', 'BPMN', Buffer.from(xml));
+      if (xml !== undefined)
+        await save(editor.document, 'bpmn', 'BPMN', Buffer.from(xml));
     }),
     vscode.commands.registerCommand('bpmnText.exportSvg', async () => {
       const editor = bpmnEditor();
@@ -63,8 +64,10 @@ export function activate(context: vscode.ExtensionContext) {
       // Only a .bpmnt file: anything else would be overwritten by its build.
       if (!enabled || !/\.bpmnt$/i.test(document.uri.path)) return;
       if (document.languageId !== 'bpmnt') return;
-      const compiled = await compile(document.getText());
-      if (compiled.errors > 0) return;
+      const compiled = await compile(document.getText(), {
+        draw: 'without-errors',
+      });
+      if (compiled.xml === undefined) return;
       await vscode.workspace.fs.writeFile(
         document.uri.with({
           path: document.uri.path.replace(/\.bpmnt$/i, '.bpmn'),

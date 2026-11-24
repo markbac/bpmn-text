@@ -92,18 +92,26 @@ vi.mock('vscode', () => {
 /** Compiles finish when the test says so, in any order. */
 const compiles: {
   source: string;
+  /** Whether the caller wanted a diagram even with errors. */
+  always: boolean;
   finish: (errors?: number) => void;
 }[] = [];
 
 vi.mock('../src/compile.js', () => ({
-  compile: (source: string) =>
-    new Promise((resolve) =>
+  compile: (source: string, options: { draw?: string } = {}) =>
+    new Promise((resolve) => {
+      const always = options.draw !== 'without-errors';
       compiles.push({
         source,
+        always,
         finish: (errors = 0) =>
-          resolve({ xml: `<xml>${source}</xml>`, sourceMap: {}, errors }),
-      }),
-    ),
+          resolve({
+            xml: errors && !always ? undefined : `<xml>${source}</xml>`,
+            sourceMap: {},
+            errors,
+          }),
+      });
+    }),
 }));
 
 const { Preview } = await import('../src/preview.js');
@@ -201,7 +209,7 @@ describe('the preview (FR-52)', () => {
     expect(shows()).toEqual(['<xml>A!</xml>']);
   });
 
-  it('never draws an older compile over a newer one', async () => {
+  it('compiles one version at a time, skipping stale ones', async () => {
     const a = editor('/a.bpmnt', 'A');
     void preview.open(a as never);
     await draw();
@@ -210,11 +218,34 @@ describe('the preview (FR-52)', () => {
     void preview.open(a as never);
     current = 'A2';
     void preview.open(a as never);
-    expect(compiles.map((c) => c.source)).toEqual(['A1', 'A2']);
-    compiles[1]!.finish();
+    current = 'A3';
+    void preview.open(a as never);
+    // A1 is compiling; A2 is skipped, and A3 waits for A1.
+    expect(compiles.map((c) => c.source)).toEqual(['A1']);
+    compiles.shift()!.finish();
     await flush();
-    compiles[0]!.finish();
-    await flush();
-    expect(shows().at(-1)).toBe('<xml>A2</xml>');
+    expect(compiles.map((c) => c.source)).toEqual(['A3']);
+    await draw();
+    expect(shows()).toEqual(['<xml>A</xml>', '<xml>A3</xml>']);
+  });
+
+  it('lays out text with errors only while nothing is drawn', async () => {
+    const a = editor('/a.bpmnt', 'A!');
+    void preview.open(a as never);
+    expect(compiles[0]!.always).toBe(true);
+    await draw(1);
+    void preview.open(a as never);
+    expect(compiles[0]!.always).toBe(false);
+    await draw(1);
+    expect(shows()).toEqual(['<xml>A!</xml>']);
+  });
+
+  it('does not redraw a diagram that has not changed', async () => {
+    const a = editor('/a.bpmnt', 'A');
+    void preview.open(a as never);
+    await draw();
+    void preview.open(a as never);
+    await draw();
+    expect(shows()).toEqual(['<xml>A</xml>']);
   });
 });

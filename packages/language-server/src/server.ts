@@ -5,7 +5,9 @@ import {
   createConnection,
   DiagnosticSeverity,
   DocumentSymbol,
+  ErrorCodes,
   ProposedFeatures,
+  ResponseError,
   SymbolKind,
   TextDocumentSyncKind,
   TextDocuments,
@@ -118,6 +120,15 @@ export function startServer(
     const doc = documents.get(params.textDocument.uri);
     if (!doc) return [];
     const offset = doc.offsetAt(params.position);
+    // A space starts completion after `->`, `lane` or an event keyword,
+    // not in the indentation at the start of a line.
+    if (params.context?.triggerCharacter === ' ') {
+      const line = doc.getText({
+        start: { line: params.position.line, character: 0 },
+        end: params.position,
+      });
+      if (!line.trim()) return [];
+    }
     const result = complete(doc.getText(), offset);
     if (!result) return [];
     const replace = range(doc, { start: result.from, end: offset });
@@ -168,6 +179,8 @@ export function startServer(
       doc &&
       rename(doc.getText(), doc.offsetAt(params.position), params.newName);
     if (!doc || !found) return null;
+    if (found.error)
+      throw new ResponseError(ErrorCodes.InvalidParams, found.error);
     return {
       changes: {
         [doc.uri]: found.edits.map((e) =>

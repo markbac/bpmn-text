@@ -16,10 +16,14 @@ export class Preview implements vscode.Disposable {
   private document: vscode.TextDocument | undefined;
   private map: Record<string, Range> = {};
   private timer: NodeJS.Timeout | undefined;
-  /** Whether the panel shows a diagram of `document`. */
-  private drawn = false;
-  /** Counts updates, so that an older one never draws over a newer one. */
+  /** The diagram of `document` the panel shows, if any. */
+  private shownXml: string | undefined;
+  /** Counts updates, so that a compile of older text is never drawn. */
   private generation = 0;
+  /** The compile that runs now: one at a time. */
+  private running: Promise<void> | undefined;
+  /** Whether the text changed while `running` compiled. */
+  private again = false;
   /** The latest update, which resolves once it is drawn. */
   private latest: Promise<void> = Promise.resolve();
   /** Waiting for the webview to draw the last diagram posted. */
@@ -89,7 +93,7 @@ export class Preview implements vscode.Disposable {
       clearTimeout(this.timer);
       this.panel = undefined;
       this.document = undefined;
-      this.drawn = false;
+      this.shownXml = undefined;
       this.map = {};
       this.generation++;
       this.release();
@@ -113,7 +117,9 @@ export class Preview implements vscode.Disposable {
       this.exporting?.reject(new Error(message.message));
       this.exporting = undefined;
     } else {
-      // A diagram that could not be drawn: stop waiting for it.
+      // A diagram that could not be drawn: stop waiting for it, and draw
+      // the next one even if it is the same.
+      this.shownXml = undefined;
       this.release();
       void vscode.window.showErrorMessage(
         `bpmn-text preview: ${message.message}`,
@@ -144,7 +150,7 @@ export class Preview implements vscode.Disposable {
   private show(document: vscode.TextDocument) {
     if (document !== this.document) {
       this.document = document;
-      this.drawn = false;
+      this.shownXml = undefined;
       this.map = {};
     }
     clearTimeout(this.timer);
@@ -167,25 +173,53 @@ export class Preview implements vscode.Disposable {
     } while (latest !== this.latest);
   }
 
-  private async update() {
+  /**
+   * Compiles and draws the document. One compile runs at a time: text
+   * that changes meanwhile is compiled once it ends, newest only.
+   */
+  private update(): Promise<void> {
+    this.generation++;
+    if (this.running) {
+      this.again = true;
+      return this.running;
+    }
+    const running = (async () => {
+      do {
+        this.again = false;
+        await this.draw(this.generation);
+      } while (this.again && this.panel);
+    })();
+    this.running = running;
+    void running.finally(() => {
+      if (this.running === running) this.running = undefined;
+    });
+    return running;
+  }
+
+  private async draw(generation: number) {
     const document = this.document;
     const panel = this.panel;
     if (!panel || !document) return;
-    const generation = ++this.generation;
     try {
-      const compiled = await compile(document.getText());
-      // A newer update, or another document, is drawn instead.
-      if (generation !== this.generation || !compiled.xml) return;
+      // While there are errors the last diagram stays, so only a document
+      // not drawn yet needs its layout.
+      const compiled = await compile(document.getText(), {
+        draw: this.shownXml === undefined ? 'always' : 'without-errors',
+      });
+      // Newer text, or another document, is drawn instead.
+      if (generation !== this.generation) return;
       this.map = compiled.sourceMap;
       panel.title = `Preview ${vscode.workspace.asRelativePath(document.uri)}`;
-      if (compiled.errors === 0 || !this.drawn) {
-        this.drawn = true;
-        const shown = new Promise<void>((resolve) =>
-          this.waiting.push(resolve),
-        );
-        await this.post({ type: 'show', xml: compiled.xml });
-        await shown;
+      if (compiled.xml === undefined || compiled.xml === this.shownXml) {
+        // Nothing to redraw: the cursor may now be on another element.
+        const editor = this.editor();
+        if (editor) this.highlight(editor);
+        return;
       }
+      this.shownXml = compiled.xml;
+      const shown = new Promise<void>((resolve) => this.waiting.push(resolve));
+      await this.post({ type: 'show', xml: compiled.xml });
+      await shown;
     } catch (error) {
       void vscode.window.showErrorMessage(
         `bpmn-text preview: ${String(error)}`,
