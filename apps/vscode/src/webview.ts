@@ -91,7 +91,11 @@ window.addEventListener('message', (event: MessageEvent<ToWebview>) => {
   const message = event.data;
   if (message.type === 'show') {
     show(message.xml).catch((error: unknown) =>
-      vscode.postMessage({ type: 'failed', message: String(error) }),
+      vscode.postMessage({
+        type: 'failed',
+        during: 'show',
+        message: String(error),
+      }),
     );
   } else if (message.type === 'highlight') {
     pending = message.id;
@@ -107,7 +111,11 @@ window.addEventListener('message', (event: MessageEvent<ToWebview>) => {
         }),
       )
       .catch((error: unknown) =>
-        vscode.postMessage({ type: 'failed', message: String(error) }),
+        vscode.postMessage({
+          type: 'failed',
+          during: 'export',
+          message: String(error),
+        }),
       );
   }
 });

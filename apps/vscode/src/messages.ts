@@ -10,4 +10,5 @@ export type FromWebview =
   | { type: 'select'; id: string }
   /** `data` is SVG text, or a PNG as base64. */
   | { type: 'exported'; format: 'svg' | 'png'; data: string }
-  | { type: 'failed'; message: string };
+  /** Drawing a diagram, or an export, failed. */
+  | { type: 'failed'; during: 'show' | 'export'; message: string };

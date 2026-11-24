@@ -16,9 +16,17 @@ export class Preview implements vscode.Disposable {
   private document: vscode.TextDocument | undefined;
   private map: Record<string, Range> = {};
   private timer: NodeJS.Timeout | undefined;
-  private shown: Promise<void> = Promise.resolve();
-  private onShown: (() => void) | undefined;
-  private exporting: ((data: string) => void) | undefined;
+  /** Whether the panel shows a diagram of `document`. */
+  private drawn = false;
+  /** Counts updates, so that an older one never draws over a newer one. */
+  private generation = 0;
+  /** The latest update, which resolves once it is drawn. */
+  private latest: Promise<void> = Promise.resolve();
+  /** Waiting for the webview to draw the last diagram posted. */
+  private waiting: (() => void)[] = [];
+  private exporting:
+    | { resolve: (data: string) => void; reject: (error: Error) => void }
+    | undefined;
   private readonly subscriptions: vscode.Disposable[] = [];
 
   constructor(private readonly context: vscode.ExtensionContext) {
@@ -36,23 +44,26 @@ export class Preview implements vscode.Disposable {
     );
   }
 
-  /** Opens the preview beside `editor`, or shows the one that is open. */
+  /**
+   * Opens the preview beside `editor`, or shows the one that is open.
+   * Resolves once the document as it is now is drawn.
+   */
   open(editor: vscode.TextEditor): Promise<void> {
-    this.document = editor.document;
     if (this.panel) {
       this.panel.reveal(vscode.ViewColumn.Beside, true);
     } else {
       this.create();
     }
-    this.schedule(0);
-    return this.shown;
+    this.show(editor.document);
+    return this.settled();
   }
 
-  /** Draws the preview as an SVG, or as a PNG in base64. */
+  /** Draws the preview of `editor` as an SVG, or as a PNG in base64. */
   async export(editor: vscode.TextEditor, format: 'svg' | 'png') {
     await this.open(editor);
-    return new Promise<string>((resolve) => {
-      this.exporting = resolve;
+    if (this.exporting) throw new Error('An export is already running.');
+    return new Promise<string>((resolve, reject) => {
+      this.exporting = { resolve, reject };
       void this.post({ type: 'export', format });
     });
   }
@@ -72,30 +83,49 @@ export class Preview implements vscode.Disposable {
       { enableScripts: true, localResourceRoots: [dist] },
     );
     this.panel = panel;
-    this.shown = new Promise((resolve) => (this.onShown = resolve));
     panel.webview.html = html(panel.webview, dist);
     panel.onDidDispose(() => {
+      if (this.panel !== panel) return;
+      clearTimeout(this.timer);
       this.panel = undefined;
       this.document = undefined;
+      this.drawn = false;
+      this.map = {};
+      this.generation++;
+      this.release();
+      this.exporting?.reject(new Error('The preview was closed.'));
+      this.exporting = undefined;
     });
     panel.webview.onDidReceiveMessage((m: FromWebview) => this.receive(m));
   }
 
   private receive(message: FromWebview) {
     if (message.type === 'shown') {
-      this.onShown?.();
+      this.release();
       const editor = this.editor();
       if (editor) this.highlight(editor);
     } else if (message.type === 'select') {
       this.select(message.id);
     } else if (message.type === 'exported') {
-      this.exporting?.(message.data);
+      this.exporting?.resolve(message.data);
+      this.exporting = undefined;
+    } else if (message.during === 'export') {
+      this.exporting?.reject(new Error(message.message));
       this.exporting = undefined;
     } else {
+      // A diagram that could not be drawn: stop waiting for it.
+      this.release();
       void vscode.window.showErrorMessage(
         `bpmn-text preview: ${message.message}`,
       );
     }
+  }
+
+  /** Lets everything waiting for the last diagram carry on. */
+  private release() {
+    const waiting = this.waiting;
+    this.waiting = [];
+    for (const resolve of waiting) resolve();
   }
 
   private editor(): vscode.TextEditor | undefined {
@@ -107,27 +137,54 @@ export class Preview implements vscode.Disposable {
   /** Shows another bpmn-text document in the open preview. */
   private follow(editor: vscode.TextEditor) {
     if (!this.panel || editor.document === this.document) return;
-    this.document = editor.document;
-    this.schedule(0);
+    this.show(editor.document);
+  }
+
+  /** Switches to `document`, drawing it now. */
+  private show(document: vscode.TextDocument) {
+    if (document !== this.document) {
+      this.document = document;
+      this.drawn = false;
+      this.map = {};
+    }
+    clearTimeout(this.timer);
+    this.latest = this.update();
   }
 
   private schedule(delay = DELAY_MS) {
     clearTimeout(this.timer);
-    this.timer = setTimeout(() => void this.update(), delay);
+    this.timer = setTimeout(() => {
+      this.latest = this.update();
+    }, delay);
+  }
+
+  /** Resolves once the latest update, and any that follow it, are drawn. */
+  private async settled() {
+    let latest;
+    do {
+      latest = this.latest;
+      await latest;
+    } while (latest !== this.latest);
   }
 
   private async update() {
     const document = this.document;
-    if (!this.panel || !document) return;
+    const panel = this.panel;
+    if (!panel || !document) return;
+    const generation = ++this.generation;
     try {
       const compiled = await compile(document.getText());
-      // Text that changed while compiling is drawn by the next update.
-      if (document !== this.document || !compiled.xml) return;
+      // A newer update, or another document, is drawn instead.
+      if (generation !== this.generation || !compiled.xml) return;
       this.map = compiled.sourceMap;
-      this.panel.title = `Preview ${vscode.workspace.asRelativePath(document.uri)}`;
+      panel.title = `Preview ${vscode.workspace.asRelativePath(document.uri)}`;
       if (compiled.errors === 0 || !this.drawn) {
         this.drawn = true;
+        const shown = new Promise<void>((resolve) =>
+          this.waiting.push(resolve),
+        );
         await this.post({ type: 'show', xml: compiled.xml });
+        await shown;
       }
     } catch (error) {
       void vscode.window.showErrorMessage(
@@ -135,8 +192,6 @@ export class Preview implements vscode.Disposable {
       );
     }
   }
-
-  private drawn = false;
 
   private post(message: ToWebview) {
     return this.panel?.webview.postMessage(message);

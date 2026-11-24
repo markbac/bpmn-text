@@ -39,25 +39,35 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('bpmnText.exportSvg', async () => {
       const editor = bpmnEditor();
       if (!editor) return;
-      const svg = await preview.export(editor, 'svg');
-      await save(editor.document, 'svg', 'SVG', Buffer.from(svg));
+      try {
+        const svg = await preview.export(editor, 'svg');
+        await save(editor.document, 'svg', 'SVG', Buffer.from(svg));
+      } catch (error) {
+        failed('SVG', error);
+      }
     }),
     vscode.commands.registerCommand('bpmnText.exportPng', async () => {
       const editor = bpmnEditor();
       if (!editor) return;
-      const data = await preview.export(editor, 'png');
-      await save(editor.document, 'png', 'PNG', Buffer.from(data, 'base64'));
+      try {
+        const data = await preview.export(editor, 'png');
+        await save(editor.document, 'png', 'PNG', Buffer.from(data, 'base64'));
+      } catch (error) {
+        failed('PNG', error);
+      }
     }),
     vscode.workspace.onDidSaveTextDocument(async (document) => {
       const enabled = vscode.workspace
         .getConfiguration('bpmnText')
         .get<boolean>('buildOnSave');
-      if (!enabled || document.languageId !== 'bpmnt') return;
+      // Only a .bpmnt file: anything else would be overwritten by its build.
+      if (!enabled || !/\.bpmnt$/i.test(document.uri.path)) return;
+      if (document.languageId !== 'bpmnt') return;
       const compiled = await compile(document.getText());
       if (compiled.errors > 0) return;
       await vscode.workspace.fs.writeFile(
         document.uri.with({
-          path: document.uri.path.replace(/\.bpmnt$/, '.bpmn'),
+          path: document.uri.path.replace(/\.bpmnt$/i, '.bpmn'),
         }),
         Buffer.from(compiled.xml),
       );
@@ -67,6 +77,11 @@ export function activate(context: vscode.ExtensionContext) {
 
 export function deactivate(): Thenable<void> | undefined {
   return client?.stop();
+}
+
+function failed(label: string, error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  void vscode.window.showErrorMessage(`bpmn-text: export ${label}: ${message}`);
 }
 
 function bpmnEditor(): vscode.TextEditor | undefined {
@@ -83,7 +98,7 @@ async function save(
   label: string,
   data: Uint8Array,
 ) {
-  const name = basename(document.uri.path).replace(/\.bpmnt$/, '');
+  const name = basename(document.uri.path).replace(/\.bpmnt$/i, '');
   const target = await vscode.window.showSaveDialog({
     defaultUri: document.uri.with({
       path: document.uri.path.replace(/[^/]*$/, `${name}.${extension}`),
