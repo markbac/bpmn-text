@@ -30,11 +30,19 @@
     "@vitest/coverage-v8": "^4.1.12",
     "eslint": "^9.39.0",
     "eslint-config-prettier": "^10.1.0",
-    "mermaid": "^11.17.2",
+    "mermaid": "^12.3.0",
     "prettier": "^3.6.0",
     "tsup": "^8.5.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.0",
     "vitest": "^4.1.12"
+  },
+  "overrides": {
+    "@vscode/vsce": {
+      "minimatch": "^11.0.1"
+    },
+    "vscode-languageclient": {
+      "minimatch": "^11.0.1"
+    }
   }
 }
