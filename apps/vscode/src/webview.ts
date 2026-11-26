@@ -1,6 +1,7 @@
 import 'bpmn-js/dist/assets/diagram-js.css';
 import 'bpmn-js/dist/assets/bpmn-js.css';
 import NavigatedViewerModule from 'bpmn-js/lib/NavigatedViewer.js';
+import { DmnView } from './dmn-view.js';
 import type { FromWebview, ToWebview } from './messages.js';
 
 // The preview: a bpmn-js viewer with zoom and pan, driven by the extension.
@@ -43,6 +44,14 @@ const viewer = new (
 const canvas = viewer.get('canvas');
 const registry = viewer.get('elementRegistry');
 
+let language: 'bpmn' | 'dmn' = 'bpmn';
+const dmnContainer = document.getElementById('dmn')!;
+const bpmnContainer = document.getElementById('diagram')!;
+const dmn = new DmnView(dmnContainer, (id) =>
+  vscode.postMessage({ type: 'select', id }),
+);
+let pendingDecision: string | undefined;
+
 let highlighted: string | undefined;
 let pending: string | undefined;
 let first = true;
@@ -52,6 +61,12 @@ function mark(id: string | undefined) {
     canvas.removeMarker(highlighted, 'source-selected');
   highlighted = id && registry.get(id) ? id : undefined;
   if (highlighted) canvas.addMarker(highlighted, 'source-selected');
+}
+
+async function showDmn(xml: string) {
+  await dmn.show(xml);
+  await dmn.focus(pendingDecision, pending);
+  vscode.postMessage({ type: 'shown' });
 }
 
 async function show(xml: string) {
@@ -90,7 +105,13 @@ viewer.on('element.click', ({ element }) => {
 window.addEventListener('message', (event: MessageEvent<ToWebview>) => {
   const message = event.data;
   if (message.type === 'show') {
-    show(message.xml).catch((error: unknown) =>
+    const next = message.language ?? 'bpmn';
+    if (next !== language) {
+      language = next;
+      bpmnContainer.hidden = language !== 'bpmn';
+      dmnContainer.hidden = language !== 'dmn';
+    }
+    (language === 'dmn' ? showDmn : show)(message.xml).catch((error: unknown) =>
       vscode.postMessage({
         type: 'failed',
         during: 'show',
@@ -99,10 +120,14 @@ window.addEventListener('message', (event: MessageEvent<ToWebview>) => {
     );
   } else if (message.type === 'highlight') {
     pending = message.id;
-    mark(message.id);
+    pendingDecision = message.decision;
+    if (language === 'dmn') void dmn.focus(message.decision, message.id);
+    else mark(message.id);
   } else {
-    viewer
-      .saveSVG()
+    (language === 'dmn'
+      ? dmn.drdSvg().then((svg) => ({ svg }))
+      : viewer.saveSVG()
+    )
       .then(async ({ svg }) =>
         vscode.postMessage({
           type: 'exported',

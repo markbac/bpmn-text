@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "private": true,
   "publisher": "markbac",
-  "description": "VS Code extension for bpmn-text.",
+  "description": "VS Code extension for bpmn-text: BPMN and DMN as text.",
+  "icon": "icon.png",
   "type": "module",
   "main": "./dist/extension.cjs",
   "engines": {
@@ -27,6 +28,17 @@
           ".bpmnt"
         ],
         "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "dmnt",
+        "aliases": [
+          "bpmn-text DMN",
+          "dmnt"
+        ],
+        "extensions": [
+          ".dmnt"
+        ],
+        "configuration": "./dmnt-language-configuration.json"
       }
     ],
     "grammars": [
@@ -34,6 +46,11 @@
         "language": "bpmnt",
         "scopeName": "source.bpmnt",
         "path": "./syntaxes/bpmnt.tmLanguage.json"
+      },
+      {
+        "language": "dmnt",
+        "scopeName": "source.dmnt",
+        "path": "./syntaxes/dmnt.tmLanguage.json"
       }
     ],
     "commands": [
@@ -46,6 +63,11 @@
       {
         "command": "bpmnText.exportBpmn",
         "title": "Export BPMN",
+        "category": "bpmn-text"
+      },
+      {
+        "command": "bpmnText.exportDmn",
+        "title": "Export DMN",
         "category": "bpmn-text"
       },
       {
@@ -63,26 +85,30 @@
       "editor/title": [
         {
           "command": "bpmnText.openPreview",
-          "when": "editorLangId == bpmnt",
+          "when": "editorLangId == bpmnt || editorLangId == dmnt",
           "group": "navigation"
         }
       ],
       "commandPalette": [
         {
           "command": "bpmnText.openPreview",
-          "when": "editorLangId == bpmnt"
+          "when": "editorLangId == bpmnt || editorLangId == dmnt"
         },
         {
           "command": "bpmnText.exportBpmn",
           "when": "editorLangId == bpmnt"
         },
         {
+          "command": "bpmnText.exportDmn",
+          "when": "editorLangId == dmnt"
+        },
+        {
           "command": "bpmnText.exportSvg",
-          "when": "editorLangId == bpmnt"
+          "when": "editorLangId == bpmnt || editorLangId == dmnt"
         },
         {
           "command": "bpmnText.exportPng",
-          "when": "editorLangId == bpmnt"
+          "when": "editorLangId == bpmnt || editorLangId == dmnt"
         }
       ]
     },
@@ -92,7 +118,7 @@
         "bpmnText.buildOnSave": {
           "type": "boolean",
           "default": false,
-          "description": "Write a .bpmn file next to each .bpmnt file when it is saved without errors."
+          "description": "Write a .bpmn or .dmn file next to each .bpmnt or .dmnt file when it is saved without errors."
         }
       }
     }
@@ -104,9 +130,11 @@
   "dependencies": {
     "@bpmn-text/bpmn": "0.0.0",
     "@bpmn-text/core": "0.0.0",
+    "@bpmn-text/dmn": "0.0.0",
     "@bpmn-text/language-server": "0.0.0",
     "@bpmn-text/layout": "0.0.0",
     "bpmn-js": "^18.31.1",
+    "dmn-js": "^18.1.0",
     "vscode-languageclient": "^11.0.1"
   },
   "devDependencies": {

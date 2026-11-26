@@ -1,0 +1,154 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "bpmn-text DMN",
+  "scopeName": "source.dmnt",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#doc" },
+    { "include": "#literal-block" },
+    { "include": "#literal-line" },
+    { "include": "#heading" },
+    { "include": "#row" },
+    { "include": "#keyword" },
+    { "include": "#attributes" },
+    { "include": "#string" },
+    { "include": "#id" }
+  ],
+  "repository": {
+    "comment": {
+      "match": "(?:^|(?<=\\s))#.*$",
+      "name": "comment.line.number-sign.dmnt"
+    },
+    "doc": {
+      "patterns": [
+        {
+          "begin": "^(\\s*)(doc)\\s*$",
+          "beginCaptures": { "2": { "name": "keyword.other.doc.dmnt" } },
+          "end": "^(?!\\1\\s+\\S|\\s*$)",
+          "contentName": "string.unquoted.doc.dmnt"
+        },
+        {
+          "match": "^\\s*(doc)\\s+(.*)$",
+          "captures": {
+            "1": { "name": "keyword.other.doc.dmnt" },
+            "2": { "name": "string.unquoted.doc.dmnt" }
+          }
+        }
+      ]
+    },
+    "literal-block": {
+      "begin": "^(\\s*)(literal)\\s*$",
+      "beginCaptures": { "2": { "name": "keyword.other.literal.dmnt" } },
+      "end": "^(?!\\1\\s+\\S|\\s*$)",
+      "patterns": [{ "include": "#feel" }]
+    },
+    "literal-line": {
+      "begin": "^\\s*(literal)\\s+",
+      "beginCaptures": { "1": { "name": "keyword.other.literal.dmnt" } },
+      "end": "$",
+      "patterns": [{ "include": "#feel" }]
+    },
+    "heading": {
+      "comment": "The row right after `table`: names, types and markers, not FEEL tests.",
+      "begin": "^(\\s*)(table)\\b(.*)$",
+      "beginCaptures": {
+        "2": { "name": "keyword.other.table.dmnt" },
+        "3": { "patterns": [{ "include": "#attributes" }] }
+      },
+      "end": "(?<=\\|)\\s*$|^(?!\\s*\\|)",
+      "patterns": [
+        {
+          "begin": "^\\s*(?=\\|)",
+          "end": "$",
+          "patterns": [
+            { "match": "\\|", "name": "punctuation.separator.cell.dmnt" },
+            { "match": "->", "name": "keyword.operator.output.dmnt" },
+            {
+              "match": "(//)([^|]*)",
+              "captures": {
+                "1": { "name": "keyword.operator.annotation.dmnt" },
+                "2": { "name": "comment.annotation.dmnt" }
+              }
+            },
+            {
+              "match": ":\\s*(\\w+)",
+              "captures": { "1": { "name": "entity.name.type.dmnt" } }
+            },
+            { "include": "#string" }
+          ]
+        }
+      ]
+    },
+    "row": {
+      "begin": "^\\s*(?=\\|)",
+      "end": "$",
+      "patterns": [
+        { "match": "\\\\\\|", "name": "constant.character.escape.dmnt" },
+        { "match": "\\|", "name": "punctuation.separator.cell.dmnt" },
+        { "include": "#feel" }
+      ]
+    },
+    "feel": {
+      "patterns": [
+        { "include": "#string" },
+        {
+          "match": "-?\\b\\d+(?:\\.\\d+)?\\b",
+          "name": "constant.numeric.feel.dmnt"
+        },
+        {
+          "match": "\\b(if|then|else|for|in|return|some|every|satisfies|and|or|not|between|instance|of|function|null)\\b",
+          "name": "keyword.control.feel.dmnt"
+        },
+        {
+          "match": "\\b(true|false)\\b",
+          "name": "constant.language.boolean.feel.dmnt"
+        },
+        {
+          "match": "<=|>=|!=|\\.\\.|[<>=+*/]",
+          "name": "keyword.operator.feel.dmnt"
+        },
+        {
+          "match": "(?<=\\|)\\s*-\\s*(?=\\|)",
+          "name": "keyword.operator.any.feel.dmnt"
+        }
+      ]
+    },
+    "keyword": {
+      "match": "^\\s*(title|input|decision|knowledge|source)\\b",
+      "captures": { "1": { "name": "keyword.other.element.dmnt" } }
+    },
+    "attributes": {
+      "begin": "\\[",
+      "end": "\\]",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.attributes.begin.dmnt" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.attributes.end.dmnt" }
+      },
+      "patterns": [
+        {
+          "match": "\\b(requires|type|values|params|hit|id|doc|color|stroke)(?=\\s*:)",
+          "name": "entity.other.attribute-name.dmnt"
+        },
+        { "include": "#string" },
+        {
+          "match": "#[0-9A-Fa-f]{3,6}\\b",
+          "name": "constant.other.color.dmnt"
+        }
+      ]
+    },
+    "string": {
+      "begin": "\"",
+      "end": "\"|$",
+      "name": "string.quoted.double.dmnt",
+      "patterns": [
+        { "match": "\\\\.", "name": "constant.character.escape.dmnt" }
+      ]
+    },
+    "id": {
+      "match": "@[A-Za-z_][A-Za-z0-9_.-]*",
+      "name": "entity.name.tag.id.dmnt"
+    }
+  }
+}

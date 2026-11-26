@@ -1,4 +1,12 @@
-import { check, type Diagnostic as BtDiagnostic } from '@bpmn-text/core';
+import { readdirSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import {
+  check,
+  type Diagnostic as BtDiagnostic,
+  type KnownDecision,
+} from '@bpmn-text/core';
+import { checkDmn } from '@bpmn-text/dmn';
 import {
   CodeActionKind,
   CompletionItemKind,
@@ -30,6 +38,19 @@ import {
   type DocumentSymbol as Symbol,
   type Span,
 } from './analysis.js';
+import {
+  decisionAt,
+  decisionDeclaration,
+  decisionNames,
+  dmnComplete,
+  dmnDefinition,
+  dmnFormatted,
+  dmnHover,
+  dmnReferences,
+  dmnRename,
+  dmnSymbols,
+  type DmnSymbol,
+} from './dmn-analysis.js';
 
 const severities = {
   error: DiagnosticSeverity.Error,
@@ -45,6 +66,18 @@ const symbolKinds = {
   group: SymbolKind.Class,
   data: SymbolKind.Variable,
 } as const;
+
+const dmnSymbolKinds = {
+  decision: SymbolKind.Function,
+  input: SymbolKind.Variable,
+  knowledge: SymbolKind.Module,
+  source: SymbolKind.File,
+  logic: SymbolKind.Struct,
+} as const;
+
+/** Whether a document is `.dmnt`, by language or by name. */
+const isDmn = (doc: { languageId: string; uri: string }) =>
+  doc.languageId === 'dmnt' || /\.dmnt$/i.test(doc.uri);
 
 const completionKinds = {
   keyword: CompletionItemKind.Keyword,
@@ -66,8 +99,55 @@ export function startServer(
     end: doc.positionAt(s.end),
   });
 
+  /** The path of a file: URI, or undefined for other schemes. */
+  const pathOf = (uri: string) => {
+    try {
+      return uri.startsWith('file:') ? fileURLToPath(uri) : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+
+  /**
+   * The .dmnt files beside a .bpmnt document, as URI and text: the open
+   * ones as edited, the rest from disk (dmn-notation §7).
+   */
+  const dmnFilesBeside = (doc: TextDocument) => {
+    const files = new Map<string, string>();
+    const path = pathOf(doc.uri);
+    if (path) {
+      try {
+        for (const f of readdirSync(dirname(path))) {
+          if (!/\.dmnt$/i.test(f)) continue;
+          const file = join(dirname(path), f);
+          files.set(pathToFileURL(file).href, readFileSync(file, 'utf8'));
+        }
+      } catch {
+        // An unreadable folder: only the open documents count.
+      }
+    }
+    for (const d of documents.all()) {
+      if (!isDmn(d)) continue;
+      const other = pathOf(d.uri);
+      if (path && other && dirname(other) !== dirname(path)) continue;
+      files.set(d.uri, d.getText());
+    }
+    return files;
+  };
+
+  const knownDecisions = (doc: TextDocument): KnownDecision[] | undefined => {
+    const files = dmnFilesBeside(doc);
+    if (files.size === 0) return undefined;
+    return [...files].flatMap(([uri, text]) =>
+      decisionNames(text).map((name) => ({ name, file: pathOf(uri) ?? uri })),
+    );
+  };
+
   const validate = (doc: TextDocument) => {
-    const found = check(doc.getText()).diagnostics;
+    const decisions = isDmn(doc) ? undefined : knownDecisions(doc);
+    const found = isDmn(doc)
+      ? checkDmn(doc.getText()).diagnostics
+      : check(doc.getText(), decisions ? { decisions } : {}).diagnostics;
     diagnosticsOf.set(doc.uri, found);
     const out: Diagnostic[] = found.map((d) => {
       // An empty range covers one character, so that it shows.
@@ -99,7 +179,9 @@ export function startServer(
   connection.onInitialize((): InitializeResult => ({
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Incremental,
-      completionProvider: { triggerCharacters: ['>', ' ', '[', ','] },
+      completionProvider: {
+        triggerCharacters: ['>', ' ', '[', ',', ':', '|'],
+      },
       hoverProvider: true,
       definitionProvider: true,
       referencesProvider: true,
@@ -110,7 +192,12 @@ export function startServer(
     },
   }));
 
-  documents.onDidChangeContent((e) => validate(e.document));
+  documents.onDidChangeContent((e) => {
+    validate(e.document);
+    // Decisions changed: the rule tasks that name them may have too.
+    if (isDmn(e.document))
+      for (const d of documents.all()) if (!isDmn(d)) validate(d);
+  });
   documents.onDidClose((e) => {
     diagnosticsOf.delete(e.document.uri);
     void connection.sendDiagnostics({ uri: e.document.uri, diagnostics: [] });
@@ -129,7 +216,9 @@ export function startServer(
       });
       if (!line.trim()) return [];
     }
-    const result = complete(doc.getText(), offset);
+    const result = isDmn(doc)
+      ? dmnComplete(doc.getText(), offset)
+      : complete(doc.getText(), offset);
     if (!result) return [];
     const replace = range(doc, { start: result.from, end: offset });
     return result.options.map((o) => ({
@@ -141,7 +230,12 @@ export function startServer(
 
   connection.onHover((params) => {
     const doc = documents.get(params.textDocument.uri);
-    const found = doc && hover(doc.getText(), doc.offsetAt(params.position));
+    const found =
+      doc &&
+      (isDmn(doc) ? dmnHover : hover)(
+        doc.getText(),
+        doc.offsetAt(params.position),
+      );
     if (!doc || !found) return null;
     return {
       contents: { kind: 'markdown', value: found.markdown },
@@ -152,23 +246,53 @@ export function startServer(
   connection.onDefinition((params) => {
     const doc = documents.get(params.textDocument.uri);
     if (!doc) return null;
-    return definition(doc.getText(), doc.offsetAt(params.position)).map(
-      (s) => ({ uri: doc.uri, range: range(doc, s) }),
-    );
+    const offset = doc.offsetAt(params.position);
+    if (isDmn(doc))
+      return dmnDefinition(doc.getText(), offset).map((s) => ({
+        uri: doc.uri,
+        range: range(doc, s),
+      }));
+    // From a rule task's `[decision: …]` to the decision (#80).
+    const link = decisionAt(doc.getText(), offset);
+    if (link) {
+      const found = [];
+      for (const [uri, text] of dmnFilesBeside(doc)) {
+        if (
+          link.file &&
+          !uri.toLowerCase().endsWith(`/${link.file.toLowerCase()}`)
+        )
+          continue;
+        const at = decisionDeclaration(text, link.name);
+        if (!at) continue;
+        const target = TextDocument.create(uri, 'dmnt', 0, text);
+        found.push({ uri, range: range(target, at) });
+      }
+      return found;
+    }
+    return definition(doc.getText(), offset).map((s) => ({
+      uri: doc.uri,
+      range: range(doc, s),
+    }));
   });
 
   connection.onReferences((params) => {
     const doc = documents.get(params.textDocument.uri);
     if (!doc) return null;
-    return references(doc.getText(), doc.offsetAt(params.position)).map(
-      (s) => ({ uri: doc.uri, range: range(doc, s) }),
-    );
+    return (isDmn(doc) ? dmnReferences : references)(
+      doc.getText(),
+      doc.offsetAt(params.position),
+    ).map((s) => ({ uri: doc.uri, range: range(doc, s) }));
   });
 
   connection.onPrepareRename((params) => {
     const doc = documents.get(params.textDocument.uri);
     const found =
-      doc && rename(doc.getText(), doc.offsetAt(params.position), '');
+      doc &&
+      (isDmn(doc) ? dmnRename : rename)(
+        doc.getText(),
+        doc.offsetAt(params.position),
+        '',
+      );
     if (!doc || !found) return null;
     return { range: range(doc, found.range), placeholder: found.placeholder };
   });
@@ -177,7 +301,11 @@ export function startServer(
     const doc = documents.get(params.textDocument.uri);
     const found =
       doc &&
-      rename(doc.getText(), doc.offsetAt(params.position), params.newName);
+      (isDmn(doc) ? dmnRename : rename)(
+        doc.getText(),
+        doc.offsetAt(params.position),
+        params.newName,
+      );
     if (!doc || !found) return null;
     if (found.error)
       throw new ResponseError(ErrorCodes.InvalidParams, found.error);
@@ -193,6 +321,18 @@ export function startServer(
   connection.onDocumentSymbol((params) => {
     const doc = documents.get(params.textDocument.uri);
     if (!doc) return [];
+    if (isDmn(doc)) {
+      const convertDmn = (s: DmnSymbol): DocumentSymbol =>
+        DocumentSymbol.create(
+          s.name,
+          s.detail,
+          dmnSymbolKinds[s.kind],
+          range(doc, s.range),
+          range(doc, s.selection),
+          s.children.map(convertDmn),
+        );
+      return dmnSymbols(doc.getText()).map(convertDmn);
+    }
     const convert = (s: Symbol): DocumentSymbol =>
       DocumentSymbol.create(
         s.name,
@@ -207,7 +347,7 @@ export function startServer(
 
   connection.onDocumentFormatting((params) => {
     const doc = documents.get(params.textDocument.uri);
-    const text = doc && formatted(doc.getText());
+    const text = doc && (isDmn(doc) ? dmnFormatted : formatted)(doc.getText());
     if (!doc || text === undefined) return [];
     const whole = range(doc, { start: 0, end: doc.getText().length });
     return [TextEdit.replace(whole, text)];

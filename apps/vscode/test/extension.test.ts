@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { vocabulary } from '@bpmn-text/core';
+import { dmnVocabulary } from '@bpmn-text/dmn';
 import { compile } from '../src/compile.js';
 
 const read = (file: string) =>
@@ -109,5 +110,43 @@ describe('compile', () => {
     // As in the editor: CI checks 200 ms in a step without coverage.
     const limit = process.env.BPMN_TEXT_COVERAGE ? 1000 : 200;
     expect(Math.min(...times)).toBeLessThan(limit);
+  });
+});
+
+describe('DMN (#82)', () => {
+  const dmnGrammar = read('syntaxes/dmnt.tmLanguage.json');
+
+  it('declares the dmnt language with its own grammar', () => {
+    const languages = manifest.contributes.languages as unknown as {
+      id: string;
+      extensions: string[];
+    }[];
+    expect(languages.find((l) => l.id === 'dmnt')?.extensions).toEqual([
+      '.dmnt',
+    ]);
+    expect(manifest.contributes.grammars.map((g) => g.path)).toContain(
+      './syntaxes/dmnt.tmLanguage.json',
+    );
+  });
+
+  it('highlights every DMN keyword and attribute', () => {
+    const keywords = words(dmnGrammar.repository.keyword?.match);
+    for (const k of dmnVocabulary.keywords) expect(keywords, k).toContain(k);
+    const attributes = dmnGrammar.repository.attributes as unknown as {
+      patterns: { match?: string }[];
+    };
+    const known = words(attributes.patterns[0]?.match);
+    for (const a of dmnVocabulary.attributes) expect(known, a).toContain(a);
+  });
+
+  it('compiles DMN for the preview, with the decisions to open', async () => {
+    const result = await compile(
+      'input A [type: number]\ndecision B [requires: A]\n  table\n    | A | -> B |\n    | > 1 | 1 |\n    | <= 1 | 2 |\n',
+      { language: 'dmn' },
+    );
+    expect(result.errors).toBe(0);
+    expect(result.xml).toContain('<dmn:decisionTable');
+    expect(result.decisions?.map((d) => d.id)).toEqual(['Decision_b']);
+    expect(result.sourceMap.Rule_b_1).toBeDefined();
   });
 });

@@ -20,7 +20,7 @@ const workspaces = {
     'packages/bpmn',
     'packages/render',
   ],
-  'packages/language-server': ['packages/core'],
+  'packages/language-server': ['packages/core', 'packages/dmn'],
   'apps/editor': [
     'packages/core',
     'packages/layout',
@@ -30,6 +30,7 @@ const workspaces = {
   'apps/vscode': [
     'packages/language-server',
     'packages/core',
+    'packages/dmn',
     'packages/layout',
     'packages/bpmn',
   ],

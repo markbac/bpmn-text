@@ -1,7 +1,8 @@
 /** Messages from the extension to the preview webview. */
 export type ToWebview =
-  | { type: 'show'; xml: string }
-  | { type: 'highlight'; id: string | undefined }
+  | { type: 'show'; xml: string; language?: 'bpmn' | 'dmn' }
+  /** DMN: `decision` is the decision whose table or literal to open. */
+  | { type: 'highlight'; id: string | undefined; decision?: string }
   | { type: 'export'; format: 'svg' | 'png' };
 
 /** Messages from the preview webview to the extension. */
