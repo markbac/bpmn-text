@@ -84,6 +84,12 @@ pool Support
   * **documentation** text on any element (`bpmn:documentation`);
   * **fan-out without gateways** (several outgoing flows, `fork`) and
     uncontrolled merges.
+* **DMN** in `.dmnt` files ([dmn-notation.md](dmn-notation.md), ADR-015):
+  decisions, input data, business knowledge models and knowledge sources with
+  their requirements (the DRD), decision tables with every hit policy, and
+  literal expressions; FEEL in cells is checked, and tables are checked for
+  overlaps, gaps and rules that can never be chosen. Business rule tasks name
+  the decision they evaluate.
 * **Deliverables**
   1. **Core library** (`@bpmn-text/core` and friends): parse, validate,
      lay out and generate BPMN XML. Usable from Node and the browser.
@@ -156,6 +162,19 @@ Conversion in the other direction is also not supported: **reverse conversion**
 | FR-18 | Pair link events by name within a process level, with no sequence flow across the link. |
 | FR-19 | Support event subprocesses, ad-hoc subprocesses, complex gateways, data object states and shared event definitions. |
 
+### 4.1a DMN
+
+| ID | Requirement |
+|---|---|
+| FR-60 | Parse `.dmnt` files according to [dmn-notation.md](dmn-notation.md): decisions, input data, knowledge models, knowledge sources, requirements, decision tables (one rule per line) and literal expressions. |
+| FR-61 | Compile to DMN 1.3 XML with DMNDI that validates against the OMG DMN 1.3 XSD and imports without warnings into dmn-moddle and dmn-js. |
+| FR-62 | Lay out the DRD automatically, bottom to top, with no overlaps and no requirement through a shape. |
+| FR-63 | Check FEEL in table cells and literals, reporting errors at the cell: syntax, types, allowed values and names that are not requirements. |
+| FR-64 | Report overlapping rules under `unique` (and `any` with different outputs), input combinations no rule covers, and rules that can never be chosen under `first`, on the rows, with the region or an example input. |
+| FR-65 | Format `.dmnt` with aligned table columns. |
+| FR-66 | Check a business rule task's `[decision: …]` against the `.dmnt` files beside the `.bpmnt` file. |
+| FR-67 | The CLI, web editor, language server and VS Code extension handle `.dmnt` as they handle `.bpmnt`; the renderer draws the DRD as SVG and PNG and each table as PNG. |
+
 ### 4.2 Output
 
 | ID | Requirement |
@@ -184,7 +203,7 @@ Conversion in the other direction is also not supported: **reverse conversion**
 
 | ID | Requirement |
 |---|---|
-| FR-30 | `bpmn-text build <files…>` writes `.bpmn` (default), `.svg` or `.png`, to an `-o` path/directory or to stdout. |
+| FR-30 | `bpmn-text build <files…>` writes `.bpmn` (default; `.dmn` for `.dmnt` input), `.svg` or `.png`, to an `-o` path/directory or to stdout. |
 | FR-30a | `bpmn-text legend <files…>`, and `build --legend`, write a separate image: a key to the BPMN symbols the diagram uses, with what each means. The web editor downloads it too. |
 | FR-31 | `bpmn-text check <files…>` validates only. Exit code 1 on errors. `--format json` gives machine-readable diagnostics. |
 | FR-32 | `bpmn-text fmt <files…>` rewrites files in canonical style. `--check` verifies formatting without writing. |
@@ -206,10 +225,10 @@ Conversion in the other direction is also not supported: **reverse conversion**
 
 | ID | Requirement |
 |---|---|
-| FR-50 | Language registration for `.bpmnt`, with syntax highlighting (TextMate grammar), bracket and comment configuration. |
+| FR-50 | Language registration for `.bpmnt` and `.dmnt`, with syntax highlighting (TextMate grammar), bracket and comment configuration. |
 | FR-51 | Language server: diagnostics, completion, hover (element type and lane), go to definition and find references for names and IDs, document symbols (pools/lanes/elements), rename, formatting. |
 | FR-52 | A live preview panel beside the editor, synced with the cursor. |
-| FR-53 | Commands: *Export BPMN*, *Export SVG/PNG*. Build on save is optional. |
+| FR-53 | Commands: *Export BPMN*, *Export DMN*, *Export SVG/PNG*. Build on save is optional. |
 
 ## 5. Non-functional requirements
 

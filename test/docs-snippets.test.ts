@@ -1,13 +1,14 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { compile, parse } from 'bpmn-text';
+import { compile, compileDmn, parse } from 'bpmn-text';
 import { describe, expect, it } from 'vitest';
 
-// Every ```bpmnt block in the documentation must compile without errors
-// (#48, NFR-7). A block after `<!-- expect-error BTxxx -->` must instead
-// report that code; several codes may be listed, separated by spaces. A
-// block after `<!-- fragment -->` is an excerpt that refers to elements it
-// does not show, so it only has to parse.
+// Every ```bpmnt and ```dmnt block in the documentation must compile
+// without errors (#48, #81, NFR-7). A block after
+// `<!-- expect-error BTxxx -->` (or `expect-warning`) must instead report
+// that code; several codes may be listed, separated by spaces. A block after
+// `<!-- fragment -->` is an excerpt that refers to elements it does not
+// show, so it only has to parse.
 const root = join(import.meta.dirname, '..');
 const files = [
   'README.md',
@@ -17,6 +18,7 @@ const files = [
 ];
 
 interface Snippet {
+  language: 'bpmnt' | 'dmnt';
   file: string;
   line: number;
   source: string;
@@ -28,7 +30,7 @@ export function snippets(file: string, text: string): Snippet[] {
   const lines = text.split('\n');
   const found: Snippet[] = [];
   for (let i = 0; i < lines.length; i++) {
-    const open = /^(\s*)```bpmnt\s*$/.exec(lines[i]!);
+    const open = /^(\s*)```(bpmnt|dmnt)\s*$/.exec(lines[i]!);
     if (!open) continue;
     const indent = open[1]!.length;
     const body: string[] = [];
@@ -38,10 +40,11 @@ export function snippets(file: string, text: string): Snippet[] {
     }
     let k = i - 1;
     while (k >= 0 && lines[k]!.trim() === '') k--;
-    const marker = /<!-- expect-error ((?:BT\d{3}\s*)+)-->/.exec(
+    const marker = /<!-- expect-(?:error|warning) ((?:BT\d{3}\s*)+)-->/.exec(
       lines[k] ?? '',
     );
     found.push({
+      language: open[2] as 'bpmnt' | 'dmnt',
       file,
       line: i + 1,
       source: `${body.join('\n')}\n`,
@@ -66,9 +69,9 @@ const all = files.flatMap((file) => {
 describe('documentation pictures (#93)', () => {
   const pictures = files.flatMap((file) => {
     const text = readFileSync(join(root, file), 'utf8');
-    return [...text.matchAll(/<!-- screenshot: ([\w-]+) -->\s*```bpmnt/g)].map(
-      (m) => [`${file}: ${m[1]!}`, text, m[1]!] as const,
-    );
+    return [
+      ...text.matchAll(/<!-- screenshot: ([\w-]+) -->\s*```(?:bpmnt|dmnt)/g),
+    ].map((m) => [`${file}: ${m[1]!}`, text, m[1]!] as const);
   });
 
   it.each(pictures)('%s is rendered and shown', (_, text, name) => {
@@ -112,6 +115,29 @@ describe('notation reference (#93)', () => {
   });
 });
 
+describe('DMN notation reference (#81)', () => {
+  const text = readFileSync(join(root, 'docs/dmn-notation.md'), 'utf8');
+  const parts = text.split(/^(?=#{2,4} )/m);
+  const codes = [...text.matchAll(/^\| (BT5\d{2}) \|/gm)].map((m) => m[1]!);
+
+  it('finds the codes', () => {
+    expect(codes.length).toBeGreaterThan(15);
+  });
+
+  it.each(codes)('%s has an example and a fixture', (code) => {
+    const entry = parts.find((p) => p.startsWith(`#### ${code}\n`));
+    expect(entry, 'heading').toBeDefined();
+    const fixture = /\]\(\.\.\/(test\/fixtures\/dmn\/[^)]+)\)/.exec(entry!);
+    expect(fixture, 'fixture link').not.toBeNull();
+    expect(fixture![1]).toContain(code);
+    expect(existsSync(join(root, fixture![1]!))).toBe(true);
+    if (code !== 'BT540')
+      expect(entry).toMatch(
+        new RegExp(`<!-- expect-(error|warning) ${code} -->`),
+      );
+  });
+});
+
 describe('documentation snippets', () => {
   it('finds the snippets', () => {
     expect(all.length).toBeGreaterThan(20);
@@ -119,7 +145,24 @@ describe('documentation snippets', () => {
 
   it.each(all.map((s) => [`${s.file}:${s.line}`, s] as const))(
     '%s compiles',
-    async (_, { source, expect: codes, fragment }) => {
+    async (_, { language, source, expect: codes, fragment }) => {
+      if (language === 'dmnt') {
+        const { diagnostics, xml } = await compileDmn(source);
+        if (codes.length === 0) {
+          // Clean examples have no warnings either.
+          expect(
+            diagnostics
+              .filter((d) => d.severity !== 'info')
+              .map((d) => `${d.code} @ ${d.range.start.line}: ${d.message}`),
+          ).toEqual([]);
+          expect(xml).toContain('<dmndi:DMNDiagram');
+        } else {
+          expect(diagnostics.map((d) => d.code)).toEqual(
+            expect.arrayContaining(codes),
+          );
+        }
+        return;
+      }
       if (fragment) {
         expect(parse(source).diagnostics).toEqual([]);
         return;

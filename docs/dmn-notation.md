@@ -259,6 +259,26 @@ out of scope ([ADR-008](decisions.md)) and can be added with an extension hook.
 
 ---
 
+## 7a. Examples
+
+[examples/dmn](../examples/dmn) holds a complete file for each part of the
+notation, with the DMN each compiles to beside it:
+
+| File | Shows |
+|---|---|
+| [01-loan-approval.dmnt](../examples/dmn/01-loan-approval.dmnt) | One decision table with its inputs, a knowledge model and a source |
+| [02-dinner.dmnt](../examples/dmn/02-dinner.dmnt) | A DRD of three decisions, allowed values, `collect` and a literal |
+| [03-hit-policies.dmnt](../examples/dmn/03-hit-policies.dmnt) | Every hit policy |
+| [04-literal-expressions.dmnt](../examples/dmn/04-literal-expressions.dmnt) | Literal expressions, a knowledge model with parameters, dates |
+| [loan-application.bpmnt](../examples/dmn/loan-application.bpmnt) | A process whose rule task names the loan decision |
+
+`bpmn-text build 02-dinner.dmnt -f png` draws the DRD, and each table as dmn-js
+shows it:
+
+![The Dish table of the dinner example](images/02-dinner.dish.png)
+
+---
+
 ## 8. Not in v1
 
 Boxed contexts, relations, invocations, lists and function definitions (other

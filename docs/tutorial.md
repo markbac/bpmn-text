@@ -3,7 +3,8 @@
 In this tutorial you build an order-fulfilment process step by step: a
 customer orders, the company checks credit, picks and ships the goods, and
 a bank takes part in payment. Each step adds one idea and shows the diagram
-it produces.
+it produces. The last step writes the rules behind a decision as a DMN
+decision table.
 
 You need either the [web editor](../apps/editor/README.md) or the command
 line. The [Quick start](../README.md#quick-start) command installs both, and
@@ -191,6 +192,54 @@ The web editor underlines the same mistake as you type and offers the fix.
 When the file is right, `bpmn-text fmt order.bpmnt` rewrites it in
 canonical style.
 
+## Step 7: the rules behind a decision (5 minutes)
+
+`Order complete?` is a question someone answers by hand. A shipping charge is
+different: it follows rules, and the rules change. Write them in a `.dmnt` file
+beside `order.bpmnt`, as a decision table. In the web editor, choose **DMN** in
+the selector at the top left.
+
+<!-- screenshot: tutorial-7 -->
+
+```dmnt
+title Shipping
+
+input Order total [type: number]
+input Destination [type: string, values: "home", "abroad"]
+
+decision Shipping charge [requires: Order total, Destination]
+  table [hit: unique]
+    | Order total | Destination | -> Charge: number | // Why             |
+    | >= 50       | "home"      | 0                 | Free over 50      |
+    | < 50        | "home"      | 4.95              |                   |
+    | -           | "abroad"    | 12                | One rate abroad   |
+```
+
+![Step 7](images/tutorial-7.png)
+
+Each rule is one line. Columns before `->` are inputs, written as tests such
+as `>= 50`, with `-` for any value; columns after it are outputs; the `//`
+column is a note. `bpmn-text fmt` keeps the columns aligned.
+
+The compiler checks the table as a whole. Change the first rule to `>= 40` and
+it reports that rules 1 and 2 both match an order of 40 up to 50 at home, which
+a `unique` table must not allow. Remove the last rule and it reports that no
+rule matches `Destination = "abroad"`.
+
+Then name the decision from the process, on a business rule task:
+
+```bpmnt
+start Order received
+rule Work out shipping [decision: Shipping charge]
+task Ship parcel
+end Shipped
+```
+
+`bpmn-text check order.bpmnt` now checks that a decision called `Shipping charge`
+exists in a `.dmnt` file beside it, and suggests the closest name if not.
+`bpmn-text build shipping.dmnt -o shipping.dmn` writes DMN that opens in Camunda
+Modeler; with `-f png`, you get the diagram and a picture of each table.
+
 ## What next
 
 - Add `option colors all` at the top for a colourful diagram, and run
@@ -198,7 +247,8 @@ canonical style.
   ([recipe](cookbook.md#colour-and-a-key)).
 - The [cookbook](cookbook.md) has recipes for common patterns and errors.
 - The [notation reference](notation.md) describes every statement, with an
-  example and a fix for every diagnostic.
+  example and a fix for every diagnostic; the [DMN notation](dmn-notation.md)
+  does the same for `.dmnt` files.
 - [Troubleshooting](troubleshooting.md) explains unexpected flows and extra
   gateways.
 - The [examples](../examples) show complete processes, from a simple one to

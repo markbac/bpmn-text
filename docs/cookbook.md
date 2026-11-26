@@ -488,6 +488,140 @@ end Claim submitted
 
 Inside `doc`, everything is raw text, so `->` and `#` mean nothing there.
 
+## Decisions (DMN)
+
+Rules that change on their own schedule belong in a `.dmnt` file beside the
+process ([DMN notation](dmn-notation.md)). A business rule task names the
+decision with `[decision: …]`.
+
+### Eligibility rules
+
+A yes or no, with the reason. `first` lets the last rule be a catch-all, so
+the specific cases can be written in any order of importance.
+
+<!-- screenshot: cookbook-eligibility -->
+
+```dmnt
+title Eligibility
+
+input Age [type: number]
+input Resident [type: boolean]
+input Income [type: number]
+
+decision Eligible [requires: Age, Resident, Income]
+  table [hit: first]
+    | Age  | Resident | Income  | -> Eligible: boolean | Reason: string       |
+    | < 18 | -        | -       | false                | "Too young"          |
+    | -    | false    | -       | false                | "Not resident"       |
+    | -    | -        | < 12000 | false                | "Income too low"     |
+    | -    | -        | -       | true                 | "Meets the criteria" |
+```
+
+![Eligibility rules](images/cookbook-eligibility.png)
+
+### Pricing tiers
+
+Ranges of one input, with no gaps or overlaps: each bound appears in exactly
+two rules, once closed and once open. The compiler reports a gap or an overlap
+if a bound is wrong.
+
+```dmnt
+input Quantity [type: number]
+
+decision Unit price [requires: Quantity]
+  table [hit: unique]
+    | Quantity    | -> Price: number |
+    | < 10        | 9.50             |
+    | [10..100)   | 8.75             |
+    | [100..1000) | 7.90             |
+    | >= 1000     | 6.50             |
+```
+
+### Routing work
+
+Which team takes a case. `priority` picks the most urgent match, in the order
+the output's values are written after `in`.
+
+```dmnt
+input Category [type: string, values: "billing", "technical", "other"]
+input Customer tier [type: string, values: "gold", "standard"]
+
+decision Team [requires: Category, Customer tier]
+  table [hit: priority]
+    | Category    | Customer tier | -> Team: string in "escalations", "billing", "support" |
+    | -           | "gold"        | "escalations"                                          |
+    | "billing"   | -             | "billing"                                              |
+    | -           | -             | "support"                                              |
+```
+
+A process sends each case on with the decision:
+
+```bpmnt
+start Case raised
+rule Choose a team [decision: Team]
+user Handle the case
+end Case closed
+```
+
+### Common table mistakes
+
+**Overlapping rules (BT530).** Under `unique`, two rules that can both match
+are an error, even when they agree. The message gives the inputs they share.
+
+<!-- expect-error BT530 -->
+
+```dmnt
+input Score [type: number]
+
+decision Grade [requires: Score]
+  table [hit: unique]
+    | Score | -> Grade |
+    | >= 50 | "pass"   |
+    | <= 50 | "fail"   |
+```
+
+Fix: make one bound open, `< 50`, or use `first` if the order of the rules is
+meant to decide.
+
+**A gap (BT531).** No rule matches some inputs, so the decision has no result.
+The message names an input that falls through.
+
+<!-- expect-warning BT531 -->
+
+```dmnt
+input Score [type: number]
+
+decision Grade [requires: Score]
+  table [hit: unique]
+    | Score | -> Grade |
+    | > 50  | "pass"   |
+    | < 50  | "fail"   |
+```
+
+Fix: close the gap, `>= 50`, or add a last rule with `-` in every input column
+under `first`.
+
+**A rule that never fires (BT532).** Under `first`, a broad rule above a narrow
+one hides it.
+
+<!-- expect-warning BT532 -->
+
+```dmnt
+input Score [type: number]
+
+decision Grade [requires: Score]
+  table [hit: first]
+    | Score | -> Grade  |
+    | >= 50 | "pass"    |
+    | >= 90 | "honours" |
+    | -     | "fail"    |
+```
+
+Fix: put the narrow rule first.
+
+**A misspelt value (BT523).** With `values` on the input, a string not in the
+list is an error, with the closest value as a quick fix.
+
 ## Common errors and how to fix them
 
 ### BT201: ambiguous reference

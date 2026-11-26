@@ -3,8 +3,9 @@
 ## 1. Overview
 
 bpmn-text is a compiler. Text goes in and BPMN 2.0 XML with diagram
-interchange (DI) comes out. Every front end (CLI, web editor, VS Code) is a
-thin shell around the same pipeline.
+interchange (DI) comes out; for `.dmnt` files, DMN 1.3 XML with DMNDI (§14).
+Every front end (CLI, web editor, VS Code) is a thin shell around the same
+pipelines.
 
 ```mermaid
 flowchart LR
@@ -99,8 +100,8 @@ C4Container
     Container(editor, "Web editor", "Static SPA: Vite, CodeMirror 6, bpmn-js", "Live split-view editing, export, share links")
     Container(vscode, "VS Code extension", "TypeScript, webview + bpmn-js", "Highlighting, LSP client, live preview")
     Container(lsp, "Language server", "Node.js, vscode-languageserver", "Diagnostics, completion, navigation, rename, format")
-    Container(lib, "Compiler library", "TypeScript, browser-safe: core + layout + bpmn", "parse / check / compile / format")
-    Container(render, "Renderer", "Node.js, playwright-core + bpmn-js", "XML → SVG/PNG (optional)")
+    Container(lib, "Compiler library", "TypeScript, browser-safe: core + layout + bpmn + dmn", "parse / check / compile / format, BPMN and DMN")
+    Container(render, "Renderer", "Node.js, playwright-core + bpmn-js + dmn-js", "XML → SVG/PNG (optional)")
   }
   System_Ext(chromium, "Headless Chromium", "Optional local browser")
   Rel(author, cli, "Runs")
@@ -135,6 +136,9 @@ C4Component
   Container_Boundary(bpmnpkg, "@bpmn-text/bpmn") {
     Component(gen, "BPMN generator", "bpmn-moddle: semantic + DI → XML")
   }
+  Container_Boundary(dmnpkg, "@bpmn-text/dmn") {
+    Component(dmn, "DMN compiler", "Parser, builder, FEEL, table checks, DRD layout, dmn-moddle → XML")
+  }
   Component(api, "compile() facade", "bpmn-text package", "Orchestrates pipeline, source map")
   Rel(api, parser, "parse")
   Rel(parser, lexer, "tokens")
@@ -143,6 +147,9 @@ C4Component
   Rel(api, layout, "IR")
   Rel(api, gen, "IR + layout")
   Rel(api, formatter, "format")
+  Rel(api, dmn, "compileDmn")
+  Rel(dmn, lexer, "tokens")
+  Rel(dmn, layout, "ELK")
   Rel(parser, diag, "reports")
   Rel(builder, diag, "reports")
   Rel(validator, diag, "reports")
@@ -191,15 +198,16 @@ bpmn-text/
 ├─ packages/
 │  ├─ core/              @bpmn-text/core      lexer, parser, AST, model builder, validator, formatter, diagnostics
 │  ├─ layout/            @bpmn-text/layout    layout engine (elkjs + lane banding + routing)
+│  ├─ dmn/               @bpmn-text/dmn       .dmnt: parser, formatter, model, FEEL, table checks, DRD layout, DMN XML
 │  ├─ bpmn/              @bpmn-text/bpmn      IR + layout → BPMN XML (bpmn-moddle)
-│  ├─ render/            @bpmn-text/render    XML → SVG/PNG (bpmn-js in headless Chromium)
+│  ├─ render/            @bpmn-text/render    XML → SVG/PNG (bpmn-js and dmn-js in headless Chromium)
 │  ├─ cli/               bpmn-text            CLI + the public compile() facade
 │  ├─ language-server/   @bpmn-text/language-server  LSP implementation
-│  └─ test-utils/        @bpmn-text/test-utils  BPMN validity assertions for tests (private)
+│  └─ test-utils/        @bpmn-text/test-utils  BPMN and DMN validity assertions for tests (private)
 ├─ apps/
 │  ├─ editor/            live web editor (Vite, CodeMirror 6, bpmn-js)
 │  └─ vscode/            VS Code extension (TextMate grammar, LSP client, preview webview)
-├─ examples/             golden example corpus (.bpmnt)
+├─ examples/             golden example corpus (.bpmnt; .dmnt in examples/dmn)
 ├─ test/fixtures/        expected outputs and layout-quality baselines
 └─ docs/
 ```
@@ -208,14 +216,15 @@ Dependency direction (no cycles):
 
 ```text
 core ← layout ← bpmn ← cli
-core ← language-server ← apps/vscode
-core, layout, bpmn ← apps/vscode (the live preview compiles in the extension host)
-core, layout, bpmn ← apps/editor
+core, layout ← dmn ← cli
+core, dmn ← language-server ← apps/vscode
+core, layout, dmn, bpmn ← apps/vscode (the live preview compiles in the extension host)
+core, layout, dmn, bpmn ← apps/editor
 bpmn ← render ← cli (optional)
 test-utils ← tests of any workspace
 ```
 
-`core`, `layout` and `bpmn` must not use Node-only APIs (NFR-2).
+`core`, `layout`, `dmn` and `bpmn` must not use Node-only APIs (NFR-2).
 
 ## 3. Core: lexer and parser
 
@@ -686,3 +695,59 @@ sequenceDiagram
 npm workspaces · TypeScript (strict) · tsup (builds) · Vitest · ESLint +
 Prettier · Changesets (versioning) · GitHub Actions CI (Node 20 and 22,
 lint/typecheck/test/build) · Renovate or Dependabot.
+
+## 14. DMN (`packages/dmn`)
+
+`.dmnt` files ([dmn-notation.md](dmn-notation.md), ADR-015) go through a pipeline
+of their own, which reuses the core lexer (with table rows and `literal` as raw
+text), diagnostics, suggestions, colours and slugs, and the layout package's ELK.
+
+```mermaid
+flowchart LR
+  src[".dmnt source"] --> lex[Core lexer]
+  lex --> parse[DMN parser]
+  parse --> ast[(DMN AST)]
+  ast --> build[Model builder]
+  build --> ir[(DMN model)]
+  ir --> validate[Validator]
+  ir --> feel[FEEL in cells, lezer-feel]
+  feel --> checks[Table checks]
+  ir --> layout[DRD layout, ELK]
+  ir --> gen[DMN generator, dmn-moddle]
+  layout --> gen
+  gen --> xml[".dmn XML"]
+  xml --> render[Renderer, dmn-js] --> img[".svg / .png"]
+  ast --> fmt[Formatter] --> src2[".dmnt (aligned tables)"]
+  parse -. diagnostics .-> diag[(Diagnostics)]
+  build -. diagnostics .-> diag
+  validate -. diagnostics .-> diag
+  feel -. diagnostics .-> diag
+  checks -. diagnostics .-> diag
+```
+
+- **Parser.** Table rows come from the lexer whole; the parser splits them at
+  unescaped `|`, reads the heading (`->` before the first output, `//` before
+  the annotation column, `Name: type in values`) and keeps each cell's range.
+- **Model builder.** Resolves `[requires: …]` into information, knowledge and
+  authority requirements by the kinds of their ends, and gives every element,
+  table, column, rule and cell a deterministic ID and a source range.
+- **FEEL.** Each input cell is parsed as unary tests, each output cell, input
+  expression and literal as an expression, with the element's requirements as
+  the names lezer-feel knows. Literals and simple tests become intervals and
+  value sets for the table checks; anything else is "unknown".
+- **Table checks.** Each input column is cut into segments (points and the gaps
+  between them, or listed values, plus "any other string"); a rule is a box of
+  segment sets, held as bitmasks. Overlaps are box intersections; gaps and
+  rules that can never be chosen come from subtracting boxes, capped so that a
+  wide table gives up rather than slows down. Rules with an unknown entry are
+  left out, never guessed.
+- **Layout.** ELK layered, bottom to top, orthogonal routing; shapes widen for
+  long names. `checkDrdLayout` checks overlaps and routes through shapes and
+  reports area, edge length, bends and crossings for the baselines.
+- **Generator.** dmn-moddle writes DMN 1.3; colours are the OMG non-normative
+  colour attributes on shapes, as in the BPMN output (ADR-011), because
+  dmn-moddle reads DMNDI styles wrongly.
+- **Linking.** A BPMN business rule task's `[decision: …]` is checked by the core
+  validator against the decisions it is given (`check(source, { decisions })`),
+  which the CLI and the language server read from the `.dmnt` files beside the
+  `.bpmnt` file.
