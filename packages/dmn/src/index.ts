@@ -39,3 +39,8 @@ export {
   type DmnCompileOptions,
   type DmnCompileResult,
 } from './compile.js';
+export {
+  dmnReferenceText,
+  suggestDmn,
+  type DmnCompletionData,
+} from './completion.js';

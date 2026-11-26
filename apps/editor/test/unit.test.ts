@@ -1,12 +1,19 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { StringStream } from '@codemirror/language';
 import { describe, expect, it, vi } from 'vitest';
 import { compileSource, type Compiled } from '../src/compile.js';
 import { Compiler } from '../src/compiler.js';
+import { dmnTextParser } from '../src/dmn-language.js';
 import { bpmnTextParser, referenceText, suggest } from '../src/language.js';
 import { toLint } from '../src/lint.js';
-import { fileName, shareHash, sourceFromHash } from '../src/share.js';
+import {
+  fileName,
+  languageFromHash,
+  shareHash,
+  sourceFromHash,
+} from '../src/share.js';
+import { nextCell } from '../src/table.js';
 import { elementAt } from '../src/sync.js';
 
 const examples = join(import.meta.dirname, '../../../examples');
@@ -251,5 +258,89 @@ describe('compiler (#38)', () => {
     // on their own, so CI checks 200 ms in a step of its own, without coverage.
     const limit = process.env.BPMN_TEXT_COVERAGE ? 1000 : 200;
     expect(Math.min(...runs.map((r) => r.ms))).toBeLessThan(limit);
+  });
+});
+
+describe('DMN in the editor (#79)', () => {
+  function dmnHighlight(text: string): string[][] {
+    const state = dmnTextParser.startState!(2);
+    return text.split('\n').map((line) => {
+      const stream = new StringStream(line, 2, 2);
+      const tokens: string[] = [];
+      while (!stream.eol()) {
+        const style = dmnTextParser.token(stream, state);
+        const token = line.slice(stream.start, stream.pos).trim();
+        if (token) tokens.push(`${token}:${style ?? '-'}`);
+        stream.start = stream.pos;
+      }
+      return tokens;
+    });
+  }
+
+  it('marks keywords, attributes, table bars, markers and FEEL in cells', () => {
+    const lines = dmnHighlight(`decision Pass [requires: Score]
+  table [hit: first]
+    | Number of guests | -> Pass: boolean | // Why |
+    | >= 50 | true | not if |
+  literal if Score > 1 then "a" else "b"`);
+    expect(lines[0]).toEqual(
+      expect.arrayContaining(['decision:keyword', 'requires:attributeName']),
+    );
+    expect(lines[2]).toEqual(
+      expect.arrayContaining([
+        '|:punctuation',
+        '->:operator',
+        ': boolean:typeName',
+        '//:operator',
+      ]),
+    );
+    expect(lines[2]).not.toContain('of:keyword');
+    expect(lines[3]).toEqual(
+      expect.arrayContaining(['>=:operator', '50:number', 'true:keyword']),
+    );
+    // The annotation column is plain text, even where it reads as FEEL.
+    expect(lines[3]).toContain('not if:comment');
+    expect(lines[4]).toEqual(
+      expect.arrayContaining(['literal:keyword', 'if:keyword', '"a":string']),
+    );
+  });
+
+  it('reads every DMN example without throwing', () => {
+    for (const f of readdirSync(join(examples, 'dmn')).filter((x) =>
+      x.endsWith('.dmnt'),
+    ))
+      dmnHighlight(readFileSync(join(examples, 'dmn', f), 'utf8'));
+  });
+
+  it('compiles DMN in the worker pipeline, with its decisions', async () => {
+    const result = await compileSource(
+      readFileSync(join(examples, 'dmn/02-dinner.dmnt'), 'utf8'),
+      'dmn',
+    );
+    expect(result.language).toBe('dmn');
+    expect(result.xml).toContain('<dmn:decisionTable');
+    expect(result.decisions?.map((d) => [d.id, d.logic])).toEqual([
+      ['Decision_dish', 'table'],
+      ['Decision_beverages', 'table'],
+      ['Decision_shopping_list', 'literal'],
+    ]);
+    expect(result.names).toContain('Recipe book');
+    expect(result.sourceMap.UnaryTests_dish_1_1).toBeDefined();
+  });
+
+  it('moves between cells with Tab and Shift-Tab', () => {
+    const row = '    | >= 700 | <= 50000 |      | x |';
+    expect(nextCell(row, 7)).toEqual({ from: 15, to: 23 });
+    expect(nextCell(row, 17)).toEqual({ from: 26, to: 26 });
+    expect(nextCell(row, 17, true)).toEqual({ from: 6, to: 12 });
+    expect(nextCell(row, 35)).toBeUndefined();
+    expect(nextCell('  table', 3)).toBeUndefined();
+  });
+
+  it('keeps the notation in share links', () => {
+    const hash = shareHash('input A\n', 'dmn');
+    expect(languageFromHash(hash)).toBe('dmn');
+    expect(sourceFromHash(hash)).toBe('input A\n');
+    expect(languageFromHash(shareHash('start\n'))).toBe('bpmn');
   });
 });

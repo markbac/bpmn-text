@@ -3,7 +3,13 @@ import { join } from 'node:path';
 import type { Diagnostic } from '@bpmn-text/core';
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { checkDmn, formatDmn, parseDmn, type DmnModel } from '../src/index.js';
+import {
+  checkDmn,
+  formatDmn,
+  parseDmn,
+  suggestDmn,
+  type DmnModel,
+} from '../src/index.js';
 
 const root = join(import.meta.dirname, '../../..');
 const read = (file: string) => readFileSync(join(root, file), 'utf8');
@@ -405,5 +411,38 @@ decision D [requires: A, B]
     const took = performance.now() - start;
     expect(diagnostics.map((d) => d.code)).toContain('BT531');
     expect(took).toBeLessThan(process.env.BPMN_TEXT_COVERAGE ? 250 : 50);
+  });
+});
+
+describe('DMN completion (#79, #82)', () => {
+  const data = { names: ['Credit score', 'Loan amount', 'Risk policy'] };
+  const labels = (before: string, previous?: string) =>
+    suggestDmn(before, data, previous)?.options.map((o) => o.label);
+
+  it('offers keywords at the start of a line', () => {
+    expect(labels('dec')).toContain('decision');
+    expect(labels('  ta')).toEqual(['doc', 'table', 'literal']);
+  });
+
+  it('offers attributes, names, types and hit policies in […]', () => {
+    expect(labels('decision A [')).toContain('requires');
+    expect(labels('decision A [requires: Cre')).toEqual(data.names);
+    expect(labels('decision A [requires: Credit score, ')).toContain(
+      'Loan amount',
+    );
+    expect(labels('decision A [requires: Credit score, ')).toContain('type');
+    expect(labels('input A [type: num')).toContain('number');
+    expect(labels('  table [hit: ')).toContain('collect sum');
+    expect(suggestDmn('decision A [requires: Cre', data)!.from).toBe(22);
+  });
+
+  it('offers names and types in a table heading only', () => {
+    expect(labels('    | Cre', '  table')).toEqual(data.names);
+    expect(labels('    | Credit score | -> Ok: bo', '  table')).toContain(
+      'boolean',
+    );
+    expect(
+      labels('    | >= 7', '    | Credit score | -> Ok |'),
+    ).toBeUndefined();
   });
 });
