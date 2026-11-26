@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmn:definitions xmlns:dmn="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" id="Definitions_loan_approval" name="Loan approval" namespace="http://bpmn.io/schema/dmn" exporter="bpmn-text">
+  <dmn:inputData id="InputData_credit_score" name="Credit score">
+    <dmn:variable id="InformationItem_credit_score" name="Credit score" typeRef="number" />
+  </dmn:inputData>
+  <dmn:inputData id="InputData_loan_amount" name="Loan amount">
+    <dmn:variable id="InformationItem_loan_amount" name="Loan amount" typeRef="number" />
+  </dmn:inputData>
+  <dmn:businessKnowledgeModel id="BusinessKnowledgeModel_risk_policy" name="Risk policy">
+    <dmn:variable id="InformationItem_risk_policy" name="Risk policy" />
+  </dmn:businessKnowledgeModel>
+  <dmn:knowledgeSource id="KnowledgeSource_lending_guidelines" name="Lending guidelines" />
+  <dmn:decision id="Decision_approve_loan" name="Approve loan">
+    <dmn:description>Whether the bank lends, and why.</dmn:description>
+    <dmn:informationRequirement id="InformationRequirement_credit_score__approve_loan">
+      <dmn:requiredInput href="#InputData_credit_score" />
+    </dmn:informationRequirement>
+    <dmn:informationRequirement id="InformationRequirement_loan_amount__approve_loan">
+      <dmn:requiredInput href="#InputData_loan_amount" />
+    </dmn:informationRequirement>
+    <dmn:knowledgeRequirement id="KnowledgeRequirement_risk_policy__approve_loan">
+      <dmn:requiredKnowledge href="#BusinessKnowledgeModel_risk_policy" />
+    </dmn:knowledgeRequirement>
+    <dmn:authorityRequirement id="AuthorityRequirement_lending_guidelines__approve_loan">
+      <dmn:requiredAuthority href="#KnowledgeSource_lending_guidelines" />
+    </dmn:authorityRequirement>
+    <dmn:decisionTable id="DecisionTable_approve_loan">
+      <dmn:input id="InputClause_approve_loan_1">
+        <dmn:inputExpression id="InputExpression_approve_loan_1" typeRef="number">
+          <dmn:text>Credit score</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:input id="InputClause_approve_loan_2">
+        <dmn:inputExpression id="InputExpression_approve_loan_2" typeRef="number">
+          <dmn:text>Loan amount</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:output id="OutputClause_approve_loan_1" name="Approved" typeRef="boolean" />
+      <dmn:output id="OutputClause_approve_loan_2" name="Reason" typeRef="string" />
+      <dmn:rule id="Rule_approve_loan_1">
+        <dmn:description>Standard approval</dmn:description>
+        <dmn:inputEntry id="UnaryTests_approve_loan_1_1">
+          <dmn:text>&gt;= 700</dmn:text>
+        </dmn:inputEntry>
+        <dmn:inputEntry id="UnaryTests_approve_loan_1_2">
+          <dmn:text>&lt;= 50000</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_approve_loan_1_1">
+          <dmn:text>true</dmn:text>
+        </dmn:outputEntry>
+        <dmn:outputEntry id="LiteralExpression_approve_loan_1_2">
+          <dmn:text>"Good score"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_approve_loan_2">
+        <dmn:description>Refer to a specialist</dmn:description>
+        <dmn:inputEntry id="UnaryTests_approve_loan_2_1">
+          <dmn:text>&gt;= 700</dmn:text>
+        </dmn:inputEntry>
+        <dmn:inputEntry id="UnaryTests_approve_loan_2_2">
+          <dmn:text>&gt; 50000</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_approve_loan_2_1">
+          <dmn:text>false</dmn:text>
+        </dmn:outputEntry>
+        <dmn:outputEntry id="LiteralExpression_approve_loan_2_2">
+          <dmn:text>"Amount too high"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_approve_loan_3">
+        <dmn:inputEntry id="UnaryTests_approve_loan_3_1">
+          <dmn:text>&lt; 700</dmn:text>
+        </dmn:inputEntry>
+        <dmn:inputEntry id="UnaryTests_approve_loan_3_2">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_approve_loan_3_1">
+          <dmn:text>false</dmn:text>
+        </dmn:outputEntry>
+        <dmn:outputEntry id="LiteralExpression_approve_loan_3_2">
+          <dmn:text>"Low score"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+    </dmn:decisionTable>
+  </dmn:decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="DMNDiagram_1">
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_credit_score__approve_loan" dmnElementRef="InformationRequirement_credit_score__approve_loan">
+        <di:waypoint x="95" y="172" />
+        <di:waypoint x="95" y="162" />
+        <di:waypoint x="224" y="162" />
+        <di:waypoint x="224" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_loan_amount__approve_loan" dmnElementRef="InformationRequirement_loan_amount__approve_loan">
+        <di:waypoint x="260" y="172" />
+        <di:waypoint x="260" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_KnowledgeRequirement_risk_policy__approve_loan" dmnElementRef="KnowledgeRequirement_risk_policy__approve_loan">
+        <di:waypoint x="430" y="172" />
+        <di:waypoint x="430" y="162" />
+        <di:waypoint x="296" y="162" />
+        <di:waypoint x="296" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_AuthorityRequirement_lending_guidelines__approve_loan" dmnElementRef="AuthorityRequirement_lending_guidelines__approve_loan">
+        <di:waypoint x="587" y="172" />
+        <di:waypoint x="587" y="152" />
+        <di:waypoint x="332" y="152" />
+        <di:waypoint x="332" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNShape id="DMNShape_InputData_credit_score" dmnElementRef="InputData_credit_score">
+        <dc:Bounds height="45" width="125" x="32" y="172" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_InputData_loan_amount" dmnElementRef="InputData_loan_amount">
+        <dc:Bounds height="45" width="125" x="197" y="172" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_BusinessKnowledgeModel_risk_policy" dmnElementRef="BusinessKnowledgeModel_risk_policy">
+        <dc:Bounds height="46" width="135" x="362" y="172" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_KnowledgeSource_lending_guidelines" dmnElementRef="KnowledgeSource_lending_guidelines">
+        <dc:Bounds height="63" width="100" x="537" y="172" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_Decision_approve_loan" dmnElementRef="Decision_approve_loan">
+        <dc:Bounds height="80" width="180" x="188" y="32" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</dmn:definitions>
+

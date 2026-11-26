@@ -9,7 +9,13 @@ import {
   join,
   resolve,
 } from 'node:path';
-import { format as formatSource, parse, type Model } from '@bpmn-text/core';
+import {
+  format as formatSource,
+  parse,
+  type Diagnostic,
+  type Model,
+} from '@bpmn-text/core';
+import { formatDmn, parseDmn } from '@bpmn-text/dmn';
 import type { Renderer } from '@bpmn-text/render';
 import { watch } from 'chokidar';
 import {
@@ -20,7 +26,14 @@ import {
 } from 'commander';
 import { glob, isDynamicPattern } from 'tinyglobby';
 import { codeFrame, paint, summary } from './frame.js';
-import { check, compile, composeLegend, legend } from './index.js';
+import {
+  check,
+  checkDmn,
+  compile,
+  compileDmn,
+  composeLegend,
+  legend,
+} from './index.js';
 
 /** Where the CLI reads and writes, so that tests can run it in-process. */
 export interface Io {
@@ -40,12 +53,24 @@ const USAGE = 2;
 
 class UsageError extends Error {}
 
+type Language = 'bpmn' | 'dmn';
+
 interface Input {
   /** As shown in messages: the path as given, or `<stdin>`. */
   name: string;
   /** Absolute path; absent for stdin. */
   path?: string;
 }
+
+/** The language of a file, by its extension; stdin is BPMN unless told. */
+const languageOf = (input: Input, given?: Language): Language =>
+  given ?? (input.path && /\.dmnt$/i.test(input.path) ? 'dmn' : 'bpmn');
+
+const languageOption = () =>
+  new Option(
+    '-l, --language <language>',
+    'notation of the input (default: by extension, .dmnt for DMN, else BPMN)',
+  ).choices(['bpmn', 'dmn']);
 
 const { version } = createRequire(import.meta.url)('../package.json') as {
   version: string;
@@ -133,14 +158,20 @@ export async function run(args: string[], io: Io): Promise<number> {
 
   program
     .command('build')
-    .description('Compile .bpmnt files to .bpmn, .svg or .png.')
+    .description(
+      'Compile .bpmnt files to .bpmn and .dmnt files to .dmn, or either to .svg or .png.',
+    )
     .argument('[files...]', 'files or globs; - or none for stdin')
     .option('-o, --out <path>', 'output file or directory (default: stdout)')
     .addOption(
-      new Option('-f, --format <format>', 'output format')
-        .choices(['bpmn', 'svg', 'png'])
+      new Option(
+        '-f, --format <format>',
+        'output format: bpmn (or dmn) for the XML, svg or png',
+      )
+        .choices(['bpmn', 'dmn', 'svg', 'png'])
         .default('bpmn'),
     )
+    .addOption(languageOption())
     .option('--scale <n>', 'PNG pixels per diagram unit', parseScale, 1)
     .option(
       '--legend',
@@ -152,7 +183,8 @@ export async function run(args: string[], io: Io): Promise<number> {
         patterns: string[],
         opts: {
           out?: string;
-          format: 'bpmn' | 'svg' | 'png';
+          format: 'bpmn' | 'dmn' | 'svg' | 'png';
+          language?: Language;
           scale: number;
           legend?: boolean;
           watch?: boolean;
@@ -173,10 +205,19 @@ export async function run(args: string[], io: Io): Promise<number> {
           throw new UsageError('Use -o <file> to build from stdin.');
         }
         let renderer: Promise<Renderer> | undefined;
-        const render = async (xml: string): Promise<string | Uint8Array> => {
-          if (opts.format === 'bpmn') return xml;
+        const xmlFormat = opts.format === 'bpmn' || opts.format === 'dmn';
+        const render = async (
+          xml: string,
+          language: Language,
+        ): Promise<string | Uint8Array> => {
+          if (xmlFormat) return xml;
           renderer ??= startRenderer();
           const r = await renderer;
+          if (language === 'dmn') {
+            return opts.format === 'svg'
+              ? r.dmnSvg(xml)
+              : r.dmnPng(xml, { scale: opts.scale });
+          }
           return opts.format === 'svg'
             ? r.svg(xml)
             : r.png(xml, { scale: opts.scale });
@@ -184,7 +225,11 @@ export async function run(args: string[], io: Io): Promise<number> {
 
         async function buildOne(input: Input): Promise<number> {
           const source = await read(input);
-          const result = await compile(source);
+          const language = languageOf(input, opts.language);
+          const result =
+            language === 'dmn'
+              ? await compileDmn(source)
+              : await compile(source);
           const shown = result.diagnostics.filter((d) => d.severity !== 'info');
           for (const d of shown) {
             io.stderr.write(codeFrame(d, source, input.name, err));
@@ -192,27 +237,43 @@ export async function run(args: string[], io: Io): Promise<number> {
           if (result.diagnostics.some((d) => d.severity === 'error')) {
             return INPUT_ERRORS;
           }
-          const output = await render(result.xml);
+          const output = await render(result.xml, language);
+          const extension = xmlFormat ? language : opts.format;
           if (opts.out === undefined) {
             io.stdout.write(output);
           } else {
             const target = toDirectory
               ? join(
                   resolve(io.cwd, opts.out),
-                  `${basename(input.path!, extname(input.path!))}.${opts.format}`,
+                  `${basename(input.path!, extname(input.path!))}.${extension}`,
                 )
               : resolve(io.cwd, opts.out);
             await mkdir(dirname(target), { recursive: true });
             await writeFile(target, output);
-            if (opts.legend) {
+            const stem = target.slice(0, -extname(target).length || undefined);
+            if (language === 'dmn' && opts.format === 'png') {
+              // dmn-js draws tables as HTML: one picture per table.
+              renderer ??= startRenderer();
+              const tables = await (
+                await renderer
+              ).dmnTables(result.xml, { scale: opts.scale });
+              for (const t of tables) {
+                await writeFile(`${stem}.${tableFileName(t.id)}.png`, t.png);
+              }
+            }
+            if (opts.legend && language === 'dmn') {
+              io.stderr.write(
+                `${input.name}: --legend draws BPMN symbols only; no key written.\n`,
+              );
+            } else if (opts.legend) {
               // A .bpmn file has no image format to follow, so SVG.
               const format = opts.format === 'png' ? 'png' : 'svg';
               renderer ??= startRenderer();
               await writeFile(
-                `${target.slice(0, -extname(target).length || undefined)}.legend.${format}`,
+                `${stem}.legend.${format}`,
                 await keyImage(
                   await renderer,
-                  result.model,
+                  result.model as Model,
                   format,
                   opts.scale,
                 ),
@@ -279,6 +340,11 @@ export async function run(args: string[], io: Io): Promise<number> {
         let renderer: Promise<Renderer> | undefined;
         try {
           for (const input of files) {
+            if (languageOf(input) === 'dmn') {
+              throw new UsageError(
+                `${input.name}: the key is for BPMN symbols; DMN has none.`,
+              );
+            }
             const source = await read(input);
             const { model, diagnostics } = check(source);
             for (const d of diagnostics) {
@@ -317,19 +383,23 @@ export async function run(args: string[], io: Io): Promise<number> {
 
   program
     .command('check')
-    .description('Check .bpmnt files and report problems.')
+    .description('Check .bpmnt and .dmnt files and report problems.')
     .argument('[files...]', 'files or globs; - or none for stdin')
     .addOption(
       new Option('-f, --format <format>', 'report format')
         .choices(['text', 'json'])
         .default('text'),
     )
-    .action(async (patterns: string[], opts: { format: 'text' | 'json' }) => {
+    .addOption(languageOption())
+    .action(async (patterns: string[], opts: CheckOpts) => {
       const out = color(io.stdout);
       const report: { file: string; diagnostics: unknown[] }[] = [];
       for (const input of await inputs(patterns)) {
         const source = await read(input);
-        const { diagnostics } = check(source);
+        const { diagnostics }: { diagnostics: Diagnostic[] } =
+          languageOf(input, opts.language) === 'dmn'
+            ? checkDmn(source)
+            : check(source);
         if (diagnostics.some((d) => d.severity === 'error')) fail(INPUT_ERRORS);
         if (opts.format === 'json') {
           report.push({ file: input.name, diagnostics });
@@ -347,15 +417,17 @@ export async function run(args: string[], io: Io): Promise<number> {
 
   program
     .command('fmt')
-    .description('Rewrite .bpmnt files in canonical style.')
+    .description('Rewrite .bpmnt and .dmnt files in canonical style.')
     .argument('[files...]', 'files or globs; - or none for stdin to stdout')
     .option('--check', 'list files that are not formatted, without writing')
-    .action(async (patterns: string[], opts: { check?: boolean }) => {
+    .addOption(languageOption())
+    .action(async (patterns: string[], opts: FmtOpts) => {
       for (const input of await inputs(patterns)) {
         const source = await read(input);
-        const errors = parse(source).diagnostics.filter(
-          (d) => d.severity === 'error',
-        );
+        const dmn = languageOf(input, opts.language) === 'dmn';
+        const errors = (
+          dmn ? parseDmn(source) : parse(source)
+        ).diagnostics.filter((d) => d.severity === 'error');
         if (errors.length > 0) {
           for (const d of errors) {
             io.stderr.write(codeFrame(d, source, input.name, err));
@@ -363,7 +435,7 @@ export async function run(args: string[], io: Io): Promise<number> {
           fail(INPUT_ERRORS);
           continue;
         }
-        const formatted = formatSource(source);
+        const formatted = dmn ? formatDmn(source) : formatSource(source);
         if (opts.check) {
           if (formatted !== source) {
             io.stdout.write(`${input.name}\n`);
@@ -393,6 +465,21 @@ export async function run(args: string[], io: Io): Promise<number> {
     return USAGE;
   }
   return code;
+}
+
+interface CheckOpts {
+  format: 'text' | 'json';
+  language?: Language;
+}
+
+interface FmtOpts {
+  check?: boolean;
+  language?: Language;
+}
+
+/** `Decision_approve_loan` → `approve_loan`, for a table's picture. */
+function tableFileName(id: string): string {
+  return id.replace(/^Decision_/, '').replace(/[^\w-]+/g, '_');
 }
 
 function parseScale(value: string): number {

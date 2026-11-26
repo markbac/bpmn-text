@@ -1,0 +1,3 @@
+# BT104: A colour that is not one.
+# expect: BT104 @ 3:21
+input Score [color: blurple]

@@ -1,0 +1,8 @@
+# BT502: A table without `->` before its output column.
+# expect: BT502 @ 6:5
+input Score [type: number]
+decision Pass [requires: Score]
+  table
+    | Score | Pass  |
+    | >= 50 | true  |
+    | < 50  | false |

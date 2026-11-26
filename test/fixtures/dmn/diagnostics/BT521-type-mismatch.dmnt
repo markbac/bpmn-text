@@ -1,0 +1,9 @@
+# BT521: Values of the wrong type for their columns.
+# expect: BT521 @ 8:7
+# expect: BT521 @ 9:16
+input Score [type: number]
+decision Pass [requires: Score]
+  table
+    | Score  | -> Pass: boolean |
+    | "high" | true             |
+    | < 0    | "yes"            |

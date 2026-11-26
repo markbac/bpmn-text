@@ -1,0 +1,7 @@
+# BT514: `collect sum` over two outputs.
+# expect: BT514 @ 5:10
+input Item [type: string]
+decision Points [requires: Item]
+  table [hit: collect sum]
+    | Item | -> Points: number | Bonus: number |
+    | -    | 1                 | 0             |

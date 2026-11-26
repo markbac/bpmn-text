@@ -4,11 +4,12 @@ import { diagnostic, diagnosticCodes } from '../src/diagnostics.js';
 import { didYouMean, editDistance } from '../src/suggest.js';
 
 describe('diagnostic code registry', () => {
-  it('matches the table in notation §11', () => {
-    const notation = readFileSync(
-      new URL('../../../docs/notation.md', import.meta.url),
-      'utf8',
-    );
+  it('matches the tables in notation §11 and dmn-notation §9', () => {
+    const notation = ['notation.md', 'dmn-notation.md']
+      .map((f) =>
+        readFileSync(new URL(`../../../docs/${f}`, import.meta.url), 'utf8'),
+      )
+      .join('\n');
     const table = [
       ...notation.matchAll(/^\| (BT\d{3}) \| (\w+) \| (.*) \|$/gm),
     ].map(([, code, severity, meaning]) => [code, { severity, meaning }]);

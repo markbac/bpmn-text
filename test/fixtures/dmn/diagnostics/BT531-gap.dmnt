@@ -1,0 +1,8 @@
+# BT531: No rule for scores from 600 up to 700.
+# expect: BT531 @ 5:3
+input Credit score [type: number]
+decision Grade [requires: Credit score]
+  table [hit: unique]
+    | Credit score | -> Grade |
+    | >= 700       | "A"      |
+    | < 600        | "C"      |

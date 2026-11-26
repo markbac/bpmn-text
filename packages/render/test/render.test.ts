@@ -67,3 +67,41 @@ describe('BPMN_TEXT_CHROMIUM', () => {
     }
   });
 });
+
+describe('DMN rendering (#78)', () => {
+  const dmn = readFileSync(
+    join(import.meta.dirname, '../../../examples/dmn/02-dinner.dmn'),
+    'utf8',
+  );
+
+  it('renders the DRD as SVG with dmn-js, with colours', async () => {
+    const svg = await (await renderer).dmnSvg(dmn);
+    expect(svg).toContain('Shopping list');
+    expect(svg).toContain('Recipe book');
+    // The knowledge source is orange.
+    expect(svg).toMatch(/fill: rgb\(255, 224, 178\)|fill:\s*#FFE0B2/i);
+  });
+
+  it('renders the DRD as PNG at the requested scale', async () => {
+    const r = await renderer;
+    const [w1, h1] = size(await r.dmnPng(dmn));
+    const [w2, h2] = size(await r.dmnPng(dmn, { scale: 2 }));
+    expect([w2, h2]).toEqual([w1! * 2, h1! * 2]);
+  });
+
+  it('renders each decision table as PNG, without the watermark or buttons', async () => {
+    const r = await renderer;
+    const tables = await r.dmnTables(dmn);
+    expect(tables.map((t) => t.id)).toEqual([
+      'Decision_dish',
+      'Decision_beverages',
+    ]);
+    const [w, h] = size(tables[0]!.png);
+    // The table is shrink-wrapped: far smaller than the 4000 px page.
+    expect(w).toBeGreaterThan(300);
+    expect(w).toBeLessThan(1500);
+    expect(h).toBeLessThan(600);
+    const [w2] = size((await r.dmnTables(dmn, { scale: 2 }))[0]!.png);
+    expect(w2).toBe(w! * 2);
+  });
+});

@@ -12,6 +12,7 @@ import {
  * - `id`: `@name`; `value` is the name without the `@`.
  * - `op`: an operator; `value` is its symbol.
  * - `raw`: a line of `doc` text, which is never tokenized further.
+ * - `row`: a table row (`| a | b |`), as written, for the DMN notation.
  */
 export type TokenKind =
   | 'text'
@@ -19,6 +20,7 @@ export type TokenKind =
   | 'id'
   | 'op'
   | 'raw'
+  | 'row'
   | 'newline'
   | 'indent'
   | 'dedent'
@@ -43,6 +45,13 @@ export interface LexResult {
   diagnostics: Diagnostic[];
 }
 
+export interface LexOptions {
+  /** Keywords whose line, or indented block, is raw text. Default `['doc']`. */
+  raw?: readonly string[];
+  /** Lines starting with `|` are table rows (DMN notation). Default false. */
+  rows?: boolean;
+}
+
 const ID = /^[A-Za-z_][A-Za-z0-9_-]*/;
 const isSpace = (c: string | undefined) => c === ' ' || c === '\t';
 
@@ -50,7 +59,10 @@ const isSpace = (c: string | undefined) => c === ' ' || c === '\t';
  * Splits source text into tokens. Never throws: problems are reported as
  * diagnostics (BT002, BT003, BT004) and lexing continues.
  */
-export function lex(source: string): LexResult {
+export function lex(source: string, options: LexOptions = {}): LexResult {
+  const rawKeyword = new RegExp(
+    `^(${(options.raw ?? ['doc']).join('|')})(?=$|[ \t])`,
+  );
   const tokens: Token[] = [];
   const comments: Comment[] = [];
   const diagnostics: Diagnostic[] = [];
@@ -159,12 +171,20 @@ export function lex(source: string): LexResult {
       }
     }
 
+    if (options.rows && text[first] === '|') {
+      push('row', text.slice(first).trimEnd(), first, text.trimEnd().length);
+      push('newline', '', text.length, text.length);
+      continue;
+    }
+
     // `doc` takes the rest of the line, or the indented block below it, as
     // raw text (notation §4.6).
-    if (/^doc(?=$|[ \t])/.test(text.slice(first))) {
-      push('text', 'doc', first, first + 3);
-      const rest = text.slice(first + 3);
-      const from = first + 3 + (rest.length - rest.trimStart().length);
+    const keyword = rawKeyword.exec(text.slice(first))?.[1];
+    if (keyword) {
+      const k = keyword.length;
+      push('text', keyword, first, first + k);
+      const rest = text.slice(first + k);
+      const from = first + k + (rest.length - rest.trimStart().length);
       if (rest.trim()) push('raw', rest.trim(), from, text.trimEnd().length);
       else doc = { indent: width, blanks: [] };
       push('newline', '', text.length, text.length);

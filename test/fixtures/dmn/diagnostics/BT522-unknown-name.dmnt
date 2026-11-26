@@ -1,0 +1,5 @@
+# BT522: A name that is not a requirement (did you mean `Order total`?).
+# expect: BT522 @ 5:14
+input Order total [type: number]
+decision Discount [requires: Order total]
+  literal if Order totl > 100 then 0.1 else 0

@@ -7,6 +7,7 @@ const conditions = ['source', 'node', 'import', 'module', 'default'];
 const workspaces = [
   'packages/core',
   'packages/layout',
+  'packages/dmn',
   'packages/bpmn',
   'packages/render',
   'packages/cli',

@@ -1,0 +1,11 @@
+# A knowledge model with parameters and a multi-line literal, used by a decision.
+# covers: §2, §3, §5, §5.1
+input Income [type: number]
+knowledge Tax due [params: Amount, type: number]
+  literal
+    if Amount > 50000
+    then Amount * 0.4
+    else Amount * 0.2
+
+decision Tax [requires: Income, Tax due, type: number]
+  literal Tax due(Income)

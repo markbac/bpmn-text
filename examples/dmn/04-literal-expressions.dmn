@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmn:definitions xmlns:dmn="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" id="Definitions_shipping" name="Shipping" namespace="http://bpmn.io/schema/dmn" exporter="bpmn-text">
+  <dmn:inputData id="InputData_order_total" name="Order total">
+    <dmn:variable id="InformationItem_order_total" name="Order total" typeRef="number" />
+  </dmn:inputData>
+  <dmn:inputData id="InputData_order_date" name="Order date">
+    <dmn:variable id="InformationItem_order_date" name="Order date" typeRef="date" />
+  </dmn:inputData>
+  <dmn:inputData id="InputData_destination" name="Destination">
+    <dmn:variable id="InformationItem_destination" name="Destination" typeRef="string" />
+  </dmn:inputData>
+  <dmn:businessKnowledgeModel id="BusinessKnowledgeModel_rate" name="Rate">
+    <dmn:description>The carrier rate per kilogram, by zone.</dmn:description>
+    <dmn:variable id="InformationItem_rate" name="Rate" typeRef="number" />
+    <dmn:encapsulatedLogic id="FunctionDefinition_rate">
+      <dmn:formalParameter id="InformationItem_rate_1" name="Weight" />
+      <dmn:formalParameter id="InformationItem_rate_2" name="Zone" />
+      <dmn:literalExpression id="LiteralExpression_rate">
+        <dmn:text>if Zone = "abroad" then Weight * 4 else Weight * 1.5</dmn:text>
+      </dmn:literalExpression>
+    </dmn:encapsulatedLogic>
+  </dmn:businessKnowledgeModel>
+  <dmn:decision id="Decision_free_shipping" name="Free shipping">
+    <dmn:variable id="InformationItem_free_shipping" name="Free shipping" typeRef="boolean" />
+    <dmn:informationRequirement id="InformationRequirement_order_total__free_shipping">
+      <dmn:requiredInput href="#InputData_order_total" />
+    </dmn:informationRequirement>
+    <dmn:informationRequirement id="InformationRequirement_order_date__free_shipping">
+      <dmn:requiredInput href="#InputData_order_date" />
+    </dmn:informationRequirement>
+    <dmn:literalExpression id="LiteralExpression_free_shipping">
+      <dmn:text>Order total &gt;= 100
+or Order date &lt; date("2027-01-01")</dmn:text>
+    </dmn:literalExpression>
+  </dmn:decision>
+  <dmn:decision id="Decision_shipping_cost" name="Shipping cost">
+    <dmn:variable id="InformationItem_shipping_cost" name="Shipping cost" typeRef="number" />
+    <dmn:informationRequirement id="InformationRequirement_free_shipping__shipping_cost">
+      <dmn:requiredDecision href="#Decision_free_shipping" />
+    </dmn:informationRequirement>
+    <dmn:informationRequirement id="InformationRequirement_destination__shipping_cost">
+      <dmn:requiredInput href="#InputData_destination" />
+    </dmn:informationRequirement>
+    <dmn:knowledgeRequirement id="KnowledgeRequirement_rate__shipping_cost">
+      <dmn:requiredKnowledge href="#BusinessKnowledgeModel_rate" />
+    </dmn:knowledgeRequirement>
+    <dmn:literalExpression id="LiteralExpression_shipping_cost">
+      <dmn:text>if Free shipping then 0 else Rate(2, Destination)</dmn:text>
+    </dmn:literalExpression>
+  </dmn:decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="DMNDiagram_1">
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_order_total__free_shipping" dmnElementRef="InformationRequirement_order_total__free_shipping">
+        <di:waypoint x="327" y="312" />
+        <di:waypoint x="327" y="302" />
+        <di:waypoint x="432" y="302" />
+        <di:waypoint x="432" y="252" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_order_date__free_shipping" dmnElementRef="InformationRequirement_order_date__free_shipping">
+        <di:waypoint x="492" y="312" />
+        <di:waypoint x="492" y="252" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_free_shipping__shipping_cost" dmnElementRef="InformationRequirement_free_shipping__shipping_cost">
+        <di:waypoint x="462" y="172" />
+        <di:waypoint x="462" y="162" />
+        <di:waypoint x="310" y="162" />
+        <di:waypoint x="310" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_destination__shipping_cost" dmnElementRef="InformationRequirement_destination__shipping_cost">
+        <di:waypoint x="95" y="172" />
+        <di:waypoint x="95" y="162" />
+        <di:waypoint x="220" y="162" />
+        <di:waypoint x="220" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_KnowledgeRequirement_rate__shipping_cost" dmnElementRef="KnowledgeRequirement_rate__shipping_cost">
+        <di:waypoint x="265" y="172" />
+        <di:waypoint x="265" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNShape id="DMNShape_InputData_order_total" dmnElementRef="InputData_order_total">
+        <dc:Bounds height="45" width="125" x="265" y="312" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_InputData_order_date" dmnElementRef="InputData_order_date">
+        <dc:Bounds height="45" width="125" x="430" y="312" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_InputData_destination" dmnElementRef="InputData_destination">
+        <dc:Bounds height="45" width="125" x="32" y="172" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_BusinessKnowledgeModel_rate" dmnElementRef="BusinessKnowledgeModel_rate">
+        <dc:Bounds height="46" width="135" x="197" y="172" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_Decision_free_shipping" dmnElementRef="Decision_free_shipping">
+        <dc:Bounds height="80" width="180" x="372" y="172" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_Decision_shipping_cost" dmnElementRef="Decision_shipping_cost">
+        <dc:Bounds height="80" width="180" x="175" y="32" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</dmn:definitions>
+

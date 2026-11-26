@@ -1,0 +1,6 @@
+# BT511: Requirements DMN does not allow.
+# expect: BT511 @ 5:14
+# expect: BT511 @ 6:30
+input Score
+input Grade [requires: Score]
+knowledge Scoring [requires: Score]

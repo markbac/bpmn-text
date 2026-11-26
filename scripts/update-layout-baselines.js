@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 
 const result = spawnSync(
   'npx',
-  ['vitest', 'run', 'test/layout-baselines.test.ts'],
+  ['vitest', 'run', 'test/layout-baselines.test.ts', 'test/dmn.test.ts'],
   {
     stdio: 'inherit',
     shell: true,

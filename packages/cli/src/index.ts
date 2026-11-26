@@ -14,6 +14,21 @@ import {
 } from '@bpmn-text/layout';
 
 export { composeLegend, legend } from '@bpmn-text/bpmn';
+export {
+  checkDmn,
+  compileDmn,
+  dmnSourceMap,
+  formatDmn,
+  parseDmn,
+} from '@bpmn-text/dmn';
+export type {
+  DmnCheckOptions,
+  DmnCheckResult,
+  DmnCompileOptions,
+  DmnCompileResult,
+  DmnModel,
+  DrdLayout,
+} from '@bpmn-text/dmn';
 export { check, format, parse, sourceMap } from '@bpmn-text/core';
 export type {
   CheckOptions,

@@ -299,3 +299,98 @@ describe('bpmn-text fmt', () => {
     expect(stderr).toContain('error[BT001]');
   });
 });
+
+const dmnFixtures = readdirSync(
+  join(root, 'test/fixtures/dmn/diagnostics'),
+).filter((f) => f.endsWith('.dmnt'));
+
+describe('DMN in the CLI (#77)', () => {
+  it(
+    'builds .bpmnt and .dmnt files together into .bpmn and .dmn',
+    { timeout: 30_000 },
+    async () => {
+      const out = temp();
+      const { code, stderr } = await cli([
+        'build',
+        'examples/{01-simple.bpmnt,dmn/*.dmnt}',
+        '-o',
+        out,
+      ]);
+      expect(stderr).toBe('');
+      expect(code).toBe(0);
+      expect(readdirSync(out).sort()).toEqual([
+        '01-loan-approval.dmn',
+        '01-simple.bpmn',
+        '02-dinner.dmn',
+        '03-hit-policies.dmn',
+        '04-literal-expressions.dmn',
+      ]);
+      expect(readFileSync(join(out, '02-dinner.dmn'), 'utf8')).toContain(
+        '<dmndi:DMNDiagram',
+      );
+    },
+  );
+
+  it('reads DMN from stdin with --language dmn', async () => {
+    const source = 'input A\ndecision B [requires: A]\n  literal A\n';
+    const { code, stdout } = await cli(['build', '-l', 'dmn'], {
+      stdin: source,
+    });
+    expect(code).toBe(0);
+    expect(stdout).toContain('<dmn:decision id="Decision_b" name="B">');
+  });
+
+  it.each(dmnFixtures)('prints code frames for %s', async (f) => {
+    const { stdout } = await cli([
+      'check',
+      `test/fixtures/dmn/diagnostics/${f}`,
+    ]);
+    expect(stdout).toMatchSnapshot();
+  });
+
+  it('reports cell positions in JSON', async () => {
+    const { stdout, code } = await cli([
+      'check',
+      '-f',
+      'json',
+      'test/fixtures/dmn/diagnostics/BT521-type-mismatch.dmnt',
+    ]);
+    expect(code).toBe(1);
+    const [report] = JSON.parse(stdout) as {
+      diagnostics: {
+        code: string;
+        range: { start: { line: number; col: number } };
+      }[];
+    }[];
+    expect(
+      report!.diagnostics.map(
+        (d) => `${d.code} @ ${d.range.start.line}:${d.range.start.col}`,
+      ),
+    ).toEqual(['BT521 @ 8:7', 'BT521 @ 9:16']);
+  });
+
+  it('formats .dmnt files, aligning tables', async () => {
+    const dir = temp();
+    writeFileSync(
+      join(dir, 'a.dmnt'),
+      'input A\ndecision B [requires: A]\n  table\n    |A|->B|\n    |1|2|\n',
+    );
+    expect((await cli(['fmt', '--check', 'a.dmnt'], { cwd: dir })).code).toBe(
+      1,
+    );
+    expect((await cli(['fmt', 'a.dmnt'], { cwd: dir })).code).toBe(0);
+    expect(readFileSync(join(dir, 'a.dmnt'), 'utf8')).toBe(
+      'input A\n\ndecision B [requires: A]\n  table\n    | A | -> B |\n    | 1 | 2    |\n',
+    );
+    expect((await cli(['fmt', '--check', 'examples/dmn/*.dmnt'])).code).toBe(0);
+  });
+
+  it('has no key for DMN', async () => {
+    const { code, stderr } = await cli([
+      'legend',
+      'examples/dmn/01-loan-approval.dmnt',
+    ]);
+    expect(code).toBe(2);
+    expect(stderr).toContain('DMN has none');
+  });
+});

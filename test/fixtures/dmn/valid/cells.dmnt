@@ -1,0 +1,14 @@
+# Cells: escaped pipes, empty input cells, negation, booleans, dates, intervals and annotations.
+# covers: §4.1, §4.2
+input Code [type: string]
+input Member [type: boolean]
+input Joined [type: date]
+input Age [type: number]
+
+decision Label [requires: Code, Member, Joined, Age]
+  table [hit: first]
+    | Code          | Member | Joined                | Age       | -> Label: string | // Why          |
+    | "a\|b"        | -      | -                     | -         | "piped"          | Pipe in a value |
+    | not("x", "y") | true   | < date("2020-01-01")  | [18..65]  | "early member"   |                 |
+    | "x"           |        | >= date("2020-01-01") | (65..120] | "senior"         | Empty means any |
+    | -             | -      | -                     | -         | "other"          | Catch-all       |

@@ -1,0 +1,13 @@
+# BT517: Logic under input data, a second logic, and a table in a knowledge model.
+# expect: BT517 @ 6:3
+# expect: BT517 @ 9:3
+# expect: BT517 @ 11:3
+input Score
+  literal 1
+decision Pass [requires: Score]
+  literal true
+  literal false
+knowledge Rules
+  table
+    | Score | -> Pass |
+    | -     | true    |

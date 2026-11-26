@@ -1,0 +1,8 @@
+# BT504: A misspelt hit policy (did you mean `unique`?).
+# expect: BT504 @ 5:15
+input Score [type: number]
+decision Pass [requires: Score]
+  table [hit: unqiue]
+    | Score | -> Pass |
+    | >= 50 | true    |
+    | < 50  | false   |

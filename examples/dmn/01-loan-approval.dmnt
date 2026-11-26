@@ -1,0 +1,16 @@
+# Loan approval: one decision table, its inputs, a knowledge model and a source.
+# covers: §1, §2, §3, §4, §4.1, §4.3
+title Loan approval
+
+input Credit score [type: number]
+input Loan amount [type: number]
+knowledge Risk policy
+source Lending guidelines
+
+decision Approve loan [requires: Credit score, Loan amount, Risk policy, Lending guidelines]
+  doc Whether the bank lends, and why.
+  table [hit: unique]
+    | Credit score | Loan amount | -> Approved: boolean | Reason: string    | // Notes              |
+    | >= 700       | <= 50000    | true                 | "Good score"      | Standard approval     |
+    | >= 700       | > 50000     | false                | "Amount too high" | Refer to a specialist |
+    | < 700        | -           | false                | "Low score"       |                       |

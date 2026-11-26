@@ -1,0 +1,9 @@
+# Hit policies written with their short names.
+# covers: §4.3
+input Points [type: number]
+
+decision Total [requires: Points]
+  table [hit: C+]
+    | Points | -> Total: number |
+    | > 10   | 5                |
+    | -      | 1                |

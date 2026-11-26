@@ -1,0 +1,8 @@
+# BT501: A rule with more cells than its header.
+# expect: BT501 @ 7:5
+input Score [type: number]
+decision Pass [requires: Score]
+  table
+    | Score | -> Pass |
+    | >= 50 | true | extra |
+    | < 50  | false   |

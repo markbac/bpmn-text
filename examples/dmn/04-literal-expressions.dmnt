@@ -1,0 +1,19 @@
+# Shipping: literal expressions, a knowledge model with parameters, and dates.
+# covers: §2, §2.1, §3, §5, §5.1
+title Shipping
+
+input Order total [type: number]
+input Order date [type: date]
+input Destination [type: string, values: "home", "abroad"]
+
+knowledge Rate [params: Weight, Zone, type: number]
+  doc The carrier rate per kilogram, by zone.
+  literal if Zone = "abroad" then Weight * 4 else Weight * 1.5
+
+decision Free shipping [requires: Order total, Order date, type: boolean]
+  literal
+    Order total >= 100
+    or Order date < date("2027-01-01")
+
+decision Shipping cost [requires: Free shipping, Destination, Rate, type: number]
+  literal if Free shipping then 0 else Rate(2, Destination)
