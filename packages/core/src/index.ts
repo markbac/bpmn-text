@@ -15,6 +15,7 @@ export { build, slug, type BuildOptions, type BuildResult } from './builder.js';
 export {
   validate,
   rules,
+  type KnownDecision,
   type Rule,
   type ValidateOptions,
 } from './validator.js';

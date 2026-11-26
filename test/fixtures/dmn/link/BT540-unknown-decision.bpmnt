@@ -1,0 +1,8 @@
+# BT540: A rule task naming a decision no .dmnt file beside it has (did you mean `Approve loan`?).
+# expect: BT540 @ 6:30
+# expect: BT540 @ 7:34
+start
+rule Decide [decision: Approve loan]
+rule Decide again [decision: Aprove loan]
+rule Decide once more [decision: loans.dmnt#Grade]
+end

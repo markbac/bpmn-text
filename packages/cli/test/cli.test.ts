@@ -394,3 +394,23 @@ describe('DMN in the CLI (#77)', () => {
     expect(stderr).toContain('DMN has none');
   });
 });
+
+describe('rule tasks linked to decisions in the CLI (#80)', () => {
+  it('checks [decision] against the .dmnt files beside a .bpmnt', async () => {
+    const bad = await cli([
+      'check',
+      'test/fixtures/dmn/link/BT540-unknown-decision.bpmnt',
+    ]);
+    expect(bad.code).toBe(1);
+    expect(bad.stdout).toContain('Did you mean `Approve loan`?');
+    const good = await cli(['build', 'examples/dmn/loan-application.bpmnt']);
+    expect(good.code).toBe(0);
+    expect(good.stdout).toContain('Decision: Approve loan');
+  });
+
+  it('does not check [decision] with no .dmnt files about', async () => {
+    const dir = temp();
+    writeFileSync(join(dir, 'p.bpmnt'), 'start\nrule A [decision: X]\nend\n');
+    expect((await cli(['check', 'p.bpmnt'], { cwd: dir })).code).toBe(0);
+  });
+});

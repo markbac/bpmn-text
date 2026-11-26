@@ -1,5 +1,5 @@
 import { existsSync, statSync } from 'node:fs';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import {
   basename,
@@ -13,6 +13,7 @@ import {
   format as formatSource,
   parse,
   type Diagnostic,
+  type KnownDecision,
   type Model,
 } from '@bpmn-text/core';
 import { formatDmn, parseDmn } from '@bpmn-text/dmn';
@@ -121,6 +122,41 @@ export async function run(args: string[], io: Io): Promise<number> {
     }
     return result;
   }
+  /**
+   * The decisions a .bpmnt file's rule tasks may name: those in the .dmnt
+   * files beside it and among the inputs (dmn-notation §7). Undefined when
+   * there are none, so a lone .bpmnt file builds without the check.
+   */
+  const decisionCache = new Map<string, Promise<KnownDecision[]>>();
+  async function decisionsIn(path: string): Promise<KnownDecision[]> {
+    let found = decisionCache.get(path);
+    if (!found) {
+      found = readFile(path, 'utf8').then((source) =>
+        parseDmn(source).ast.elements.flatMap((e) =>
+          e.kind === 'decision' ? [{ name: e.name.value, file: path }] : [],
+        ),
+      );
+      decisionCache.set(path, found);
+    }
+    return found;
+  }
+  async function decisionsFor(
+    input: Input,
+    all: Input[],
+  ): Promise<KnownDecision[] | undefined> {
+    const paths = new Set(
+      all.flatMap((f) => (f.path && /\.dmnt$/i.test(f.path) ? [f.path] : [])),
+    );
+    if (input.path) {
+      const dir = dirname(input.path);
+      for (const f of await readdir(dir)) {
+        if (/\.dmnt$/i.test(f)) paths.add(join(dir, f));
+      }
+    }
+    if (paths.size === 0) return undefined;
+    return (await Promise.all([...paths].sort().map(decisionsIn))).flat();
+  }
+
   let stdin: Promise<string> | undefined;
   const read = (input: Input) =>
     input.path ? readFile(input.path, 'utf8') : (stdin ??= io.stdin.read());
@@ -226,10 +262,12 @@ export async function run(args: string[], io: Io): Promise<number> {
         async function buildOne(input: Input): Promise<number> {
           const source = await read(input);
           const language = languageOf(input, opts.language);
+          const decisions =
+            language === 'bpmn' ? await decisionsFor(input, files) : undefined;
           const result =
             language === 'dmn'
               ? await compileDmn(source)
-              : await compile(source);
+              : await compile(source, decisions ? { decisions } : {});
           const shown = result.diagnostics.filter((d) => d.severity !== 'info');
           for (const d of shown) {
             io.stderr.write(codeFrame(d, source, input.name, err));
@@ -394,12 +432,14 @@ export async function run(args: string[], io: Io): Promise<number> {
     .action(async (patterns: string[], opts: CheckOpts) => {
       const out = color(io.stdout);
       const report: { file: string; diagnostics: unknown[] }[] = [];
-      for (const input of await inputs(patterns)) {
+      const files = await inputs(patterns);
+      for (const input of files) {
         const source = await read(input);
-        const { diagnostics }: { diagnostics: Diagnostic[] } =
-          languageOf(input, opts.language) === 'dmn'
-            ? checkDmn(source)
-            : check(source);
+        const dmn = languageOf(input, opts.language) === 'dmn';
+        const decisions = dmn ? undefined : await decisionsFor(input, files);
+        const { diagnostics }: { diagnostics: Diagnostic[] } = dmn
+          ? checkDmn(source)
+          : check(source, decisions ? { decisions } : {});
         if (diagnostics.some((d) => d.severity === 'error')) fail(INPUT_ERRORS);
         if (opts.format === 'json') {
           report.push({ file: input.name, diagnostics });

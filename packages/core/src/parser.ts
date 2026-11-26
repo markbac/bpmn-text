@@ -134,6 +134,7 @@ const ATTRIBUTES = new Set([
   'event',
   'adhoc',
   'rule',
+  'decision',
 ]);
 
 /**

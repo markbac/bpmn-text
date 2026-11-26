@@ -111,6 +111,7 @@ const HANDLED = new Set([
   'event',
   'adhoc',
   'rule',
+  'decision',
   'id',
   'loop',
   'parallel',
@@ -697,6 +698,27 @@ class Builder {
           );
         else if (first)
           this.document(node, a.values.map((v) => v.value).join(', '));
+      } else if (key === 'decision') {
+        // A checked link to a DMN decision (dmn-notation §7). Execution
+        // attributes are out of scope (ADR-008), so it is documentation.
+        if (kind !== 'businessRuleTask')
+          this.noEffect(
+            a.key.range,
+            '`decision` names the DMN decision a business rule task (`rule`) evaluates',
+          );
+        else if (first) {
+          const hash = first.value.lastIndexOf('#');
+          const file = hash > 0 ? first.value.slice(0, hash).trim() : undefined;
+          const name = (
+            hash > 0 ? first.value.slice(hash + 1) : first.value
+          ).trim();
+          node.decision = {
+            name,
+            ...(file ? { file } : {}),
+            range: first.range,
+          };
+          this.document(node, `Decision: ${name}${file ? ` (${file})` : ''}`);
+        }
       } else if (key === 'adhoc' && !adHoc)
         this.noEffect(
           a.key.range,

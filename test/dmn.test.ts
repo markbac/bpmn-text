@@ -6,8 +6,9 @@ import {
   expectDmnJsImport,
   expectDmnModdleImport,
   expectDmnSchemaValid,
+  expectSchemaValid,
 } from '@bpmn-text/test-utils';
-import { compileDmn } from 'bpmn-text';
+import { check, checkDmn, compile, compileDmn } from 'bpmn-text';
 import { afterAll, describe, expect, it } from 'vitest';
 
 afterAll(closeBrowser);
@@ -159,4 +160,53 @@ describe('DMN corpus', () => {
       }
     },
   );
+});
+
+describe('BPMN rule tasks linked to decisions (#80)', () => {
+  const decisions = (file: string) =>
+    checkDmn(read(file)).model.elements.flatMap((e) =>
+      e.kind === 'decision' ? [{ name: e.name, file }] : [],
+    );
+
+  it('builds the example process and its decisions', async () => {
+    const { xml, diagnostics } = await compile(
+      read('examples/dmn/loan-application.bpmnt'),
+      { decisions: decisions('examples/dmn/01-loan-approval.dmnt') },
+    );
+    expect(diagnostics.filter((d) => d.severity !== 'info')).toEqual([]);
+    expect(xml).toContain('Decision: Approve loan');
+    await expectSchemaValid(xml);
+  });
+
+  it('reports a misspelt decision, with a fix (BT540)', () => {
+    const file = 'test/fixtures/dmn/link/BT540-unknown-decision.bpmnt';
+    const source = read(file);
+    const expected = [
+      ...source.matchAll(/^# expect: (BT\d{3}) @ (\d+):(\d+)$/gm),
+    ].map((m) => `${m[1]} @ ${m[2]}:${m[3]}`);
+    const { diagnostics } = check(source, {
+      decisions: decisions('test/fixtures/dmn/link/loans.dmnt'),
+    });
+    expect(
+      diagnostics.map(
+        (d) => `${d.code} @ ${d.range.start.line}:${d.range.start.col}`,
+      ),
+    ).toEqual(expected);
+    expect(diagnostics[0]!.message).toBe(
+      'There is no decision called `Aprove loan`. Did you mean `Approve loan`?',
+    );
+    expect(diagnostics[0]!.fixes?.[0]?.edits[0]?.newText).toBe('Approve loan');
+  });
+
+  it('does not check names when no decisions are known', () => {
+    const { diagnostics } = check(
+      read('test/fixtures/dmn/link/BT540-unknown-decision.bpmnt'),
+    );
+    expect(diagnostics).toEqual([]);
+  });
+
+  it('warns about [decision] on anything but a rule task', () => {
+    const { diagnostics } = check('start\ntask A [decision: X]\nend\n');
+    expect(diagnostics.map((d) => d.code)).toEqual(['BT105']);
+  });
 });

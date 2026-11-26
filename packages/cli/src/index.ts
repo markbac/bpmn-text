@@ -33,6 +33,7 @@ export { check, format, parse, sourceMap } from '@bpmn-text/core';
 export type {
   CheckOptions,
   CheckResult,
+  KnownDecision,
   Diagnostic,
   Model,
   ParseResult,
