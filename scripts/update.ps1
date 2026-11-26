@@ -22,7 +22,7 @@
       6. Command    bpmn-text on the PATH is this checkout (npm link); -NoLink leaves it alone
       7. Docker     with -Docker: the editor and CLI images, tagged with the version and latest, and the
                     images of earlier versions removed unless -KeepOldImages
-      8. Doctor     bpmn-text turns an example into .bpmn and .png
+      8. Doctor     bpmn-text turns examples into .bpmn, .dmn and .png
       9. Tests      with -Test: lint, typecheck and the test suite
      10. Serve      with -Serve: the web editor on http://localhost:<Port>, in Docker with -Docker (left
                     running), else in this window until Ctrl+C
@@ -266,6 +266,8 @@ try {
     try {
         Invoke-Checked "bpmn-text build" "The message above says what went wrong" node @($cli, 'build', 'examples/01-simple.bpmnt', '-o', (Join-Path $out '01-simple.bpmn'))
         Write-Ok "examples/01-simple.bpmnt -> .bpmn"
+        Invoke-Checked "bpmn-text build (DMN)" "The message above says what went wrong" node @($cli, 'build', 'examples/dmn/01-loan-approval.dmnt', '-o', (Join-Path $out '01-loan-approval.dmn'))
+        Write-Ok "examples/dmn/01-loan-approval.dmnt -> .dmn"
         if (-not $NoBrowser) {
             Invoke-Checked "PNG output" "Run again without -NoBrowser, or read the message above" node @($cli, 'build', 'examples/01-simple.bpmnt', '-f', 'png', '-o', (Join-Path $out '01-simple.png'))
             Write-Ok "examples/01-simple.bpmnt -> .png"

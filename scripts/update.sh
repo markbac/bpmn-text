@@ -21,7 +21,7 @@
 #   6. Command    bpmn-text on the PATH is this checkout (npm link)
 #   7. Docker     with --docker: the editor and CLI images, tagged with the
 #                 version and latest; images of earlier versions removed
-#   8. Doctor     bpmn-text turns an example into .bpmn and .png
+#   8. Doctor     bpmn-text turns examples into .bpmn, .dmn and .png
 #   9. Tests      with --test: lint, typecheck and the test suite
 #  10. Serve      with --serve: the web editor on http://localhost:PORT, in
 #                 Docker with --docker (left running), else in the foreground
@@ -243,6 +243,9 @@ trap 'rm -rf "$out"' EXIT
 run "bpmn-text build" "The message above says what went wrong" \
   node "$cli" build examples/01-simple.bpmnt -o "$out/01-simple.bpmn"
 ok "examples/01-simple.bpmnt → .bpmn"
+run "bpmn-text build (DMN)" "The message above says what went wrong" \
+  node "$cli" build examples/dmn/01-loan-approval.dmnt -o "$out/01-loan-approval.dmn"
+ok "examples/dmn/01-loan-approval.dmnt → .dmn"
 if [ "$browser" = 1 ]; then
   if node "$cli" build examples/01-simple.bpmnt -f png -o "$out/01-simple.png" 2>"$out/error"; then
     ok "examples/01-simple.bpmnt → .png"
