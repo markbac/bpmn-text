@@ -1,0 +1,9 @@
+# BT523: A value outside the input's allowed values.
+# expect: BT523 @ 7:7
+input Season [type: string, values: "Winter", "Summer"]
+decision Dish [requires: Season]
+  table
+    | Season   | -> Dish  |
+    | "Wnter"  | "Stew"   |
+    | "Winter" | "Stew"   |
+    | "Summer" | "Salad"  |

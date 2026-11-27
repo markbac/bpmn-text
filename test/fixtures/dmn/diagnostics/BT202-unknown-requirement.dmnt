@@ -1,0 +1,5 @@
+# BT202: A requirement that names nothing (did you mean `Score`?).
+# expect: BT202 @ 4:26
+input Score [type: number]
+decision Pass [requires: Scor]
+  literal true

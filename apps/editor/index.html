@@ -6,12 +6,19 @@
     <title>bpmn-text editor</title>
     <meta
       name="description"
-      content="Write BPMN diagrams as text and see them laid out as you type."
+      content="Write BPMN diagrams and DMN decisions as text and see them laid out as you type."
     />
   </head>
   <body>
     <header class="toolbar">
       <strong class="brand">bpmn-text</strong>
+      <label class="examples">
+        <span class="visually-hidden">Notation</span>
+        <select id="language" aria-label="Notation">
+          <option value="bpmn">BPMN</option>
+          <option value="dmn">DMN</option>
+        </select>
+      </label>
       <label class="examples">
         <span class="visually-hidden">Example</span>
         <select id="examples" aria-label="Load an example">
@@ -19,6 +26,13 @@
         </select>
       </label>
       <span class="spacer"></span>
+      <button
+        id="format"
+        type="button"
+        title="Format the source and align tables (Shift+Alt+F)"
+      >
+        Format
+      </button>
       <button id="share" type="button" title="Copy a link to this diagram">
         Share link
       </button>
@@ -27,14 +41,24 @@
           Download ▾
         </button>
         <div id="download-menu" class="menu-items" hidden>
-          <button type="button" data-format="bpmnt">Source (.bpmnt)</button>
-          <button type="button" data-format="bpmn">BPMN (.bpmn)</button>
+          <button type="button" data-format="source" data-only="bpmn">
+            Source (.bpmnt)
+          </button>
+          <button type="button" data-format="source" data-only="dmn" hidden>
+            Source (.dmnt)
+          </button>
+          <button type="button" data-format="xml" data-only="bpmn">
+            BPMN (.bpmn)
+          </button>
+          <button type="button" data-format="xml" data-only="dmn" hidden>
+            DMN (.dmn)
+          </button>
           <button type="button" data-format="svg">Image (.svg)</button>
           <button type="button" data-format="png">Image (.png)</button>
-          <button type="button" data-format="key-svg">
+          <button type="button" data-format="key-svg" data-only="bpmn">
             Key to symbols (.svg)
           </button>
-          <button type="button" data-format="key-png">
+          <button type="button" data-format="key-png" data-only="bpmn">
             Key to symbols (.png)
           </button>
         </div>
@@ -54,6 +78,7 @@
       ></div>
       <section class="pane diagram-pane" aria-label="Diagram">
         <div id="diagram" class="diagram"></div>
+        <div id="dmn" class="diagram dmn" hidden></div>
         <div id="tooltip" class="tooltip" hidden></div>
       </section>
     </main>

@@ -1,0 +1,4013 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DMN model builder and validator (#72) > examples/dmn/01-loan-approval.dmnt matches its model snapshot 1`] = `
+{
+  "elements": [
+    {
+      "id": "InputData_credit_score",
+      "kind": "input",
+      "name": "Credit score",
+      "typeRef": "number",
+    },
+    {
+      "id": "InputData_loan_amount",
+      "kind": "input",
+      "name": "Loan amount",
+      "typeRef": "number",
+    },
+    {
+      "id": "BusinessKnowledgeModel_risk_policy",
+      "kind": "knowledge",
+      "name": "Risk policy",
+      "params": [],
+    },
+    {
+      "id": "KnowledgeSource_lending_guidelines",
+      "kind": "source",
+      "name": "Lending guidelines",
+    },
+    {
+      "doc": "Whether the bank lends, and why.",
+      "id": "Decision_approve_loan",
+      "kind": "decision",
+      "logic": {
+        "annotation": "Notes",
+        "hitPolicy": "UNIQUE",
+        "id": "DecisionTable_approve_loan",
+        "inputs": [
+          {
+            "expression": "Credit score",
+            "expressionId": "InputExpression_approve_loan_1",
+            "id": "InputClause_approve_loan_1",
+            "typeRef": "number",
+          },
+          {
+            "expression": "Loan amount",
+            "expressionId": "InputExpression_approve_loan_2",
+            "id": "InputClause_approve_loan_2",
+            "typeRef": "number",
+          },
+        ],
+        "outputs": [
+          {
+            "id": "OutputClause_approve_loan_1",
+            "name": "Approved",
+            "typeRef": "boolean",
+          },
+          {
+            "id": "OutputClause_approve_loan_2",
+            "name": "Reason",
+            "typeRef": "string",
+          },
+        ],
+        "rules": [
+          {
+            "description": "Standard approval",
+            "id": "Rule_approve_loan_1",
+            "index": 1,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_approve_loan_1_1",
+                "text": ">= 700",
+              },
+              {
+                "id": "UnaryTests_approve_loan_1_2",
+                "text": "<= 50000",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_approve_loan_1_1",
+                "text": "true",
+              },
+              {
+                "id": "LiteralExpression_approve_loan_1_2",
+                "text": ""Good score"",
+              },
+            ],
+          },
+          {
+            "description": "Refer to a specialist",
+            "id": "Rule_approve_loan_2",
+            "index": 2,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_approve_loan_2_1",
+                "text": ">= 700",
+              },
+              {
+                "id": "UnaryTests_approve_loan_2_2",
+                "text": "> 50000",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_approve_loan_2_1",
+                "text": "false",
+              },
+              {
+                "id": "LiteralExpression_approve_loan_2_2",
+                "text": ""Amount too high"",
+              },
+            ],
+          },
+          {
+            "id": "Rule_approve_loan_3",
+            "index": 3,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_approve_loan_3_1",
+                "text": "< 700",
+              },
+              {
+                "id": "UnaryTests_approve_loan_3_2",
+                "text": "-",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_approve_loan_3_1",
+                "text": "false",
+              },
+              {
+                "id": "LiteralExpression_approve_loan_3_2",
+                "text": ""Low score"",
+              },
+            ],
+          },
+        ],
+        "type": "table",
+      },
+      "name": "Approve loan",
+    },
+  ],
+  "id": "Definitions_loan_approval",
+  "name": "Loan approval",
+  "requirements": [
+    {
+      "from": "InputData_credit_score",
+      "id": "InformationRequirement_credit_score__approve_loan",
+      "kind": "information",
+      "to": "Decision_approve_loan",
+    },
+    {
+      "from": "InputData_loan_amount",
+      "id": "InformationRequirement_loan_amount__approve_loan",
+      "kind": "information",
+      "to": "Decision_approve_loan",
+    },
+    {
+      "from": "BusinessKnowledgeModel_risk_policy",
+      "id": "KnowledgeRequirement_risk_policy__approve_loan",
+      "kind": "knowledge",
+      "to": "Decision_approve_loan",
+    },
+    {
+      "from": "KnowledgeSource_lending_guidelines",
+      "id": "AuthorityRequirement_lending_guidelines__approve_loan",
+      "kind": "authority",
+      "to": "Decision_approve_loan",
+    },
+  ],
+}
+`;
+
+exports[`DMN model builder and validator (#72) > examples/dmn/02-dinner.dmnt matches its model snapshot 1`] = `
+{
+  "elements": [
+    {
+      "id": "InputData_season",
+      "kind": "input",
+      "name": "Season",
+      "typeRef": "string",
+      "values": ""Winter","Summer","Spring","Autumn"",
+    },
+    {
+      "id": "InputData_number_of_guests",
+      "kind": "input",
+      "name": "Number of guests",
+      "typeRef": "number",
+    },
+    {
+      "id": "InputData_guests_with_children",
+      "kind": "input",
+      "name": "Guests with children",
+      "typeRef": "boolean",
+    },
+    {
+      "id": "BusinessKnowledgeModel_recipe_book",
+      "kind": "knowledge",
+      "name": "Recipe book",
+      "params": [],
+    },
+    {
+      "id": "KnowledgeSource_chef",
+      "kind": "source",
+      "name": "Chef",
+      "style": {
+        "fill": "#FFE0B2",
+      },
+    },
+    {
+      "id": "Decision_dish",
+      "kind": "decision",
+      "logic": {
+        "annotation": "Notes",
+        "hitPolicy": "UNIQUE",
+        "id": "DecisionTable_dish",
+        "inputs": [
+          {
+            "expression": "Season",
+            "expressionId": "InputExpression_dish_1",
+            "id": "InputClause_dish_1",
+            "typeRef": "string",
+            "values": ""Winter","Summer","Spring","Autumn"",
+          },
+          {
+            "expression": "Number of guests",
+            "expressionId": "InputExpression_dish_2",
+            "id": "InputClause_dish_2",
+            "typeRef": "number",
+          },
+        ],
+        "outputs": [
+          {
+            "id": "OutputClause_dish_1",
+            "name": "Dish",
+            "typeRef": "string",
+          },
+        ],
+        "rules": [
+          {
+            "description": "Cosy dinner",
+            "id": "Rule_dish_1",
+            "index": 1,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_dish_1_1",
+                "text": ""Winter"",
+              },
+              {
+                "id": "UnaryTests_dish_1_2",
+                "text": "<= 8",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_dish_1_1",
+                "text": ""Roastbeef"",
+              },
+            ],
+          },
+          {
+            "description": "Feeds a crowd",
+            "id": "Rule_dish_2",
+            "index": 2,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_dish_2_1",
+                "text": ""Winter"",
+              },
+              {
+                "id": "UnaryTests_dish_2_2",
+                "text": "> 8",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_dish_2_1",
+                "text": ""Stew"",
+              },
+            ],
+          },
+          {
+            "id": "Rule_dish_3",
+            "index": 3,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_dish_3_1",
+                "text": ""Summer"",
+              },
+              {
+                "id": "UnaryTests_dish_3_2",
+                "text": "-",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_dish_3_1",
+                "text": ""Light salad"",
+              },
+            ],
+          },
+          {
+            "id": "Rule_dish_4",
+            "index": 4,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_dish_4_1",
+                "text": ""Spring", "Autumn"",
+              },
+              {
+                "id": "UnaryTests_dish_4_2",
+                "text": "<= 4",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_dish_4_1",
+                "text": ""Steak"",
+              },
+            ],
+          },
+          {
+            "id": "Rule_dish_5",
+            "index": 5,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_dish_5_1",
+                "text": ""Spring", "Autumn"",
+              },
+              {
+                "id": "UnaryTests_dish_5_2",
+                "text": "> 4",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_dish_5_1",
+                "text": ""Spareribs"",
+              },
+            ],
+          },
+        ],
+        "type": "table",
+      },
+      "name": "Dish",
+      "typeRef": "string",
+    },
+    {
+      "id": "Decision_beverages",
+      "kind": "decision",
+      "logic": {
+        "annotation": "Notes",
+        "hitPolicy": "COLLECT",
+        "id": "DecisionTable_beverages",
+        "inputs": [
+          {
+            "expression": "Dish",
+            "expressionId": "InputExpression_beverages_1",
+            "id": "InputClause_beverages_1",
+            "typeRef": "string",
+          },
+          {
+            "expression": "Guests with children",
+            "expressionId": "InputExpression_beverages_2",
+            "id": "InputClause_beverages_2",
+            "typeRef": "boolean",
+          },
+        ],
+        "outputs": [
+          {
+            "id": "OutputClause_beverages_1",
+            "name": "Beverage",
+            "typeRef": "string",
+          },
+        ],
+        "rules": [
+          {
+            "id": "Rule_beverages_1",
+            "index": 1,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_beverages_1_1",
+                "text": ""Spareribs"",
+              },
+              {
+                "id": "UnaryTests_beverages_1_2",
+                "text": "-",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_beverages_1_1",
+                "text": ""Smoked beer"",
+              },
+            ],
+          },
+          {
+            "id": "Rule_beverages_2",
+            "index": 2,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_beverages_2_1",
+                "text": ""Stew"",
+              },
+              {
+                "id": "UnaryTests_beverages_2_2",
+                "text": "-",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_beverages_2_1",
+                "text": ""Stout"",
+              },
+            ],
+          },
+          {
+            "id": "Rule_beverages_3",
+            "index": 3,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_beverages_3_1",
+                "text": ""Roastbeef"",
+              },
+              {
+                "id": "UnaryTests_beverages_3_2",
+                "text": "-",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_beverages_3_1",
+                "text": ""Bordeaux"",
+              },
+            ],
+          },
+          {
+            "id": "Rule_beverages_4",
+            "index": 4,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_beverages_4_1",
+                "text": ""Steak", "Light salad"",
+              },
+              {
+                "id": "UnaryTests_beverages_4_2",
+                "text": "-",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_beverages_4_1",
+                "text": ""Pinot Noir"",
+              },
+            ],
+          },
+          {
+            "description": "For the children",
+            "id": "Rule_beverages_5",
+            "index": 5,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_beverages_5_1",
+                "text": "-",
+              },
+              {
+                "id": "UnaryTests_beverages_5_2",
+                "text": "true",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_beverages_5_1",
+                "text": ""Apple juice"",
+              },
+            ],
+          },
+          {
+            "description": "Always",
+            "id": "Rule_beverages_6",
+            "index": 6,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_beverages_6_1",
+                "text": "-",
+              },
+              {
+                "id": "UnaryTests_beverages_6_2",
+                "text": "-",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_beverages_6_1",
+                "text": ""Water"",
+              },
+            ],
+          },
+        ],
+        "type": "table",
+      },
+      "name": "Beverages",
+      "typeRef": "string",
+    },
+    {
+      "id": "Decision_shopping_list",
+      "kind": "decision",
+      "logic": {
+        "id": "LiteralExpression_shopping_list",
+        "text": "append(Beverages, Dish)",
+        "type": "literal",
+      },
+      "name": "Shopping list",
+    },
+  ],
+  "id": "Definitions_dinner",
+  "name": "Dinner",
+  "requirements": [
+    {
+      "from": "InputData_season",
+      "id": "InformationRequirement_season__dish",
+      "kind": "information",
+      "to": "Decision_dish",
+    },
+    {
+      "from": "InputData_number_of_guests",
+      "id": "InformationRequirement_number_of_guests__dish",
+      "kind": "information",
+      "to": "Decision_dish",
+    },
+    {
+      "from": "BusinessKnowledgeModel_recipe_book",
+      "id": "KnowledgeRequirement_recipe_book__dish",
+      "kind": "knowledge",
+      "to": "Decision_dish",
+    },
+    {
+      "from": "KnowledgeSource_chef",
+      "id": "AuthorityRequirement_chef__dish",
+      "kind": "authority",
+      "to": "Decision_dish",
+    },
+    {
+      "from": "Decision_dish",
+      "id": "InformationRequirement_dish__beverages",
+      "kind": "information",
+      "to": "Decision_beverages",
+    },
+    {
+      "from": "InputData_guests_with_children",
+      "id": "InformationRequirement_guests_with_children__beverages",
+      "kind": "information",
+      "to": "Decision_beverages",
+    },
+    {
+      "from": "Decision_dish",
+      "id": "InformationRequirement_dish__shopping_list",
+      "kind": "information",
+      "to": "Decision_shopping_list",
+    },
+    {
+      "from": "Decision_beverages",
+      "id": "InformationRequirement_beverages__shopping_list",
+      "kind": "information",
+      "to": "Decision_shopping_list",
+    },
+  ],
+}
+`;
+
+exports[`DMN model builder and validator (#72) > examples/dmn/03-hit-policies.dmnt matches its model snapshot 1`] = `
+{
+  "elements": [
+    {
+      "id": "InputData_points",
+      "kind": "input",
+      "name": "Points",
+      "typeRef": "number",
+    },
+    {
+      "id": "Decision_unique",
+      "kind": "decision",
+      "logic": {
+        "hitPolicy": "UNIQUE",
+        "id": "DecisionTable_unique",
+        "inputs": [
+          {
+            "expression": "Points",
+            "expressionId": "InputExpression_unique_1",
+            "id": "InputClause_unique_1",
+            "typeRef": "number",
+          },
+        ],
+        "outputs": [
+          {
+            "id": "OutputClause_unique_1",
+            "name": "Level",
+            "typeRef": "string",
+          },
+        ],
+        "rules": [
+          {
+            "id": "Rule_unique_1",
+            "index": 1,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_unique_1_1",
+                "text": "< 10",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_unique_1_1",
+                "text": ""low"",
+              },
+            ],
+          },
+          {
+            "id": "Rule_unique_2",
+            "index": 2,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_unique_2_1",
+                "text": ">= 10",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_unique_2_1",
+                "text": ""high"",
+              },
+            ],
+          },
+        ],
+        "type": "table",
+      },
+      "name": "Unique",
+      "typeRef": "string",
+    },
+    {
+      "id": "Decision_first",
+      "kind": "decision",
+      "logic": {
+        "hitPolicy": "FIRST",
+        "id": "DecisionTable_first",
+        "inputs": [
+          {
+            "expression": "Points",
+            "expressionId": "InputExpression_first_1",
+            "id": "InputClause_first_1",
+            "typeRef": "number",
+          },
+        ],
+        "outputs": [
+          {
+            "id": "OutputClause_first_1",
+            "name": "Level",
+            "typeRef": "string",
+          },
+        ],
+        "rules": [
+          {
+            "id": "Rule_first_1",
+            "index": 1,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_first_1_1",
+                "text": ">= 100",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_first_1_1",
+                "text": ""gold"",
+              },
+            ],
+          },
+          {
+            "id": "Rule_first_2",
+            "index": 2,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_first_2_1",
+                "text": ">= 10",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_first_2_1",
+                "text": ""silver"",
+              },
+            ],
+          },
+          {
+            "id": "Rule_first_3",
+            "index": 3,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_first_3_1",
+                "text": "-",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_first_3_1",
+                "text": ""bronze"",
+              },
+            ],
+          },
+        ],
+        "type": "table",
+      },
+      "name": "First",
+      "typeRef": "string",
+    },
+    {
+      "id": "Decision_priority",
+      "kind": "decision",
+      "logic": {
+        "hitPolicy": "PRIORITY",
+        "id": "DecisionTable_priority",
+        "inputs": [
+          {
+            "expression": "Points",
+            "expressionId": "InputExpression_priority_1",
+            "id": "InputClause_priority_1",
+            "typeRef": "number",
+          },
+        ],
+        "outputs": [
+          {
+            "id": "OutputClause_priority_1",
+            "name": "Level",
+            "typeRef": "string",
+            "values": ""gold", "silver", "bronze"",
+          },
+        ],
+        "rules": [
+          {
+            "id": "Rule_priority_1",
+            "index": 1,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_priority_1_1",
+                "text": ">= 100",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_priority_1_1",
+                "text": ""gold"",
+              },
+            ],
+          },
+          {
+            "id": "Rule_priority_2",
+            "index": 2,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_priority_2_1",
+                "text": ">= 10",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_priority_2_1",
+                "text": ""silver"",
+              },
+            ],
+          },
+          {
+            "id": "Rule_priority_3",
+            "index": 3,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_priority_3_1",
+                "text": "-",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_priority_3_1",
+                "text": ""bronze"",
+              },
+            ],
+          },
+        ],
+        "type": "table",
+      },
+      "name": "Priority",
+      "typeRef": "string",
+    },
+    {
+      "id": "Decision_any",
+      "kind": "decision",
+      "logic": {
+        "hitPolicy": "ANY",
+        "id": "DecisionTable_any",
+        "inputs": [
+          {
+            "expression": "Points",
+            "expressionId": "InputExpression_any_1",
+            "id": "InputClause_any_1",
+            "typeRef": "number",
+          },
+        ],
+        "outputs": [
+          {
+            "id": "OutputClause_any_1",
+            "name": "Eligible",
+            "typeRef": "boolean",
+          },
+        ],
+        "rules": [
+          {
+            "id": "Rule_any_1",
+            "index": 1,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_any_1_1",
+                "text": ">= 10",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_any_1_1",
+                "text": "true",
+              },
+            ],
+          },
+          {
+            "id": "Rule_any_2",
+            "index": 2,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_any_2_1",
+                "text": ">= 50",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_any_2_1",
+                "text": "true",
+              },
+            ],
+          },
+          {
+            "id": "Rule_any_3",
+            "index": 3,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_any_3_1",
+                "text": "< 10",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_any_3_1",
+                "text": "false",
+              },
+            ],
+          },
+        ],
+        "type": "table",
+      },
+      "name": "Any",
+      "typeRef": "boolean",
+    },
+    {
+      "id": "Decision_collect",
+      "kind": "decision",
+      "logic": {
+        "hitPolicy": "COLLECT",
+        "id": "DecisionTable_collect",
+        "inputs": [
+          {
+            "expression": "Points",
+            "expressionId": "InputExpression_collect_1",
+            "id": "InputClause_collect_1",
+            "typeRef": "number",
+          },
+        ],
+        "outputs": [
+          {
+            "id": "OutputClause_collect_1",
+            "name": "Badge",
+            "typeRef": "string",
+          },
+        ],
+        "rules": [
+          {
+            "id": "Rule_collect_1",
+            "index": 1,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_collect_1_1",
+                "text": ">= 10",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_collect_1_1",
+                "text": ""regular"",
+              },
+            ],
+          },
+          {
+            "id": "Rule_collect_2",
+            "index": 2,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_collect_2_1",
+                "text": ">= 100",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_collect_2_1",
+                "text": ""champion"",
+              },
+            ],
+          },
+          {
+            "id": "Rule_collect_3",
+            "index": 3,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_collect_3_1",
+                "text": "-",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_collect_3_1",
+                "text": ""member"",
+              },
+            ],
+          },
+        ],
+        "type": "table",
+      },
+      "name": "Collect",
+      "typeRef": "string",
+    },
+    {
+      "id": "Decision_collect_sum",
+      "kind": "decision",
+      "logic": {
+        "aggregation": "SUM",
+        "hitPolicy": "COLLECT",
+        "id": "DecisionTable_collect_sum",
+        "inputs": [
+          {
+            "expression": "Points",
+            "expressionId": "InputExpression_collect_sum_1",
+            "id": "InputClause_collect_sum_1",
+            "typeRef": "number",
+          },
+        ],
+        "outputs": [
+          {
+            "id": "OutputClause_collect_sum_1",
+            "name": "Bonus",
+            "typeRef": "number",
+          },
+        ],
+        "rules": [
+          {
+            "id": "Rule_collect_sum_1",
+            "index": 1,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_collect_sum_1_1",
+                "text": ">= 10",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_collect_sum_1_1",
+                "text": "5",
+              },
+            ],
+          },
+          {
+            "id": "Rule_collect_sum_2",
+            "index": 2,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_collect_sum_2_1",
+                "text": ">= 100",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_collect_sum_2_1",
+                "text": "20",
+              },
+            ],
+          },
+          {
+            "id": "Rule_collect_sum_3",
+            "index": 3,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_collect_sum_3_1",
+                "text": "-",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_collect_sum_3_1",
+                "text": "1",
+              },
+            ],
+          },
+        ],
+        "type": "table",
+      },
+      "name": "Collect sum",
+      "typeRef": "number",
+    },
+    {
+      "id": "Decision_collect_count",
+      "kind": "decision",
+      "logic": {
+        "aggregation": "COUNT",
+        "hitPolicy": "COLLECT",
+        "id": "DecisionTable_collect_count",
+        "inputs": [
+          {
+            "expression": "Points",
+            "expressionId": "InputExpression_collect_count_1",
+            "id": "InputClause_collect_count_1",
+            "typeRef": "number",
+          },
+        ],
+        "outputs": [
+          {
+            "id": "OutputClause_collect_count_1",
+            "name": "Matches",
+            "typeRef": "number",
+          },
+        ],
+        "rules": [
+          {
+            "id": "Rule_collect_count_1",
+            "index": 1,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_collect_count_1_1",
+                "text": ">= 10",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_collect_count_1_1",
+                "text": "1",
+              },
+            ],
+          },
+          {
+            "id": "Rule_collect_count_2",
+            "index": 2,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_collect_count_2_1",
+                "text": "-",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_collect_count_2_1",
+                "text": "1",
+              },
+            ],
+          },
+        ],
+        "type": "table",
+      },
+      "name": "Collect count",
+      "typeRef": "number",
+    },
+    {
+      "id": "Decision_collect_min",
+      "kind": "decision",
+      "logic": {
+        "aggregation": "MIN",
+        "hitPolicy": "COLLECT",
+        "id": "DecisionTable_collect_min",
+        "inputs": [
+          {
+            "expression": "Points",
+            "expressionId": "InputExpression_collect_min_1",
+            "id": "InputClause_collect_min_1",
+            "typeRef": "number",
+          },
+        ],
+        "outputs": [
+          {
+            "id": "OutputClause_collect_min_1",
+            "name": "Fee",
+            "typeRef": "number",
+          },
+        ],
+        "rules": [
+          {
+            "id": "Rule_collect_min_1",
+            "index": 1,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_collect_min_1_1",
+                "text": ">= 10",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_collect_min_1_1",
+                "text": "2",
+              },
+            ],
+          },
+          {
+            "id": "Rule_collect_min_2",
+            "index": 2,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_collect_min_2_1",
+                "text": "-",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_collect_min_2_1",
+                "text": "5",
+              },
+            ],
+          },
+        ],
+        "type": "table",
+      },
+      "name": "Collect min",
+      "typeRef": "number",
+    },
+    {
+      "id": "Decision_collect_max",
+      "kind": "decision",
+      "logic": {
+        "aggregation": "MAX",
+        "hitPolicy": "COLLECT",
+        "id": "DecisionTable_collect_max",
+        "inputs": [
+          {
+            "expression": "Points",
+            "expressionId": "InputExpression_collect_max_1",
+            "id": "InputClause_collect_max_1",
+            "typeRef": "number",
+          },
+        ],
+        "outputs": [
+          {
+            "id": "OutputClause_collect_max_1",
+            "name": "Limit",
+            "typeRef": "number",
+          },
+        ],
+        "rules": [
+          {
+            "id": "Rule_collect_max_1",
+            "index": 1,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_collect_max_1_1",
+                "text": ">= 10",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_collect_max_1_1",
+                "text": "500",
+              },
+            ],
+          },
+          {
+            "id": "Rule_collect_max_2",
+            "index": 2,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_collect_max_2_1",
+                "text": "-",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_collect_max_2_1",
+                "text": "100",
+              },
+            ],
+          },
+        ],
+        "type": "table",
+      },
+      "name": "Collect max",
+      "typeRef": "number",
+    },
+    {
+      "id": "Decision_rule_order",
+      "kind": "decision",
+      "logic": {
+        "hitPolicy": "RULE ORDER",
+        "id": "DecisionTable_rule_order",
+        "inputs": [
+          {
+            "expression": "Points",
+            "expressionId": "InputExpression_rule_order_1",
+            "id": "InputClause_rule_order_1",
+            "typeRef": "number",
+          },
+        ],
+        "outputs": [
+          {
+            "id": "OutputClause_rule_order_1",
+            "name": "Message",
+            "typeRef": "string",
+          },
+        ],
+        "rules": [
+          {
+            "id": "Rule_rule_order_1",
+            "index": 1,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_rule_order_1_1",
+                "text": ">= 10",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_rule_order_1_1",
+                "text": ""Thanks for coming"",
+              },
+            ],
+          },
+          {
+            "id": "Rule_rule_order_2",
+            "index": 2,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_rule_order_2_1",
+                "text": "-",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_rule_order_2_1",
+                "text": ""Welcome"",
+              },
+            ],
+          },
+        ],
+        "type": "table",
+      },
+      "name": "Rule order",
+      "typeRef": "string",
+    },
+    {
+      "id": "Decision_output_order",
+      "kind": "decision",
+      "logic": {
+        "hitPolicy": "OUTPUT ORDER",
+        "id": "DecisionTable_output_order",
+        "inputs": [
+          {
+            "expression": "Points",
+            "expressionId": "InputExpression_output_order_1",
+            "id": "InputClause_output_order_1",
+            "typeRef": "number",
+          },
+        ],
+        "outputs": [
+          {
+            "id": "OutputClause_output_order_1",
+            "name": "Perk",
+            "typeRef": "string",
+            "values": ""lounge", "upgrade", "drink"",
+          },
+        ],
+        "rules": [
+          {
+            "id": "Rule_output_order_1",
+            "index": 1,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_output_order_1_1",
+                "text": ">= 100",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_output_order_1_1",
+                "text": ""lounge"",
+              },
+            ],
+          },
+          {
+            "id": "Rule_output_order_2",
+            "index": 2,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_output_order_2_1",
+                "text": ">= 10",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_output_order_2_1",
+                "text": ""upgrade"",
+              },
+            ],
+          },
+          {
+            "id": "Rule_output_order_3",
+            "index": 3,
+            "inputEntries": [
+              {
+                "id": "UnaryTests_output_order_3_1",
+                "text": "-",
+              },
+            ],
+            "outputEntries": [
+              {
+                "id": "LiteralExpression_output_order_3_1",
+                "text": ""drink"",
+              },
+            ],
+          },
+        ],
+        "type": "table",
+      },
+      "name": "Output order",
+      "typeRef": "string",
+    },
+  ],
+  "id": "Definitions_hit_policies",
+  "name": "Hit policies",
+  "requirements": [
+    {
+      "from": "InputData_points",
+      "id": "InformationRequirement_points__unique",
+      "kind": "information",
+      "to": "Decision_unique",
+    },
+    {
+      "from": "InputData_points",
+      "id": "InformationRequirement_points__first",
+      "kind": "information",
+      "to": "Decision_first",
+    },
+    {
+      "from": "InputData_points",
+      "id": "InformationRequirement_points__priority",
+      "kind": "information",
+      "to": "Decision_priority",
+    },
+    {
+      "from": "InputData_points",
+      "id": "InformationRequirement_points__any",
+      "kind": "information",
+      "to": "Decision_any",
+    },
+    {
+      "from": "InputData_points",
+      "id": "InformationRequirement_points__collect",
+      "kind": "information",
+      "to": "Decision_collect",
+    },
+    {
+      "from": "InputData_points",
+      "id": "InformationRequirement_points__collect_sum",
+      "kind": "information",
+      "to": "Decision_collect_sum",
+    },
+    {
+      "from": "InputData_points",
+      "id": "InformationRequirement_points__collect_count",
+      "kind": "information",
+      "to": "Decision_collect_count",
+    },
+    {
+      "from": "InputData_points",
+      "id": "InformationRequirement_points__collect_min",
+      "kind": "information",
+      "to": "Decision_collect_min",
+    },
+    {
+      "from": "InputData_points",
+      "id": "InformationRequirement_points__collect_max",
+      "kind": "information",
+      "to": "Decision_collect_max",
+    },
+    {
+      "from": "InputData_points",
+      "id": "InformationRequirement_points__rule_order",
+      "kind": "information",
+      "to": "Decision_rule_order",
+    },
+    {
+      "from": "InputData_points",
+      "id": "InformationRequirement_points__output_order",
+      "kind": "information",
+      "to": "Decision_output_order",
+    },
+  ],
+}
+`;
+
+exports[`DMN model builder and validator (#72) > examples/dmn/04-literal-expressions.dmnt matches its model snapshot 1`] = `
+{
+  "elements": [
+    {
+      "id": "InputData_order_total",
+      "kind": "input",
+      "name": "Order total",
+      "typeRef": "number",
+    },
+    {
+      "id": "InputData_order_date",
+      "kind": "input",
+      "name": "Order date",
+      "typeRef": "date",
+    },
+    {
+      "id": "InputData_destination",
+      "kind": "input",
+      "name": "Destination",
+      "typeRef": "string",
+      "values": ""home","abroad"",
+    },
+    {
+      "doc": "The carrier rate per kilogram, by zone.",
+      "id": "BusinessKnowledgeModel_rate",
+      "kind": "knowledge",
+      "logic": {
+        "id": "LiteralExpression_rate",
+        "text": "if Zone = "abroad" then Weight * 4 else Weight * 1.5",
+        "type": "literal",
+      },
+      "name": "Rate",
+      "params": [
+        {
+          "name": "Weight",
+        },
+        {
+          "name": "Zone",
+        },
+      ],
+      "typeRef": "number",
+    },
+    {
+      "id": "Decision_free_shipping",
+      "kind": "decision",
+      "logic": {
+        "id": "LiteralExpression_free_shipping",
+        "text": "Order total >= 100
+or Order date < date("2027-01-01")",
+        "type": "literal",
+      },
+      "name": "Free shipping",
+      "typeRef": "boolean",
+    },
+    {
+      "id": "Decision_shipping_cost",
+      "kind": "decision",
+      "logic": {
+        "id": "LiteralExpression_shipping_cost",
+        "text": "if Free shipping then 0 else Rate(2, Destination)",
+        "type": "literal",
+      },
+      "name": "Shipping cost",
+      "typeRef": "number",
+    },
+  ],
+  "id": "Definitions_shipping",
+  "name": "Shipping",
+  "requirements": [
+    {
+      "from": "InputData_order_total",
+      "id": "InformationRequirement_order_total__free_shipping",
+      "kind": "information",
+      "to": "Decision_free_shipping",
+    },
+    {
+      "from": "InputData_order_date",
+      "id": "InformationRequirement_order_date__free_shipping",
+      "kind": "information",
+      "to": "Decision_free_shipping",
+    },
+    {
+      "from": "Decision_free_shipping",
+      "id": "InformationRequirement_free_shipping__shipping_cost",
+      "kind": "information",
+      "to": "Decision_shipping_cost",
+    },
+    {
+      "from": "InputData_destination",
+      "id": "InformationRequirement_destination__shipping_cost",
+      "kind": "information",
+      "to": "Decision_shipping_cost",
+    },
+    {
+      "from": "BusinessKnowledgeModel_rate",
+      "id": "KnowledgeRequirement_rate__shipping_cost",
+      "kind": "knowledge",
+      "to": "Decision_shipping_cost",
+    },
+  ],
+}
+`;
+
+exports[`DMN parser (#71) > examples/dmn/01-loan-approval.dmnt matches its AST snapshot 1`] = `
+{
+  "elements": [
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "type",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "number",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "input",
+      },
+      "kind": "input",
+      "logic": [],
+      "name": {
+        "quoted": false,
+        "value": "Credit score",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "type",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "number",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "input",
+      },
+      "kind": "input",
+      "logic": [],
+      "name": {
+        "quoted": false,
+        "value": "Loan amount",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "knowledge",
+      },
+      "kind": "knowledge",
+      "logic": [],
+      "name": {
+        "quoted": false,
+        "value": "Risk policy",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "source",
+      },
+      "kind": "source",
+      "logic": [],
+      "name": {
+        "quoted": false,
+        "value": "Lending guidelines",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "requires",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Credit score",
+            },
+            {
+              "quoted": false,
+              "value": "Loan amount",
+            },
+            {
+              "quoted": false,
+              "value": "Risk policy",
+            },
+            {
+              "quoted": false,
+              "value": "Lending guidelines",
+            },
+          ],
+        },
+      ],
+      "docs": [
+        {
+          "text": "Whether the bank lends, and why.",
+          "type": "doc",
+        },
+      ],
+      "keyword": {
+        "quoted": false,
+        "value": "decision",
+      },
+      "kind": "decision",
+      "logic": [
+        {
+          "attrs": [
+            {
+              "key": {
+                "quoted": false,
+                "value": "hit",
+              },
+              "values": [
+                {
+                  "quoted": false,
+                  "value": "unique",
+                },
+              ],
+            },
+          ],
+          "columns": [
+            {
+              "label": {
+                "quoted": false,
+                "value": "Credit score",
+              },
+              "role": "input",
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Loan amount",
+              },
+              "role": "input",
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Approved",
+              },
+              "marker": "->",
+              "role": "output",
+              "typeRef": {
+                "quoted": false,
+                "value": "boolean",
+              },
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Reason",
+              },
+              "role": "output",
+              "typeRef": {
+                "quoted": false,
+                "value": "string",
+              },
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Notes",
+              },
+              "marker": "//",
+              "role": "annotation",
+            },
+          ],
+          "header": {
+            "cells": [
+              {
+                "text": "Credit score",
+              },
+              {
+                "text": "Loan amount",
+              },
+              {
+                "text": "-> Approved: boolean",
+              },
+              {
+                "text": "Reason: string",
+              },
+              {
+                "text": "// Notes",
+              },
+            ],
+            "closed": true,
+          },
+          "keyword": {
+            "quoted": false,
+            "value": "table",
+          },
+          "rows": [
+            {
+              "cells": [
+                {
+                  "text": ">= 700",
+                },
+                {
+                  "text": "<= 50000",
+                },
+                {
+                  "text": "true",
+                },
+                {
+                  "text": ""Good score"",
+                },
+                {
+                  "text": "Standard approval",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": ">= 700",
+                },
+                {
+                  "text": "> 50000",
+                },
+                {
+                  "text": "false",
+                },
+                {
+                  "text": ""Amount too high"",
+                },
+                {
+                  "text": "Refer to a specialist",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": "< 700",
+                },
+                {
+                  "text": "-",
+                },
+                {
+                  "text": "false",
+                },
+                {
+                  "text": ""Low score"",
+                },
+                {
+                  "text": "",
+                },
+              ],
+              "closed": true,
+            },
+          ],
+          "type": "table",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "Approve loan",
+      },
+      "type": "element",
+    },
+  ],
+  "title": {
+    "quoted": false,
+    "value": "Loan approval",
+  },
+  "type": "document",
+}
+`;
+
+exports[`DMN parser (#71) > examples/dmn/02-dinner.dmnt matches its AST snapshot 1`] = `
+{
+  "elements": [
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "type",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "string",
+            },
+          ],
+        },
+        {
+          "key": {
+            "quoted": false,
+            "value": "values",
+          },
+          "values": [
+            {
+              "quoted": true,
+              "value": "Winter",
+            },
+            {
+              "quoted": true,
+              "value": "Summer",
+            },
+            {
+              "quoted": true,
+              "value": "Spring",
+            },
+            {
+              "quoted": true,
+              "value": "Autumn",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "input",
+      },
+      "kind": "input",
+      "logic": [],
+      "name": {
+        "quoted": false,
+        "value": "Season",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "type",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "number",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "input",
+      },
+      "kind": "input",
+      "logic": [],
+      "name": {
+        "quoted": false,
+        "value": "Number of guests",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "type",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "boolean",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "input",
+      },
+      "kind": "input",
+      "logic": [],
+      "name": {
+        "quoted": false,
+        "value": "Guests with children",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "knowledge",
+      },
+      "kind": "knowledge",
+      "logic": [],
+      "name": {
+        "quoted": false,
+        "value": "Recipe book",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "color",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "orange",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "source",
+      },
+      "kind": "source",
+      "logic": [],
+      "name": {
+        "quoted": false,
+        "value": "Chef",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "requires",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Season",
+            },
+            {
+              "quoted": false,
+              "value": "Number of guests",
+            },
+            {
+              "quoted": false,
+              "value": "Recipe book",
+            },
+            {
+              "quoted": false,
+              "value": "Chef",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "decision",
+      },
+      "kind": "decision",
+      "logic": [
+        {
+          "attrs": [
+            {
+              "key": {
+                "quoted": false,
+                "value": "hit",
+              },
+              "values": [
+                {
+                  "quoted": false,
+                  "value": "unique",
+                },
+              ],
+            },
+          ],
+          "columns": [
+            {
+              "label": {
+                "quoted": false,
+                "value": "Season",
+              },
+              "role": "input",
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Number of guests",
+              },
+              "role": "input",
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Dish",
+              },
+              "marker": "->",
+              "role": "output",
+              "typeRef": {
+                "quoted": false,
+                "value": "string",
+              },
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Notes",
+              },
+              "marker": "//",
+              "role": "annotation",
+            },
+          ],
+          "header": {
+            "cells": [
+              {
+                "text": "Season",
+              },
+              {
+                "text": "Number of guests",
+              },
+              {
+                "text": "-> Dish: string",
+              },
+              {
+                "text": "// Notes",
+              },
+            ],
+            "closed": true,
+          },
+          "keyword": {
+            "quoted": false,
+            "value": "table",
+          },
+          "rows": [
+            {
+              "cells": [
+                {
+                  "text": ""Winter"",
+                },
+                {
+                  "text": "<= 8",
+                },
+                {
+                  "text": ""Roastbeef"",
+                },
+                {
+                  "text": "Cosy dinner",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": ""Winter"",
+                },
+                {
+                  "text": "> 8",
+                },
+                {
+                  "text": ""Stew"",
+                },
+                {
+                  "text": "Feeds a crowd",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": ""Summer"",
+                },
+                {
+                  "text": "-",
+                },
+                {
+                  "text": ""Light salad"",
+                },
+                {
+                  "text": "",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": ""Spring", "Autumn"",
+                },
+                {
+                  "text": "<= 4",
+                },
+                {
+                  "text": ""Steak"",
+                },
+                {
+                  "text": "",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": ""Spring", "Autumn"",
+                },
+                {
+                  "text": "> 4",
+                },
+                {
+                  "text": ""Spareribs"",
+                },
+                {
+                  "text": "",
+                },
+              ],
+              "closed": true,
+            },
+          ],
+          "type": "table",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "Dish",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "requires",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Dish",
+            },
+            {
+              "quoted": false,
+              "value": "Guests with children",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "decision",
+      },
+      "kind": "decision",
+      "logic": [
+        {
+          "attrs": [
+            {
+              "key": {
+                "quoted": false,
+                "value": "hit",
+              },
+              "values": [
+                {
+                  "quoted": false,
+                  "value": "collect",
+                },
+              ],
+            },
+          ],
+          "columns": [
+            {
+              "label": {
+                "quoted": false,
+                "value": "Dish",
+              },
+              "role": "input",
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Guests with children",
+              },
+              "role": "input",
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Beverage",
+              },
+              "marker": "->",
+              "role": "output",
+              "typeRef": {
+                "quoted": false,
+                "value": "string",
+              },
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Notes",
+              },
+              "marker": "//",
+              "role": "annotation",
+            },
+          ],
+          "header": {
+            "cells": [
+              {
+                "text": "Dish",
+              },
+              {
+                "text": "Guests with children",
+              },
+              {
+                "text": "-> Beverage: string",
+              },
+              {
+                "text": "// Notes",
+              },
+            ],
+            "closed": true,
+          },
+          "keyword": {
+            "quoted": false,
+            "value": "table",
+          },
+          "rows": [
+            {
+              "cells": [
+                {
+                  "text": ""Spareribs"",
+                },
+                {
+                  "text": "-",
+                },
+                {
+                  "text": ""Smoked beer"",
+                },
+                {
+                  "text": "",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": ""Stew"",
+                },
+                {
+                  "text": "-",
+                },
+                {
+                  "text": ""Stout"",
+                },
+                {
+                  "text": "",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": ""Roastbeef"",
+                },
+                {
+                  "text": "-",
+                },
+                {
+                  "text": ""Bordeaux"",
+                },
+                {
+                  "text": "",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": ""Steak", "Light salad"",
+                },
+                {
+                  "text": "-",
+                },
+                {
+                  "text": ""Pinot Noir"",
+                },
+                {
+                  "text": "",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": "-",
+                },
+                {
+                  "text": "true",
+                },
+                {
+                  "text": ""Apple juice"",
+                },
+                {
+                  "text": "For the children",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": "-",
+                },
+                {
+                  "text": "-",
+                },
+                {
+                  "text": ""Water"",
+                },
+                {
+                  "text": "Always",
+                },
+              ],
+              "closed": true,
+            },
+          ],
+          "type": "table",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "Beverages",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "requires",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Dish",
+            },
+            {
+              "quoted": false,
+              "value": "Beverages",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "decision",
+      },
+      "kind": "decision",
+      "logic": [
+        {
+          "keyword": {
+            "quoted": false,
+            "value": "literal",
+          },
+          "lines": [
+            {
+              "text": "append(Beverages, Dish)",
+            },
+          ],
+          "text": "append(Beverages, Dish)",
+          "type": "literal",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "Shopping list",
+      },
+      "type": "element",
+    },
+  ],
+  "title": {
+    "quoted": false,
+    "value": "Dinner",
+  },
+  "type": "document",
+}
+`;
+
+exports[`DMN parser (#71) > examples/dmn/03-hit-policies.dmnt matches its AST snapshot 1`] = `
+{
+  "elements": [
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "type",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "number",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "input",
+      },
+      "kind": "input",
+      "logic": [],
+      "name": {
+        "quoted": false,
+        "value": "Points",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "requires",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Points",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "decision",
+      },
+      "kind": "decision",
+      "logic": [
+        {
+          "attrs": [
+            {
+              "key": {
+                "quoted": false,
+                "value": "hit",
+              },
+              "values": [
+                {
+                  "quoted": false,
+                  "value": "unique",
+                },
+              ],
+            },
+          ],
+          "columns": [
+            {
+              "label": {
+                "quoted": false,
+                "value": "Points",
+              },
+              "role": "input",
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Level",
+              },
+              "marker": "->",
+              "role": "output",
+              "typeRef": {
+                "quoted": false,
+                "value": "string",
+              },
+            },
+          ],
+          "header": {
+            "cells": [
+              {
+                "text": "Points",
+              },
+              {
+                "text": "-> Level: string",
+              },
+            ],
+            "closed": true,
+          },
+          "keyword": {
+            "quoted": false,
+            "value": "table",
+          },
+          "rows": [
+            {
+              "cells": [
+                {
+                  "text": "< 10",
+                },
+                {
+                  "text": ""low"",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": ">= 10",
+                },
+                {
+                  "text": ""high"",
+                },
+              ],
+              "closed": true,
+            },
+          ],
+          "type": "table",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "Unique",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "requires",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Points",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "decision",
+      },
+      "kind": "decision",
+      "logic": [
+        {
+          "attrs": [
+            {
+              "key": {
+                "quoted": false,
+                "value": "hit",
+              },
+              "values": [
+                {
+                  "quoted": false,
+                  "value": "first",
+                },
+              ],
+            },
+          ],
+          "columns": [
+            {
+              "label": {
+                "quoted": false,
+                "value": "Points",
+              },
+              "role": "input",
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Level",
+              },
+              "marker": "->",
+              "role": "output",
+              "typeRef": {
+                "quoted": false,
+                "value": "string",
+              },
+            },
+          ],
+          "header": {
+            "cells": [
+              {
+                "text": "Points",
+              },
+              {
+                "text": "-> Level: string",
+              },
+            ],
+            "closed": true,
+          },
+          "keyword": {
+            "quoted": false,
+            "value": "table",
+          },
+          "rows": [
+            {
+              "cells": [
+                {
+                  "text": ">= 100",
+                },
+                {
+                  "text": ""gold"",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": ">= 10",
+                },
+                {
+                  "text": ""silver"",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": "-",
+                },
+                {
+                  "text": ""bronze"",
+                },
+              ],
+              "closed": true,
+            },
+          ],
+          "type": "table",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "First",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "requires",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Points",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "decision",
+      },
+      "kind": "decision",
+      "logic": [
+        {
+          "attrs": [
+            {
+              "key": {
+                "quoted": false,
+                "value": "hit",
+              },
+              "values": [
+                {
+                  "quoted": false,
+                  "value": "priority",
+                },
+              ],
+            },
+          ],
+          "columns": [
+            {
+              "label": {
+                "quoted": false,
+                "value": "Points",
+              },
+              "role": "input",
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Level",
+              },
+              "marker": "->",
+              "role": "output",
+              "typeRef": {
+                "quoted": false,
+                "value": "string",
+              },
+              "values": {
+                "quoted": false,
+                "value": ""gold", "silver", "bronze"",
+              },
+            },
+          ],
+          "header": {
+            "cells": [
+              {
+                "text": "Points",
+              },
+              {
+                "text": "-> Level: string in "gold", "silver", "bronze"",
+              },
+            ],
+            "closed": true,
+          },
+          "keyword": {
+            "quoted": false,
+            "value": "table",
+          },
+          "rows": [
+            {
+              "cells": [
+                {
+                  "text": ">= 100",
+                },
+                {
+                  "text": ""gold"",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": ">= 10",
+                },
+                {
+                  "text": ""silver"",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": "-",
+                },
+                {
+                  "text": ""bronze"",
+                },
+              ],
+              "closed": true,
+            },
+          ],
+          "type": "table",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "Priority",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "requires",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Points",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "decision",
+      },
+      "kind": "decision",
+      "logic": [
+        {
+          "attrs": [
+            {
+              "key": {
+                "quoted": false,
+                "value": "hit",
+              },
+              "values": [
+                {
+                  "quoted": false,
+                  "value": "any",
+                },
+              ],
+            },
+          ],
+          "columns": [
+            {
+              "label": {
+                "quoted": false,
+                "value": "Points",
+              },
+              "role": "input",
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Eligible",
+              },
+              "marker": "->",
+              "role": "output",
+              "typeRef": {
+                "quoted": false,
+                "value": "boolean",
+              },
+            },
+          ],
+          "header": {
+            "cells": [
+              {
+                "text": "Points",
+              },
+              {
+                "text": "-> Eligible: boolean",
+              },
+            ],
+            "closed": true,
+          },
+          "keyword": {
+            "quoted": false,
+            "value": "table",
+          },
+          "rows": [
+            {
+              "cells": [
+                {
+                  "text": ">= 10",
+                },
+                {
+                  "text": "true",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": ">= 50",
+                },
+                {
+                  "text": "true",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": "< 10",
+                },
+                {
+                  "text": "false",
+                },
+              ],
+              "closed": true,
+            },
+          ],
+          "type": "table",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "Any",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "requires",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Points",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "decision",
+      },
+      "kind": "decision",
+      "logic": [
+        {
+          "attrs": [
+            {
+              "key": {
+                "quoted": false,
+                "value": "hit",
+              },
+              "values": [
+                {
+                  "quoted": false,
+                  "value": "collect",
+                },
+              ],
+            },
+          ],
+          "columns": [
+            {
+              "label": {
+                "quoted": false,
+                "value": "Points",
+              },
+              "role": "input",
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Badge",
+              },
+              "marker": "->",
+              "role": "output",
+              "typeRef": {
+                "quoted": false,
+                "value": "string",
+              },
+            },
+          ],
+          "header": {
+            "cells": [
+              {
+                "text": "Points",
+              },
+              {
+                "text": "-> Badge: string",
+              },
+            ],
+            "closed": true,
+          },
+          "keyword": {
+            "quoted": false,
+            "value": "table",
+          },
+          "rows": [
+            {
+              "cells": [
+                {
+                  "text": ">= 10",
+                },
+                {
+                  "text": ""regular"",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": ">= 100",
+                },
+                {
+                  "text": ""champion"",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": "-",
+                },
+                {
+                  "text": ""member"",
+                },
+              ],
+              "closed": true,
+            },
+          ],
+          "type": "table",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "Collect",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "requires",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Points",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "decision",
+      },
+      "kind": "decision",
+      "logic": [
+        {
+          "attrs": [
+            {
+              "key": {
+                "quoted": false,
+                "value": "hit",
+              },
+              "values": [
+                {
+                  "quoted": false,
+                  "value": "collect sum",
+                },
+              ],
+            },
+          ],
+          "columns": [
+            {
+              "label": {
+                "quoted": false,
+                "value": "Points",
+              },
+              "role": "input",
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Bonus",
+              },
+              "marker": "->",
+              "role": "output",
+              "typeRef": {
+                "quoted": false,
+                "value": "number",
+              },
+            },
+          ],
+          "header": {
+            "cells": [
+              {
+                "text": "Points",
+              },
+              {
+                "text": "-> Bonus: number",
+              },
+            ],
+            "closed": true,
+          },
+          "keyword": {
+            "quoted": false,
+            "value": "table",
+          },
+          "rows": [
+            {
+              "cells": [
+                {
+                  "text": ">= 10",
+                },
+                {
+                  "text": "5",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": ">= 100",
+                },
+                {
+                  "text": "20",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": "-",
+                },
+                {
+                  "text": "1",
+                },
+              ],
+              "closed": true,
+            },
+          ],
+          "type": "table",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "Collect sum",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "requires",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Points",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "decision",
+      },
+      "kind": "decision",
+      "logic": [
+        {
+          "attrs": [
+            {
+              "key": {
+                "quoted": false,
+                "value": "hit",
+              },
+              "values": [
+                {
+                  "quoted": false,
+                  "value": "collect count",
+                },
+              ],
+            },
+          ],
+          "columns": [
+            {
+              "label": {
+                "quoted": false,
+                "value": "Points",
+              },
+              "role": "input",
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Matches",
+              },
+              "marker": "->",
+              "role": "output",
+              "typeRef": {
+                "quoted": false,
+                "value": "number",
+              },
+            },
+          ],
+          "header": {
+            "cells": [
+              {
+                "text": "Points",
+              },
+              {
+                "text": "-> Matches: number",
+              },
+            ],
+            "closed": true,
+          },
+          "keyword": {
+            "quoted": false,
+            "value": "table",
+          },
+          "rows": [
+            {
+              "cells": [
+                {
+                  "text": ">= 10",
+                },
+                {
+                  "text": "1",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": "-",
+                },
+                {
+                  "text": "1",
+                },
+              ],
+              "closed": true,
+            },
+          ],
+          "type": "table",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "Collect count",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "requires",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Points",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "decision",
+      },
+      "kind": "decision",
+      "logic": [
+        {
+          "attrs": [
+            {
+              "key": {
+                "quoted": false,
+                "value": "hit",
+              },
+              "values": [
+                {
+                  "quoted": false,
+                  "value": "collect min",
+                },
+              ],
+            },
+          ],
+          "columns": [
+            {
+              "label": {
+                "quoted": false,
+                "value": "Points",
+              },
+              "role": "input",
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Fee",
+              },
+              "marker": "->",
+              "role": "output",
+              "typeRef": {
+                "quoted": false,
+                "value": "number",
+              },
+            },
+          ],
+          "header": {
+            "cells": [
+              {
+                "text": "Points",
+              },
+              {
+                "text": "-> Fee: number",
+              },
+            ],
+            "closed": true,
+          },
+          "keyword": {
+            "quoted": false,
+            "value": "table",
+          },
+          "rows": [
+            {
+              "cells": [
+                {
+                  "text": ">= 10",
+                },
+                {
+                  "text": "2",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": "-",
+                },
+                {
+                  "text": "5",
+                },
+              ],
+              "closed": true,
+            },
+          ],
+          "type": "table",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "Collect min",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "requires",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Points",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "decision",
+      },
+      "kind": "decision",
+      "logic": [
+        {
+          "attrs": [
+            {
+              "key": {
+                "quoted": false,
+                "value": "hit",
+              },
+              "values": [
+                {
+                  "quoted": false,
+                  "value": "collect max",
+                },
+              ],
+            },
+          ],
+          "columns": [
+            {
+              "label": {
+                "quoted": false,
+                "value": "Points",
+              },
+              "role": "input",
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Limit",
+              },
+              "marker": "->",
+              "role": "output",
+              "typeRef": {
+                "quoted": false,
+                "value": "number",
+              },
+            },
+          ],
+          "header": {
+            "cells": [
+              {
+                "text": "Points",
+              },
+              {
+                "text": "-> Limit: number",
+              },
+            ],
+            "closed": true,
+          },
+          "keyword": {
+            "quoted": false,
+            "value": "table",
+          },
+          "rows": [
+            {
+              "cells": [
+                {
+                  "text": ">= 10",
+                },
+                {
+                  "text": "500",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": "-",
+                },
+                {
+                  "text": "100",
+                },
+              ],
+              "closed": true,
+            },
+          ],
+          "type": "table",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "Collect max",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "requires",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Points",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "decision",
+      },
+      "kind": "decision",
+      "logic": [
+        {
+          "attrs": [
+            {
+              "key": {
+                "quoted": false,
+                "value": "hit",
+              },
+              "values": [
+                {
+                  "quoted": false,
+                  "value": "rule order",
+                },
+              ],
+            },
+          ],
+          "columns": [
+            {
+              "label": {
+                "quoted": false,
+                "value": "Points",
+              },
+              "role": "input",
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Message",
+              },
+              "marker": "->",
+              "role": "output",
+              "typeRef": {
+                "quoted": false,
+                "value": "string",
+              },
+            },
+          ],
+          "header": {
+            "cells": [
+              {
+                "text": "Points",
+              },
+              {
+                "text": "-> Message: string",
+              },
+            ],
+            "closed": true,
+          },
+          "keyword": {
+            "quoted": false,
+            "value": "table",
+          },
+          "rows": [
+            {
+              "cells": [
+                {
+                  "text": ">= 10",
+                },
+                {
+                  "text": ""Thanks for coming"",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": "-",
+                },
+                {
+                  "text": ""Welcome"",
+                },
+              ],
+              "closed": true,
+            },
+          ],
+          "type": "table",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "Rule order",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "requires",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Points",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "decision",
+      },
+      "kind": "decision",
+      "logic": [
+        {
+          "attrs": [
+            {
+              "key": {
+                "quoted": false,
+                "value": "hit",
+              },
+              "values": [
+                {
+                  "quoted": false,
+                  "value": "output order",
+                },
+              ],
+            },
+          ],
+          "columns": [
+            {
+              "label": {
+                "quoted": false,
+                "value": "Points",
+              },
+              "role": "input",
+            },
+            {
+              "label": {
+                "quoted": false,
+                "value": "Perk",
+              },
+              "marker": "->",
+              "role": "output",
+              "typeRef": {
+                "quoted": false,
+                "value": "string",
+              },
+              "values": {
+                "quoted": false,
+                "value": ""lounge", "upgrade", "drink"",
+              },
+            },
+          ],
+          "header": {
+            "cells": [
+              {
+                "text": "Points",
+              },
+              {
+                "text": "-> Perk: string in "lounge", "upgrade", "drink"",
+              },
+            ],
+            "closed": true,
+          },
+          "keyword": {
+            "quoted": false,
+            "value": "table",
+          },
+          "rows": [
+            {
+              "cells": [
+                {
+                  "text": ">= 100",
+                },
+                {
+                  "text": ""lounge"",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": ">= 10",
+                },
+                {
+                  "text": ""upgrade"",
+                },
+              ],
+              "closed": true,
+            },
+            {
+              "cells": [
+                {
+                  "text": "-",
+                },
+                {
+                  "text": ""drink"",
+                },
+              ],
+              "closed": true,
+            },
+          ],
+          "type": "table",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "Output order",
+      },
+      "type": "element",
+    },
+  ],
+  "title": {
+    "quoted": false,
+    "value": "Hit policies",
+  },
+  "type": "document",
+}
+`;
+
+exports[`DMN parser (#71) > examples/dmn/04-literal-expressions.dmnt matches its AST snapshot 1`] = `
+{
+  "elements": [
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "type",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "number",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "input",
+      },
+      "kind": "input",
+      "logic": [],
+      "name": {
+        "quoted": false,
+        "value": "Order total",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "type",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "date",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "input",
+      },
+      "kind": "input",
+      "logic": [],
+      "name": {
+        "quoted": false,
+        "value": "Order date",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "type",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "string",
+            },
+          ],
+        },
+        {
+          "key": {
+            "quoted": false,
+            "value": "values",
+          },
+          "values": [
+            {
+              "quoted": true,
+              "value": "home",
+            },
+            {
+              "quoted": true,
+              "value": "abroad",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "input",
+      },
+      "kind": "input",
+      "logic": [],
+      "name": {
+        "quoted": false,
+        "value": "Destination",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "params",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Weight",
+            },
+            {
+              "quoted": false,
+              "value": "Zone",
+            },
+          ],
+        },
+        {
+          "key": {
+            "quoted": false,
+            "value": "type",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "number",
+            },
+          ],
+        },
+      ],
+      "docs": [
+        {
+          "text": "The carrier rate per kilogram, by zone.",
+          "type": "doc",
+        },
+      ],
+      "keyword": {
+        "quoted": false,
+        "value": "knowledge",
+      },
+      "kind": "knowledge",
+      "logic": [
+        {
+          "keyword": {
+            "quoted": false,
+            "value": "literal",
+          },
+          "lines": [
+            {
+              "text": "if Zone = "abroad" then Weight * 4 else Weight * 1.5",
+            },
+          ],
+          "text": "if Zone = "abroad" then Weight * 4 else Weight * 1.5",
+          "type": "literal",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "Rate",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "requires",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Order total",
+            },
+            {
+              "quoted": false,
+              "value": "Order date",
+            },
+          ],
+        },
+        {
+          "key": {
+            "quoted": false,
+            "value": "type",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "boolean",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "decision",
+      },
+      "kind": "decision",
+      "logic": [
+        {
+          "keyword": {
+            "quoted": false,
+            "value": "literal",
+          },
+          "lines": [
+            {
+              "text": "Order total >= 100",
+            },
+            {
+              "text": "or Order date < date("2027-01-01")",
+            },
+          ],
+          "text": "Order total >= 100
+or Order date < date("2027-01-01")",
+          "type": "literal",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "Free shipping",
+      },
+      "type": "element",
+    },
+    {
+      "attrs": [
+        {
+          "key": {
+            "quoted": false,
+            "value": "requires",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "Free shipping",
+            },
+            {
+              "quoted": false,
+              "value": "Destination",
+            },
+            {
+              "quoted": false,
+              "value": "Rate",
+            },
+          ],
+        },
+        {
+          "key": {
+            "quoted": false,
+            "value": "type",
+          },
+          "values": [
+            {
+              "quoted": false,
+              "value": "number",
+            },
+          ],
+        },
+      ],
+      "docs": [],
+      "keyword": {
+        "quoted": false,
+        "value": "decision",
+      },
+      "kind": "decision",
+      "logic": [
+        {
+          "keyword": {
+            "quoted": false,
+            "value": "literal",
+          },
+          "lines": [
+            {
+              "text": "if Free shipping then 0 else Rate(2, Destination)",
+            },
+          ],
+          "text": "if Free shipping then 0 else Rate(2, Destination)",
+          "type": "literal",
+        },
+      ],
+      "name": {
+        "quoted": false,
+        "value": "Shipping cost",
+      },
+      "type": "element",
+    },
+  ],
+  "title": {
+    "quoted": false,
+    "value": "Shipping",
+  },
+  "type": "document",
+}
+`;

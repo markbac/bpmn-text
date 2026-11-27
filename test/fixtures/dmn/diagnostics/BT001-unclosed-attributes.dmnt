@@ -1,0 +1,3 @@
+# BT001: An attribute list that is never closed.
+# expect: BT001 @ 3:13
+input Score [type: number

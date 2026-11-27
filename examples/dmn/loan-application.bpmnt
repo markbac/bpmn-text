@@ -1,0 +1,11 @@
+# A process whose business rule task evaluates the decision in 01-loan-approval.dmnt.
+# covers: §4.2
+title Loan application
+
+start Application received
+task Collect documents
+rule Decide on the loan [decision: Approve loan]
+xor Approved?
+  yes: send Send offer
+  no: send Send refusal
+end Answered

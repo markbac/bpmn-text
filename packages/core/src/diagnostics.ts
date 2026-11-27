@@ -12,7 +12,10 @@ export interface Range {
 
 export type Severity = 'error' | 'warning' | 'info';
 
-/** Every diagnostic code, with its default severity (notation §11). */
+/**
+ * Every diagnostic code, with its default severity (notation §11; the BT5xx
+ * codes are the DMN notation's, dmn-notation §9).
+ */
 export const diagnosticCodes = {
   BT001: {
     severity: 'error',
@@ -126,6 +129,88 @@ export const diagnosticCodes = {
     severity: 'info',
     meaning:
       'Error or escalation thrown in a subprocess with nothing to catch it',
+  },
+  // DMN (dmn-notation.md §9)
+  BT501: {
+    severity: 'error',
+    meaning: 'Table row with a different number of cells from its header',
+  },
+  BT502: {
+    severity: 'error',
+    meaning: 'Table without an output column',
+  },
+  BT503: {
+    severity: 'error',
+    meaning: 'Unknown type',
+  },
+  BT504: {
+    severity: 'error',
+    meaning: 'Unknown hit policy',
+  },
+  BT510: {
+    severity: 'error',
+    meaning: 'Two elements with the same name',
+  },
+  BT511: {
+    severity: 'error',
+    meaning: 'Requirement not allowed between these kinds of element',
+  },
+  BT512: {
+    severity: 'error',
+    meaning: 'Requirement cycle',
+  },
+  BT513: {
+    severity: 'warning',
+    meaning: 'Decision without logic',
+  },
+  BT514: {
+    severity: 'error',
+    meaning: 'Aggregation with more than one output',
+  },
+  BT515: {
+    severity: 'error',
+    meaning: 'Two output columns with the same name',
+  },
+  BT516: {
+    severity: 'error',
+    meaning: '`priority` or `output order` without allowed output values',
+  },
+  BT517: {
+    severity: 'error',
+    meaning: 'Logic an element cannot hold',
+  },
+  BT520: {
+    severity: 'error',
+    meaning: 'FEEL syntax error',
+  },
+  BT521: {
+    severity: 'error',
+    meaning: 'Value of the wrong type for its column',
+  },
+  BT522: {
+    severity: 'warning',
+    meaning: 'Name in a FEEL expression that is not a requirement',
+  },
+  BT523: {
+    severity: 'error',
+    meaning: "Value not among the column's allowed values",
+  },
+  BT530: {
+    severity: 'error',
+    meaning:
+      'Overlapping rules under `unique`, or under `any` with different outputs',
+  },
+  BT531: {
+    severity: 'warning',
+    meaning: 'Input combination that no rule covers',
+  },
+  BT532: {
+    severity: 'warning',
+    meaning: 'Rule that can never be chosen under `first`',
+  },
+  BT540: {
+    severity: 'error',
+    meaning: 'BPMN rule task linked to an unknown decision',
   },
 } as const satisfies Record<string, { severity: Severity; meaning: string }>;
 

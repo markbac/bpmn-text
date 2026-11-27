@@ -1,0 +1,6 @@
+# The decisions the BT540 fixture beside it can name.
+# covers: §7
+input Credit score [type: number]
+
+decision Approve loan [requires: Credit score]
+  literal Credit score >= 700

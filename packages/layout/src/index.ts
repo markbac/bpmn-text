@@ -1,4 +1,5 @@
 export { layout } from './engine.js';
+export { defaultElk } from './elk.js';
 export {
   labelSize,
   nodeSize,

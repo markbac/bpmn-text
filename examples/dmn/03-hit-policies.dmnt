@@ -1,0 +1,77 @@
+# Every hit policy, on one input.
+# covers: §4, §4.3
+title Hit policies
+
+input Points [type: number]
+
+decision Unique [requires: Points]
+  table [hit: unique]
+    | Points | -> Level: string |
+    | < 10   | "low"            |
+    | >= 10  | "high"           |
+
+decision First [requires: Points]
+  table [hit: first]
+    | Points | -> Level: string |
+    | >= 100 | "gold"           |
+    | >= 10  | "silver"         |
+    | -      | "bronze"         |
+
+decision Priority [requires: Points]
+  table [hit: priority]
+    | Points | -> Level: string in "gold", "silver", "bronze" |
+    | >= 100 | "gold"                                         |
+    | >= 10  | "silver"                                       |
+    | -      | "bronze"                                       |
+
+decision Any [requires: Points]
+  table [hit: any]
+    | Points | -> Eligible: boolean |
+    | >= 10  | true                 |
+    | >= 50  | true                 |
+    | < 10   | false                |
+
+decision Collect [requires: Points]
+  table [hit: collect]
+    | Points | -> Badge: string |
+    | >= 10  | "regular"        |
+    | >= 100 | "champion"       |
+    | -      | "member"         |
+
+decision Collect sum [requires: Points]
+  table [hit: collect sum]
+    | Points | -> Bonus: number |
+    | >= 10  | 5                |
+    | >= 100 | 20               |
+    | -      | 1                |
+
+decision Collect count [requires: Points]
+  table [hit: collect count]
+    | Points | -> Matches: number |
+    | >= 10  | 1                  |
+    | -      | 1                  |
+
+decision Collect min [requires: Points]
+  table [hit: collect min]
+    | Points | -> Fee: number |
+    | >= 10  | 2              |
+    | -      | 5              |
+
+decision Collect max [requires: Points]
+  table [hit: collect max]
+    | Points | -> Limit: number |
+    | >= 10  | 500              |
+    | -      | 100              |
+
+decision Rule order [requires: Points]
+  table [hit: rule order]
+    | Points | -> Message: string  |
+    | >= 10  | "Thanks for coming" |
+    | -      | "Welcome"           |
+
+decision Output order [requires: Points]
+  table [hit: output order]
+    | Points | -> Perk: string in "lounge", "upgrade", "drink" |
+    | >= 100 | "lounge"                                        |
+    | >= 10  | "upgrade"                                       |
+    | -      | "drink"                                         |

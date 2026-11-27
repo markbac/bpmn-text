@@ -33,10 +33,28 @@ pool Company
 You write the process in the order it happens. Sequence flows, join
 gateways, lane placement and the whole diagram layout are inferred.
 
+**Decisions too.** `.dmnt` files hold DMN decision tables and decision
+requirements diagrams, one rule per line, and compile to DMN 1.3 XML that opens
+in Camunda Modeler and dmn-js. The compiler reports overlapping rules, gaps and
+rules that can never be chosen, at the row ([DMN notation](docs/dmn-notation.md)).
+
+```dmnt
+input Credit score [type: number]
+input Loan amount [type: number]
+
+decision Approve loan [requires: Credit score, Loan amount]
+  table [hit: unique]
+    | Credit score | Loan amount | -> Approved: boolean | Reason: string    |
+    | >= 700       | <= 50000    | true                 | "Good score"      |
+    | >= 700       | > 50000     | false                | "Amount too high" |
+    | < 700        | -           | false                | "Low score"       |
+```
+
 > **Status: in development.** The CLI and the compiler library produce
 > laid-out BPMN for the whole notation: events, tasks, gateways, pools,
 > lanes, message flows, subprocesses, boundary events, data, annotations,
-> groups, colours and documentation. Work is tracked in
+> groups, colours and documentation; and laid-out DMN for decision tables,
+> literal expressions and decision requirements diagrams. Work is tracked in
 > [issues](../../issues) and [milestones](../../milestones).
 
 ![The multi-phase example](docs/images/07-multi-phase.png)
@@ -87,6 +105,12 @@ sync, downloads and share links. See [Deployment](docs/deployment.md) to
 run it on your PC or a server, in Docker or not, and keep it up to date
 with `scripts/update.sh` or `scripts/update.ps1`.
 
+Switch to **DMN** at the top left to write decisions: the preview shows the
+decision requirements diagram, or the table of the decision under the cursor,
+and Tab moves between table cells.
+
+![The web editor with a DMN decision table](docs/images/editor-dmn.png)
+
 ## Command line
 
 Install it with the [Quick start](#quick-start) command, or from a
@@ -102,7 +126,13 @@ bpmn-text check "**/*.bpmnt"                       # code frames; --format json
 bpmn-text fmt order.bpmnt                          # rewrite in canonical style
 bpmn-text fmt --check "**/*.bpmnt"                 # list unformatted files
 cat order.bpmnt | bpmn-text build > order.bpmn     # stdin to stdout
+bpmn-text build "examples/**/*.{bpmnt,dmnt}" -o out/  # .bpmn and .dmn files
+bpmn-text build loans.dmnt -f png -o loans.png     # the DRD, and loans.<decision>.png per table
+bpmn-text check -l dmn < loans.dmnt                # DMN from stdin
 ```
+
+The language follows the file extension. A `.bpmnt` file's business rule tasks
+are checked against the decisions in the `.dmnt` files beside it.
 
 ### Key to the symbols
 
@@ -142,6 +172,9 @@ const { xml, diagnostics, sourceMap } = await compile(source, {
 | `format(source)` | The source in canonical style. |
 | `legend(model)` | The key to the symbols `model` uses: `entries` lists each `{ section, name, meaning }`, and `xml` holds the symbols for bpmn-js. |
 | `composeLegend(legend, svg)` | The finished key as SVG, from the SVG bpmn-js exports for `legend.xml`. |
+| `compileDmn(source, options?)` | `.dmnt` to DMN 1.3: `{ xml, model, layout, diagnostics, sourceMap }`. |
+| `checkDmn(source, options?)` | `{ model, diagnostics }` for `.dmnt`, with the FEEL and table checks, without layout. |
+| `parseDmn(source)`, `formatDmn(source)` | As `parse` and `format`, for `.dmnt`; the formatter aligns table columns. |
 
 `sourceMap` maps every BPMN element ID to the source range it was written
 at. The library has no Node-only dependencies, so it also runs in the
@@ -152,8 +185,8 @@ Web Worker.
 
 | Deliverable | Description |
 |---|---|
-| **Compiler library** | `parse` / `check` / `compile` / `format`. Runs in Node and the browser. |
-| **CLI** | `bpmn-text build \| legend \| check \| fmt`, outputs `.bpmn`, `.svg` and `.png`, with watch mode. |
+| **Compiler library** | `parse` / `check` / `compile` / `format`, and their DMN versions. Runs in Node and the browser. |
+| **CLI** | `bpmn-text build \| legend \| check \| fmt`, outputs `.bpmn`, `.dmn`, `.svg` and `.png`, with watch mode. |
 | **Web editor** | Text on the left, live diagram on the right, fully client-side. |
 | **VS Code extension** | Highlighting, diagnostics, completion, navigation, rename, formatting, live preview and export. See [apps/vscode](apps/vscode/README.md). |
 
@@ -167,10 +200,11 @@ Web Worker.
 | [Troubleshooting](docs/troubleshooting.md) | Unexpected flows, extra gateways and unreachable elements |
 | [Functionality](docs/functionality.md) | Purpose, scope, what is not supported, functional and non-functional requirements |
 | [Notation reference](docs/notation.md) | The `.bpmnt` language: elements, flows, gateways, lanes, diagnostics, grammar |
+| [DMN notation](docs/dmn-notation.md) | The `.dmnt` language: decisions, requirements, decision tables, literal expressions, diagnostics |
 | [Architecture](docs/architecture.md) | C4 views, pipeline, packages, layout engine, BPMN generation, testing |
 | [Decisions](docs/decisions.md) | Architecture decision records (ADRs) |
 | [Development plan](docs/development-plan.md) | Milestones, critical path, issue breakdown |
-| [Examples](examples/) | Example `.bpmnt` files covering every feature |
+| [Examples](examples/) | Example `.bpmnt` files covering every feature, and `.dmnt` files in [examples/dmn](examples/dmn/) |
 
 ## Key design choices
 

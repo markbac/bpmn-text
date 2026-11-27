@@ -5,6 +5,7 @@ import {
   type Range,
 } from './diagnostics.js';
 import type { Container, FlowNode, Model } from './model.js';
+import { didYouMean } from './suggest.js';
 
 /** A model check: one code, independent of the others (architecture §5). */
 export interface Rule {
@@ -15,6 +16,19 @@ export interface Rule {
 export interface ValidateOptions {
   /** Turn rules off by code, such as `{ BT304: false }`. */
   rules?: Partial<Record<DiagnosticCode, boolean>>;
+  /**
+   * The DMN decisions that business rule tasks may name with
+   * `[decision: …]`, with the file each is in. Without it, the names are
+   * not checked (BT540), so a single `.bpmnt` file builds on its own.
+   */
+  decisions?: KnownDecision[];
+}
+
+/** A decision in a `.dmnt` file, for checking `[decision: …]`. */
+export interface KnownDecision {
+  name: string;
+  /** The file, as given; matched by its base name. */
+  file: string;
 }
 
 /** Runs every enabled rule over the model. */
@@ -22,9 +36,56 @@ export function validate(
   model: Model,
   options: ValidateOptions = {},
 ): Diagnostic[] {
-  return rules
+  const found = rules
     .filter((r) => options.rules?.[r.code] !== false)
     .flatMap((r) => r.check(model));
+  if (options.decisions && options.rules?.BT540 !== false)
+    found.push(...checkDecisions(model, options.decisions));
+  return found;
+}
+
+const baseName = (file: string) =>
+  file.replace(/\\/g, '/').split('/').pop()!.toLowerCase();
+
+/** BT540: business rule tasks that name a decision no `.dmnt` file has. */
+function checkDecisions(model: Model, known: KnownDecision[]): Diagnostic[] {
+  const found: Diagnostic[] = [];
+  for (const [n] of modelNodes(model)) {
+    const link = n.decision;
+    if (!link) continue;
+    const candidates = link.file
+      ? known.filter((d) => baseName(d.file) === baseName(link.file!))
+      : known;
+    if (candidates.some((d) => d.name === link.name)) continue;
+    const where = link.file
+      ? candidates.length
+        ? ` in \`${link.file}\``
+        : `: no .dmnt file called \`${link.file}\` was found`
+      : '';
+    const suggestion = didYouMean(
+      link.name,
+      candidates.map((d) => d.name),
+    );
+    const prefix = link.file ? `${link.file}#` : '';
+    found.push(
+      diagnostic(
+        'BT540',
+        `There is no decision called \`${link.name}\`${where}.${suggestion ? ` Did you mean \`${suggestion}\`?` : ''}`,
+        link.range,
+        suggestion
+          ? {
+              fixes: [
+                {
+                  title: `Change to \`${suggestion}\``,
+                  edits: [{ range: link.range, newText: prefix + suggestion }],
+                },
+              ],
+            }
+          : {},
+      ),
+    );
+  }
+  return found;
 }
 
 /** Every flow node, including those inside subprocesses, with its container. */

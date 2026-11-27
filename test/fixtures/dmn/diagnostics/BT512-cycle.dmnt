@@ -1,0 +1,6 @@
+# BT512: Two decisions that require each other.
+# expect: BT512 @ 3:23
+decision A [requires: B]
+  literal 1
+decision B [requires: A]
+  literal 2

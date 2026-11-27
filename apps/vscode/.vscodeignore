@@ -5,6 +5,8 @@
 !dist/webview.css
 !syntaxes/**
 !language-configuration.json
+!dmnt-language-configuration.json
+!icon.png
 !README.md
 !CHANGELOG.md
 !package.json

@@ -1,0 +1,4 @@
+# BT203: Two elements with one @id.
+# expect: BT203 @ 4:13
+input Score @score
+input Grade @score

@@ -1,0 +1,9 @@
+# BT503: A misspelt type, on an input and on a column.
+# expect: BT503 @ 4:20
+# expect: BT503 @ 7:24
+input Score [type: nubmer]
+decision Pass [requires: Score]
+  table
+    | Score | -> Pass: bool |
+    | >= 50 | true          |
+    | < 50  | false         |

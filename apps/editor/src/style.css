@@ -231,6 +231,25 @@ select:focus-visible,
   stroke-width: 3px !important;
 }
 
+.diagram[hidden] {
+  display: none;
+}
+
+/* The DMN preview: tables and literals scroll inside the pane. */
+.dmn {
+  overflow: auto;
+}
+.dmn .dmn-decision-table-container,
+.dmn .dmn-literal-expression-container {
+  padding: 12px;
+}
+.dmn td.source-selected,
+.dmn th.source-selected,
+.dmn tr.source-selected > td {
+  outline: 2px solid var(--selected);
+  outline-offset: -2px;
+}
+
 .tooltip {
   position: absolute;
   z-index: 5;

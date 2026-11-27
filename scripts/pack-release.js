@@ -35,8 +35,8 @@ const cli = read('packages/cli/package.json');
 const { version } = cli;
 
 // The CLI package: workspace code bundled, npm dependencies kept external.
-const workspaces = ['core', 'layout', 'bpmn', 'render', 'cli'].map((name) =>
-  read(`packages/${name}/package.json`),
+const workspaces = ['core', 'layout', 'dmn', 'bpmn', 'render', 'cli'].map(
+  (name) => read(`packages/${name}/package.json`),
 );
 const external = (field) =>
   Object.fromEntries(

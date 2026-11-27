@@ -310,3 +310,36 @@ not a process.
 the diagram, and follow bpmn-js when it changes. Flows, pools, lanes, groups and notes
 are drawn by hand to match. Colours written on single elements are left out of the
 key, as nothing says what they mean.
+
+---
+
+## ADR-015: DMN as `.dmnt` files in a package of its own — *Accepted*
+
+**Context.** DMN decision tables and decision requirements diagrams are hard to
+review as XML ([#69](https://github.com/markbac/bpmn-text/issues/69)). The spike
+([#70](https://github.com/markbac/bpmn-text/issues/70)) settled the notation and
+scope; [dmn-notation.md](dmn-notation.md) is the result.
+
+**Decision.**
+
+| Question | Decision | Why |
+|---|---|---|
+| Files | Separate `.dmnt` files | Decisions are shared by several processes and change on their own; a `.bpmnt` links to them by name (§7). |
+| DMN version | DMN 1.3 | What `dmn-moddle`, `dmn-js`, Camunda 7 and Camunda 8 read and write. |
+| Where the code lives | One package, `@bpmn-text/dmn`, depending on `@bpmn-text/core` (lexer, diagnostics, suggestions, colours, slugs) and `@bpmn-text/layout` (ELK) | Keeps BPMN code free of DMN and the dependency graph a line. |
+| Tables | One rule per line, `\|`-separated, `->` before the first output, `//` before the annotation column | Reads like a table in any editor or diff, and the formatter keeps it aligned. |
+| FEEL | Parsed with `lezer-feel` (the grammar `dmn-js` uses), not evaluated | Gives syntax errors at the cell, the names an expression uses, and the intervals the table checks need, in about 60 kB for the editor. `feelin` would add an evaluator the compiler does not need. |
+| Table checks | Interval arithmetic per input column; cells the checks cannot reason about are skipped, never guessed | Overlaps and gaps are what reviews miss, and a false error would teach people to ignore the checks. |
+| Diagnostic codes | BT5xx | Reserved for DMN; the shared syntax codes are reused where they mean the same. |
+| Layout | ELK layered, bottom to top | How DRDs are usually drawn: data at the bottom, the top decision at the top. |
+| Rendering | `dmn-js` in headless Chromium, as ADR-005 | Tables are HTML in `dmn-js`, so PNG only; SVG is the DRD. |
+| v1 scope | Decision tables and literal expressions | Boxed expressions other than literals are rare in diagrams meant to be read, and `dmn-js` does not draw most of them. |
+
+**Out of scope:** execution attributes (ADR-008), decision services, item
+definitions, imports and boxed contexts, relations, lists, invocations and
+functions.
+
+**Consequences.** The CLI, editors and update scripts choose the language by file
+extension. Diagnostics, quick fixes and formatting work the same way in both
+languages. A business rule task's `[decision: …]` is checked only when the
+`.dmnt` files are known, so a single `.bpmnt` still builds on its own.

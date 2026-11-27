@@ -1,5 +1,365 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`DMN in the CLI (#77) > prints code frames for BT001-unclosed-attributes.dmnt 1`] = `
+"error[BT001]: This attribute list is never closed.
+ --> test/fixtures/dmn/diagnostics/BT001-unclosed-attributes.dmnt:3:13
+  |
+3 | input Score [type: number
+  |             ^
+
+test/fixtures/dmn/diagnostics/BT001-unclosed-attributes.dmnt: 1 error
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT101-unknown-keyword.dmnt 1`] = `
+"error[BT101]: Unknown keyword \`decison\`. Did you mean \`decision\`?
+ --> test/fixtures/dmn/diagnostics/BT101-unknown-keyword.dmnt:3:1
+  |
+3 | decison Pass
+  | ^^^^^^^
+  = help: Change to \`decision\`
+
+test/fixtures/dmn/diagnostics/BT101-unknown-keyword.dmnt: 1 error
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT103-unknown-attribute.dmnt 1`] = `
+"warning[BT103]: Unknown attribute \`typ\`; it has no effect. Did you mean \`type\`?
+ --> test/fixtures/dmn/diagnostics/BT103-unknown-attribute.dmnt:3:14
+  |
+3 | input Score [typ: number]
+  |              ^^^
+  = help: Change to \`type\`
+
+test/fixtures/dmn/diagnostics/BT103-unknown-attribute.dmnt: 1 warning
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT104-invalid-colour.dmnt 1`] = `
+"error[BT104]: \`blurple\` is not a colour. Use #RRGGBB, #RGB, a palette name (blue, orange, green, red, purple) or a CSS colour name.
+ --> test/fixtures/dmn/diagnostics/BT104-invalid-colour.dmnt:3:21
+  |
+3 | input Score [color: blurple]
+  |                     ^^^^^^^
+
+test/fixtures/dmn/diagnostics/BT104-invalid-colour.dmnt: 1 error
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT105-attribute-without-effect.dmnt 1`] = `
+"warning[BT105]: \`values\` has no effect on a decision.
+ --> test/fixtures/dmn/diagnostics/BT105-attribute-without-effect.dmnt:4:33
+  |
+4 | decision Pass [requires: Score, values: "yes", "no"]
+  |                                 ^^^^^^
+
+test/fixtures/dmn/diagnostics/BT105-attribute-without-effect.dmnt: 1 warning
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT202-unknown-requirement.dmnt 1`] = `
+"error[BT202]: Nothing is called \`Scor\`. Did you mean \`Score\`?
+ --> test/fixtures/dmn/diagnostics/BT202-unknown-requirement.dmnt:4:26
+  |
+4 | decision Pass [requires: Scor]
+  |                          ^^^^
+  = help: Change to \`Score\`
+
+test/fixtures/dmn/diagnostics/BT202-unknown-requirement.dmnt: 1 error
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT203-duplicate-id.dmnt 1`] = `
+"error[BT203]: The ID \`@score\` is used twice.
+ --> test/fixtures/dmn/diagnostics/BT203-duplicate-id.dmnt:4:13
+  |
+4 | input Grade @score
+  |             ^^^^^^
+
+test/fixtures/dmn/diagnostics/BT203-duplicate-id.dmnt: 1 error
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT501-row-cells.dmnt 1`] = `
+"error[BT501]: This row has 3 cells; the header has 2.
+ --> test/fixtures/dmn/diagnostics/BT501-row-cells.dmnt:7:5
+  |
+7 |     | >= 50 | true | extra |
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+test/fixtures/dmn/diagnostics/BT501-row-cells.dmnt: 1 error
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT502-no-output.dmnt 1`] = `
+"error[BT502]: This table has no output column. Mark the first output column with \`->\`.
+ --> test/fixtures/dmn/diagnostics/BT502-no-output.dmnt:6:5
+  |
+6 |     | Score | Pass  |
+  |     ^^^^^^^^^^^^^^^^^
+  = help: Make \`Pass\` the output
+
+test/fixtures/dmn/diagnostics/BT502-no-output.dmnt: 1 error
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT503-unknown-type.dmnt 1`] = `
+"error[BT503]: Unknown type \`nubmer\`. Did you mean \`number\`?
+ --> test/fixtures/dmn/diagnostics/BT503-unknown-type.dmnt:4:20
+  |
+4 | input Score [type: nubmer]
+  |                    ^^^^^^
+  = help: Change to \`number\`
+
+error[BT503]: Unknown type \`bool\`. Use one of \`string\`, \`number\`, \`boolean\`, \`date\`, \`time\`, \`dateTime\`, \`dayTimeDuration\`, \`yearMonthDuration\`, \`any\`.
+ --> test/fixtures/dmn/diagnostics/BT503-unknown-type.dmnt:7:24
+  |
+7 |     | Score | -> Pass: bool |
+  |                        ^^^^
+
+test/fixtures/dmn/diagnostics/BT503-unknown-type.dmnt: 2 errors
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT504-unknown-hit-policy.dmnt 1`] = `
+"error[BT504]: Unknown hit policy \`unqiue\`. Did you mean \`unique\`?
+ --> test/fixtures/dmn/diagnostics/BT504-unknown-hit-policy.dmnt:5:15
+  |
+5 |   table [hit: unqiue]
+  |               ^^^^^^
+  = help: Change to \`unique\`
+
+test/fixtures/dmn/diagnostics/BT504-unknown-hit-policy.dmnt: 1 error
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT510-duplicate-name.dmnt 1`] = `
+"error[BT510]: \`Score\` is already the name of input data; names must be unique.
+ --> test/fixtures/dmn/diagnostics/BT510-duplicate-name.dmnt:4:10
+  |
+4 | decision Score
+  |          ^^^^^
+  = note: First declared here (test/fixtures/dmn/diagnostics/BT510-duplicate-name.dmnt:3:7)
+
+test/fixtures/dmn/diagnostics/BT510-duplicate-name.dmnt: 1 error
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT511-requirement-kind.dmnt 1`] = `
+"error[BT511]: Input data cannot require anything.
+ --> test/fixtures/dmn/diagnostics/BT511-requirement-kind.dmnt:5:14
+  |
+5 | input Grade [requires: Score]
+  |              ^^^^^^^^
+
+error[BT511]: A knowledge model cannot require input data. A knowledge model gets its values from the decision that uses it.
+ --> test/fixtures/dmn/diagnostics/BT511-requirement-kind.dmnt:6:30
+  |
+6 | knowledge Scoring [requires: Score]
+  |                              ^^^^^
+
+test/fixtures/dmn/diagnostics/BT511-requirement-kind.dmnt: 2 errors
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT512-cycle.dmnt 1`] = `
+"error[BT512]: These requirements form a cycle: \`A\` requires \`B\` requires \`A\`.
+ --> test/fixtures/dmn/diagnostics/BT512-cycle.dmnt:3:23
+  |
+3 | decision A [requires: B]
+  |                       ^
+
+test/fixtures/dmn/diagnostics/BT512-cycle.dmnt: 1 error
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT513-no-logic.dmnt 1`] = `
+"warning[BT513]: \`Approve loan\` has no logic. Add a \`table\` or a \`literal\` under it.
+ --> test/fixtures/dmn/diagnostics/BT513-no-logic.dmnt:3:10
+  |
+3 | decision Approve loan
+  |          ^^^^^^^^^^^^
+
+test/fixtures/dmn/diagnostics/BT513-no-logic.dmnt: 1 warning
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT514-aggregation.dmnt 1`] = `
+"error[BT514]: \`collect sum\` needs exactly one output column; this table has 2.
+ --> test/fixtures/dmn/diagnostics/BT514-aggregation.dmnt:5:10
+  |
+5 |   table [hit: collect sum]
+  |          ^^^^^^^^^^^^^^^^
+
+test/fixtures/dmn/diagnostics/BT514-aggregation.dmnt: 1 error
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT515-duplicate-output.dmnt 1`] = `
+"error[BT515]: There is already an output column called \`Pass\`.
+ --> test/fixtures/dmn/diagnostics/BT515-duplicate-output.dmnt:6:25
+  |
+6 |     | Score | -> Pass | Pass  |
+  |                         ^^^^
+  = note: The first one (test/fixtures/dmn/diagnostics/BT515-duplicate-output.dmnt:6:15)
+
+test/fixtures/dmn/diagnostics/BT515-duplicate-output.dmnt: 1 error
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT516-priority-values.dmnt 1`] = `
+"error[BT516]: \`priority\` orders the rules by the allowed values of the outputs, and \`Risk\` has none. Write them in order after \`in\`, such as \`-> Risk: string in "high", "low"\`.
+ --> test/fixtures/dmn/diagnostics/BT516-priority-values.dmnt:6:15
+  |
+6 |     | Score | -> Risk: string |
+  |               ^^^^^^^^^^^^^^^
+
+test/fixtures/dmn/diagnostics/BT516-priority-values.dmnt: 1 error
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT517-logic-not-allowed.dmnt 1`] = `
+"error[BT517]: Input data holds no logic; only decisions and knowledge models do.
+ --> test/fixtures/dmn/diagnostics/BT517-logic-not-allowed.dmnt:6:3
+  |
+6 |   literal 1
+  |   ^^^^^^^
+
+error[BT517]: A decision holds one table or one literal; this is a second.
+ --> test/fixtures/dmn/diagnostics/BT517-logic-not-allowed.dmnt:9:3
+  |
+9 |   literal false
+  |   ^^^^^^^
+
+error[BT517]: A knowledge model holds a literal here, not a table; put the table in a decision.
+  --> test/fixtures/dmn/diagnostics/BT517-logic-not-allowed.dmnt:11:3
+   |
+11 |   table
+   |   ^^^^^
+
+test/fixtures/dmn/diagnostics/BT517-logic-not-allowed.dmnt: 3 errors
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT520-feel-syntax.dmnt 1`] = `
+"error[BT520]: This is not a valid FEEL unary test. It ends too early.
+ --> test/fixtures/dmn/diagnostics/BT520-feel-syntax.dmnt:9:7
+  |
+9 |     | >= 50 + | true    |
+  |       ^^^^^^^
+
+error[BT520]: This is not a valid FEEL expression. It ends too early.
+  --> test/fixtures/dmn/diagnostics/BT520-feel-syntax.dmnt:10:17
+   |
+10 |     | < 50    | (false  |
+   |                 ^^^^^^
+
+error[BT520]: This is not a valid FEEL expression. It ends too early.
+  --> test/fixtures/dmn/diagnostics/BT520-feel-syntax.dmnt:12:11
+   |
+12 |   literal if Score > 50 then "A"
+   |           ^^^^^^^^^^^^^^^^^^^^^^
+
+test/fixtures/dmn/diagnostics/BT520-feel-syntax.dmnt: 3 errors
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT521-type-mismatch.dmnt 1`] = `
+"error[BT521]: \`"high"\` is a string, but this column holds a number.
+ --> test/fixtures/dmn/diagnostics/BT521-type-mismatch.dmnt:8:7
+  |
+8 |     | "high" | true             |
+  |       ^^^^^^
+
+error[BT521]: \`"yes"\` is a string, but this column holds a boolean.
+ --> test/fixtures/dmn/diagnostics/BT521-type-mismatch.dmnt:9:16
+  |
+9 |     | < 0    | "yes"            |
+  |                ^^^^^
+
+test/fixtures/dmn/diagnostics/BT521-type-mismatch.dmnt: 2 errors
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT522-unknown-name.dmnt 1`] = `
+"warning[BT522]: \`Order totl\` is not a requirement of this element. Did you mean \`Order total\`?
+ --> test/fixtures/dmn/diagnostics/BT522-unknown-name.dmnt:5:14
+  |
+5 |   literal if Order totl > 100 then 0.1 else 0
+  |              ^^^^^^^^^^
+  = help: Change to \`Order total\`
+
+test/fixtures/dmn/diagnostics/BT522-unknown-name.dmnt: 1 warning
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT523-not-allowed-value.dmnt 1`] = `
+"error[BT523]: "Wnter" is not one of this column's values ("Winter", "Summer"). Did you mean "Winter"?
+ --> test/fixtures/dmn/diagnostics/BT523-not-allowed-value.dmnt:7:7
+  |
+7 |     | "Wnter"  | "Stew"   |
+  |       ^^^^^^^
+  = help: Change to "Winter"
+
+test/fixtures/dmn/diagnostics/BT523-not-allowed-value.dmnt: 1 error
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT530-overlap.dmnt 1`] = `
+"error[BT530]: Rules 1 and 2 both match Credit score in [700..750), but under \`unique\` at most one rule may match.
+  --> test/fixtures/dmn/diagnostics/BT530-overlap.dmnt:10:5
+   |
+10 |     | >= 700       | "A"      |
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: Rule 2 (test/fixtures/dmn/diagnostics/BT530-overlap.dmnt:11:5)
+
+error[BT530]: Rules 1 and 2 both match Credit score in [700..750), but under \`unique\` at most one rule may match.
+  --> test/fixtures/dmn/diagnostics/BT530-overlap.dmnt:11:5
+   |
+11 |     | [600..750)   | "B"      |
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: Rule 1 (test/fixtures/dmn/diagnostics/BT530-overlap.dmnt:10:5)
+
+error[BT530]: Rules 1 and 2 both match Credit score < 550, but under \`any\` rules that match together must give the same output.
+  --> test/fixtures/dmn/diagnostics/BT530-overlap.dmnt:16:5
+   |
+16 |     | < 600        | true    |
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: Rule 2 (test/fixtures/dmn/diagnostics/BT530-overlap.dmnt:17:5)
+
+error[BT530]: Rules 1 and 2 both match Credit score < 550, but under \`any\` rules that match together must give the same output.
+  --> test/fixtures/dmn/diagnostics/BT530-overlap.dmnt:17:5
+   |
+17 |     | < 550        | false   |
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: Rule 1 (test/fixtures/dmn/diagnostics/BT530-overlap.dmnt:16:5)
+
+test/fixtures/dmn/diagnostics/BT530-overlap.dmnt: 4 errors
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT531-gap.dmnt 1`] = `
+"warning[BT531]: No rule matches Credit score in [600..700), such as Credit score = 600. Add a rule for it, or a last rule with \`-\` in every input column.
+ --> test/fixtures/dmn/diagnostics/BT531-gap.dmnt:5:3
+  |
+5 |   table [hit: unique]
+  |   ^^^^^
+
+test/fixtures/dmn/diagnostics/BT531-gap.dmnt: 1 warning
+"
+`;
+
+exports[`DMN in the CLI (#77) > prints code frames for BT532-never-chosen.dmnt 1`] = `
+"warning[BT532]: Rule 2 can never be chosen: rule 1 matches everything it matches, and comes first.
+ --> test/fixtures/dmn/diagnostics/BT532-never-chosen.dmnt:8:5
+  |
+8 |     | >= 700       | "B"      |
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+test/fixtures/dmn/diagnostics/BT532-never-chosen.dmnt: 1 warning
+"
+`;
+
 exports[`bpmn-text check > prints code frames for BT001-unclosed-attributes.bpmnt 1`] = `
 "error[BT001]: This attribute list is never closed.
  --> test/fixtures/diagnostics/BT001-unclosed-attributes.bpmnt:4:18

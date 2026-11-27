@@ -3,18 +3,31 @@ import {
   decompressFromEncodedURIComponent,
 } from 'lz-string';
 
-const PREFIX = '#src=';
+/** The hash prefix of each notation's share links. */
+const PREFIX = { bpmn: '#src=', dmn: '#dmn=' } as const;
 
 /** A URL hash that holds `source`, compressed (FR-44). */
-export function shareHash(source: string): string {
-  return `${PREFIX}${compressToEncodedURIComponent(source)}`;
+export function shareHash(
+  source: string,
+  language: 'bpmn' | 'dmn' = 'bpmn',
+): string {
+  return `${PREFIX[language]}${compressToEncodedURIComponent(source)}`;
+}
+
+/** The notation of a share-link hash, or undefined if it is not one. */
+export function languageFromHash(hash: string): 'bpmn' | 'dmn' | undefined {
+  if (hash.startsWith(PREFIX.bpmn)) return 'bpmn';
+  if (hash.startsWith(PREFIX.dmn)) return 'dmn';
+  return undefined;
 }
 
 /** The source in a share-link hash, or undefined if there is none. */
 export function sourceFromHash(hash: string): string | undefined {
-  if (!hash.startsWith(PREFIX)) return undefined;
+  const language = languageFromHash(hash);
+  if (!language) return undefined;
   return (
-    decompressFromEncodedURIComponent(hash.slice(PREFIX.length)) ?? undefined
+    decompressFromEncodedURIComponent(hash.slice(PREFIX[language].length)) ??
+    undefined
   );
 }
 

@@ -6,12 +6,25 @@ import {
   type Diagnostic,
   type Range,
 } from '@bpmn-text/core';
+import { compileDmn } from '@bpmn-text/dmn';
 import { layout } from '@bpmn-text/layout';
 
+export type Language = 'bpmn' | 'dmn';
+
+/** A DMN decision, for opening its table or literal from the cursor. */
+export interface DecisionView {
+  id: string;
+  range: Range;
+  logic?: 'table' | 'literal';
+}
+
 export interface Compiled {
+  language: Language;
   xml: string;
-  /** The key to the symbols the diagram uses. */
-  legend: Legend;
+  /** The key to the symbols the diagram uses; BPMN only. */
+  legend?: Legend;
+  /** DMN only: the decisions, with what their logic is. */
+  decisions?: DecisionView[];
   diagnostics: Diagnostic[];
   /** BPMN element ID → source range, for selection sync. */
   sourceMap: Record<string, Range>;
@@ -30,8 +43,12 @@ export interface Compiled {
  * needs for completion and tooltips. Never throws: an internal error comes
  * back as a diagnostic.
  */
-export async function compileSource(source: string): Promise<Compiled> {
+export async function compileSource(
+  source: string,
+  language: Language = 'bpmn',
+): Promise<Compiled> {
   const started = performance.now();
+  if (language === 'dmn') return compileDmnSource(source, started);
   const { model, diagnostics } = check(source);
   const names = new Set<string>();
   const lanes = new Set<string>();
@@ -70,6 +87,7 @@ export async function compileSource(source: string): Promise<Compiled> {
     });
   }
   return {
+    language,
     xml,
     legend: legend(model),
     diagnostics,
@@ -77,6 +95,36 @@ export async function compileSource(source: string): Promise<Compiled> {
     documentation,
     names: [...names],
     lanes: [...lanes],
+    ms: Math.round(performance.now() - started),
+  };
+}
+
+async function compileDmnSource(
+  source: string,
+  started: number,
+): Promise<Compiled> {
+  const result = await compileDmn(source);
+  const documentation: Record<string, string> = {};
+  for (const e of result.model.elements) if (e.doc) documentation[e.id] = e.doc;
+  return {
+    language: 'dmn',
+    xml: result.xml,
+    diagnostics: result.diagnostics,
+    sourceMap: result.sourceMap,
+    documentation,
+    names: result.model.elements.map((e) => e.name),
+    lanes: [],
+    decisions: result.model.elements.flatMap((e) =>
+      e.kind === 'decision'
+        ? [
+            {
+              id: e.id,
+              range: e.range,
+              ...(e.logic ? { logic: e.logic.type } : {}),
+            },
+          ]
+        : [],
+    ),
     ms: Math.round(performance.now() - started),
   };
 }

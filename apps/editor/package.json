@@ -2,7 +2,7 @@
   "name": "@bpmn-text/editor",
   "version": "0.0.0",
   "private": true,
-  "description": "Live web editor for bpmn-text.",
+  "description": "Live web editor for bpmn-text: BPMN and DMN.",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,6 +12,7 @@
   "dependencies": {
     "@bpmn-text/bpmn": "0.0.0",
     "@bpmn-text/core": "0.0.0",
+    "@bpmn-text/dmn": "0.0.0",
     "@bpmn-text/layout": "0.0.0",
     "@codemirror/autocomplete": "^6.20.4",
     "@codemirror/commands": "^6.11.1",
@@ -21,6 +22,7 @@
     "@codemirror/view": "^6.43.15",
     "@lezer/highlight": "^1.2.5",
     "bpmn-js": "^18.31.1",
+    "dmn-js": "^18.1.0",
     "lz-string": "^1.5.0"
   },
   "devDependencies": {

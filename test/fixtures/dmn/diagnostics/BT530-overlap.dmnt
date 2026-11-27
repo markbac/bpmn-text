@@ -1,0 +1,18 @@
+# BT530: Two rules that both match 700 to 749 under `unique`, and two that disagree under `any`.
+# expect: BT530 @ 10:5
+# expect: BT530 @ 11:5
+# expect: BT530 @ 16:5
+# expect: BT530 @ 17:5
+input Credit score [type: number]
+decision Grade [requires: Credit score]
+  table [hit: unique]
+    | Credit score | -> Grade |
+    | >= 700       | "A"      |
+    | [600..750)   | "B"      |
+    | < 600        | "C"      |
+decision Flag [requires: Credit score]
+  table [hit: any]
+    | Credit score | -> Flag |
+    | < 600        | true    |
+    | < 550        | false   |
+    | >= 600       | false   |

@@ -1,0 +1,8 @@
+# BT516: `priority` without the output values to order by.
+# expect: BT516 @ 6:15
+input Score [type: number]
+decision Risk [requires: Score]
+  table [hit: priority]
+    | Score | -> Risk: string |
+    | < 50  | "high"          |
+    | -     | "low"           |

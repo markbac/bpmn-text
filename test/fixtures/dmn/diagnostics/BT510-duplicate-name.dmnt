@@ -1,0 +1,5 @@
+# BT510: Two elements with one name.
+# expect: BT510 @ 4:10
+input Score
+decision Score
+  literal 1

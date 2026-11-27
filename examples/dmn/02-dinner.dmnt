@@ -1,0 +1,31 @@
+# Dinner: a DRD of three decisions, a knowledge model and a knowledge source.
+# covers: §2, §2.1, §3, §4, §4.1, §4.2, §6
+title Dinner
+
+input Season [type: string, values: "Winter", "Summer", "Spring", "Autumn"]
+input Number of guests [type: number]
+input Guests with children [type: boolean]
+knowledge Recipe book
+source Chef [color: orange]
+
+decision Dish [requires: Season, Number of guests, Recipe book, Chef]
+  table [hit: unique]
+    | Season             | Number of guests | -> Dish: string | // Notes      |
+    | "Winter"           | <= 8             | "Roastbeef"     | Cosy dinner   |
+    | "Winter"           | > 8              | "Stew"          | Feeds a crowd |
+    | "Summer"           | -                | "Light salad"   |               |
+    | "Spring", "Autumn" | <= 4             | "Steak"         |               |
+    | "Spring", "Autumn" | > 4              | "Spareribs"     |               |
+
+decision Beverages [requires: Dish, Guests with children]
+  table [hit: collect]
+    | Dish                   | Guests with children | -> Beverage: string | // Notes         |
+    | "Spareribs"            | -                    | "Smoked beer"       |                  |
+    | "Stew"                 | -                    | "Stout"             |                  |
+    | "Roastbeef"            | -                    | "Bordeaux"          |                  |
+    | "Steak", "Light salad" | -                    | "Pinot Noir"        |                  |
+    | -                      | true                 | "Apple juice"       | For the children |
+    | -                      | -                    | "Water"             | Always           |
+
+decision Shopping list [requires: Dish, Beverages]
+  literal append(Beverages, Dish)

@@ -1,0 +1,13 @@
+# Quoted names, @ids, colours and doc blocks.
+# covers: §1, §2, §2.1
+title "Pricing: v2"
+
+input "Price, net" @price [type: number, color: blue, doc: "Before tax"]
+source Tax law [stroke: #831311]
+
+decision Gross price [requires: "Price, net", Tax law, type: number]
+  doc
+    The price a customer pays.
+
+    Tax is 20%.
+  literal "Price, net" * 1.2

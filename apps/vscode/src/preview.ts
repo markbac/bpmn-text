@@ -15,6 +15,8 @@ export class Preview implements vscode.Disposable {
   private panel: vscode.WebviewPanel | undefined;
   private document: vscode.TextDocument | undefined;
   private map: Record<string, Range> = {};
+  /** DMN: the decisions with logic, for opening the one at the cursor. */
+  private decisions: { id: string; range: Range }[] = [];
   private timer: NodeJS.Timeout | undefined;
   /** The diagram of `document` the panel shows, if any. */
   private shownXml: string | undefined;
@@ -39,7 +41,7 @@ export class Preview implements vscode.Disposable {
         if (e.document === this.document) this.schedule();
       }),
       vscode.window.onDidChangeActiveTextEditor((editor) => {
-        if (editor?.document.languageId === 'bpmnt') this.follow(editor);
+        if (isPreviewable(editor?.document)) this.follow(editor!);
       }),
       vscode.window.onDidChangeTextEditorSelection((e) => {
         if (e.textEditor.document === this.document)
@@ -95,6 +97,7 @@ export class Preview implements vscode.Disposable {
       this.document = undefined;
       this.shownXml = undefined;
       this.map = {};
+      this.decisions = [];
       this.generation++;
       this.release();
       this.exporting?.reject(new Error('The preview was closed.'));
@@ -205,10 +208,12 @@ export class Preview implements vscode.Disposable {
       // not drawn yet needs its layout.
       const compiled = await compile(document.getText(), {
         draw: this.shownXml === undefined ? 'always' : 'without-errors',
+        ...(document.languageId === 'dmnt' ? { language: 'dmn' } : {}),
       });
       // Newer text, or another document, is drawn instead.
       if (generation !== this.generation) return;
       this.map = compiled.sourceMap;
+      this.decisions = compiled.decisions ?? [];
       panel.title = `Preview ${vscode.workspace.asRelativePath(document.uri)}`;
       if (compiled.xml === undefined || compiled.xml === this.shownXml) {
         // Nothing to redraw: the cursor may now be on another element.
@@ -218,7 +223,11 @@ export class Preview implements vscode.Disposable {
       }
       this.shownXml = compiled.xml;
       const shown = new Promise<void>((resolve) => this.waiting.push(resolve));
-      await this.post({ type: 'show', xml: compiled.xml });
+      await this.post({
+        type: 'show',
+        xml: compiled.xml,
+        ...(document.languageId === 'dmnt' ? { language: 'dmn' } : {}),
+      });
       await shown;
     } catch (error) {
       void vscode.window.showErrorMessage(
@@ -234,7 +243,14 @@ export class Preview implements vscode.Disposable {
   /** The cursor selects its element in the diagram. */
   private highlight(editor: vscode.TextEditor) {
     const offset = editor.document.offsetAt(editor.selection.active);
-    void this.post({ type: 'highlight', id: elementAt(this.map, offset) });
+    const decision = this.decisions.find(
+      (d) => d.range.start.offset <= offset && offset <= d.range.end.offset,
+    )?.id;
+    void this.post({
+      type: 'highlight',
+      id: elementAt(this.map, offset),
+      ...(decision ? { decision } : {}),
+    });
   }
 
   /** A click on an element selects its source. */
@@ -253,6 +269,13 @@ export class Preview implements vscode.Disposable {
   }
 }
 
+/** Whether the preview can show a document: .bpmnt or .dmnt. */
+export function isPreviewable(
+  document: { languageId: string } | undefined,
+): boolean {
+  return document?.languageId === 'bpmnt' || document?.languageId === 'dmnt';
+}
+
 function html(webview: vscode.Webview, dist: vscode.Uri): string {
   const uri = (file: string) =>
     webview.asWebviewUri(vscode.Uri.joinPath(dist, file));
@@ -264,7 +287,13 @@ function html(webview: vscode.Webview, dist: vscode.Uri): string {
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; img-src ${webview.cspSource} blob: data:; script-src 'nonce-${nonce}';">
 <link rel="stylesheet" href="${uri('webview.css')}">
 <style>
-  html, body, #diagram { height: 100%; margin: 0; padding: 0; background: #fff; }
+  html, body, #diagram, #dmn { height: 100%; margin: 0; padding: 0; background: #fff; }
+  #dmn { overflow: auto; }
+  [hidden] { display: none !important; }
+  #dmn td.source-selected, #dmn tr.source-selected > td {
+    outline: 2px solid #d6336c;
+    outline-offset: -2px;
+  }
   .djs-element.source-selected .djs-visual > :first-child {
     stroke: #d6336c !important;
     stroke-width: 3px !important;
@@ -273,6 +302,7 @@ function html(webview: vscode.Webview, dist: vscode.Uri): string {
 </head>
 <body>
 <div id="diagram"></div>
+<div id="dmn" hidden></div>
 <script nonce="${nonce}" src="${uri('webview.js')}"></script>
 </body>
 </html>`;

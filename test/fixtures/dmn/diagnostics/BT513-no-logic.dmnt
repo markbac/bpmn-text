@@ -1,0 +1,3 @@
+# BT513: A decision with no table or literal.
+# expect: BT513 @ 3:10
+decision Approve loan

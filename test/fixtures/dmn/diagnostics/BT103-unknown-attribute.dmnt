@@ -1,0 +1,3 @@
+# BT103: An attribute the DMN notation does not have.
+# expect: BT103 @ 3:14
+input Score [typ: number]

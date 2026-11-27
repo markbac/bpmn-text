@@ -1,0 +1,8 @@
+# BT515: Two output columns with one name.
+# expect: BT515 @ 6:25
+input Score [type: number]
+decision Pass [requires: Score]
+  table
+    | Score | -> Pass | Pass  |
+    | >= 50 | true    | true  |
+    | < 50  | false   | false |

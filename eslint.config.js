@@ -10,19 +10,27 @@ import tseslint from 'typescript-eslint';
 const workspaces = {
   'packages/core': [],
   'packages/layout': ['packages/core'],
+  'packages/dmn': ['packages/core', 'packages/layout'],
   'packages/bpmn': ['packages/core', 'packages/layout'],
   'packages/render': ['packages/bpmn'],
   'packages/cli': [
     'packages/core',
     'packages/layout',
+    'packages/dmn',
     'packages/bpmn',
     'packages/render',
   ],
-  'packages/language-server': ['packages/core'],
-  'apps/editor': ['packages/core', 'packages/layout', 'packages/bpmn'],
+  'packages/language-server': ['packages/core', 'packages/dmn'],
+  'apps/editor': [
+    'packages/core',
+    'packages/layout',
+    'packages/dmn',
+    'packages/bpmn',
+  ],
   'apps/vscode': [
     'packages/language-server',
     'packages/core',
+    'packages/dmn',
     'packages/layout',
     'packages/bpmn',
   ],
@@ -32,6 +40,7 @@ const workspaces = {
 const packageNames = {
   'packages/core': '@bpmn-text/core',
   'packages/layout': '@bpmn-text/layout',
+  'packages/dmn': '@bpmn-text/dmn',
   'packages/bpmn': '@bpmn-text/bpmn',
   'packages/render': '@bpmn-text/render',
   'packages/cli': 'bpmn-text',

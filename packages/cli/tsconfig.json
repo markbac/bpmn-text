@@ -12,6 +12,9 @@
       "path": "../layout"
     },
     {
+      "path": "../dmn"
+    },
+    {
       "path": "../bpmn"
     },
     {

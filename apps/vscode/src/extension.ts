@@ -2,7 +2,7 @@ import { basename } from 'node:path';
 import * as vscode from 'vscode';
 import { LanguageClient, TransportKind } from 'vscode-languageclient/node';
 import { compile } from './compile.js';
-import { Preview } from './preview.js';
+import { isPreviewable, Preview } from './preview.js';
 
 let client: LanguageClient | undefined;
 
@@ -19,7 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
       run: { module: server, transport: TransportKind.ipc },
       debug: { module: server, transport: TransportKind.ipc },
     },
-    { documentSelector: [{ language: 'bpmnt' }] },
+    { documentSelector: [{ language: 'bpmnt' }, { language: 'dmnt' }] },
   );
   void client.start();
 
@@ -36,6 +36,15 @@ export function activate(context: vscode.ExtensionContext) {
       const { xml } = await compile(editor.document.getText());
       if (xml !== undefined)
         await save(editor.document, 'bpmn', 'BPMN', Buffer.from(xml));
+    }),
+    vscode.commands.registerCommand('bpmnText.exportDmn', async () => {
+      const editor = bpmnEditor();
+      if (!editor) return;
+      const { xml } = await compile(editor.document.getText(), {
+        language: 'dmn',
+      });
+      if (xml !== undefined)
+        await save(editor.document, 'dmn', 'DMN', Buffer.from(xml));
     }),
     vscode.commands.registerCommand('bpmnText.exportSvg', async () => {
       const editor = bpmnEditor();
@@ -61,16 +70,22 @@ export function activate(context: vscode.ExtensionContext) {
       const enabled = vscode.workspace
         .getConfiguration('bpmnText')
         .get<boolean>('buildOnSave');
-      // Only a .bpmnt file: anything else would be overwritten by its build.
-      if (!enabled || !/\.bpmnt$/i.test(document.uri.path)) return;
-      if (document.languageId !== 'bpmnt') return;
+      // Only a .bpmnt or .dmnt file: anything else would be overwritten
+      // by its build.
+      const dmn = /\.dmnt$/i.test(document.uri.path);
+      if (!enabled || !/\.(bpmnt|dmnt)$/i.test(document.uri.path)) return;
+      if (!isPreviewable(document)) return;
       const compiled = await compile(document.getText(), {
         draw: 'without-errors',
+        ...(dmn ? { language: 'dmn' as const } : {}),
       });
       if (compiled.xml === undefined) return;
       await vscode.workspace.fs.writeFile(
         document.uri.with({
-          path: document.uri.path.replace(/\.bpmnt$/i, '.bpmn'),
+          path: document.uri.path.replace(
+            /\.(bpmnt|dmnt)$/i,
+            dmn ? '.dmn' : '.bpmn',
+          ),
         }),
         Buffer.from(compiled.xml),
       );
@@ -89,8 +104,10 @@ function failed(label: string, error: unknown) {
 
 function bpmnEditor(): vscode.TextEditor | undefined {
   const editor = vscode.window.activeTextEditor;
-  if (editor?.document.languageId === 'bpmnt') return editor;
-  void vscode.window.showInformationMessage('Open a .bpmnt file first.');
+  if (isPreviewable(editor?.document)) return editor;
+  void vscode.window.showInformationMessage(
+    'Open a .bpmnt or .dmnt file first.',
+  );
   return undefined;
 }
 
@@ -101,7 +118,7 @@ async function save(
   label: string,
   data: Uint8Array,
 ) {
-  const name = basename(document.uri.path).replace(/\.bpmnt$/i, '');
+  const name = basename(document.uri.path).replace(/\.(bpmnt|dmnt)$/i, '');
   const target = await vscode.window.showSaveDialog({
     defaultUri: document.uri.with({
       path: document.uri.path.replace(/[^/]*$/, `${name}.${extension}`),

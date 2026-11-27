@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmn:definitions xmlns:dmn="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:color="http://www.omg.org/spec/BPMN/non-normative/color/1.0" id="Definitions_dinner" name="Dinner" namespace="http://bpmn.io/schema/dmn" exporter="bpmn-text">
+  <dmn:inputData id="InputData_season" name="Season">
+    <dmn:variable id="InformationItem_season" name="Season" typeRef="string" />
+  </dmn:inputData>
+  <dmn:inputData id="InputData_number_of_guests" name="Number of guests">
+    <dmn:variable id="InformationItem_number_of_guests" name="Number of guests" typeRef="number" />
+  </dmn:inputData>
+  <dmn:inputData id="InputData_guests_with_children" name="Guests with children">
+    <dmn:variable id="InformationItem_guests_with_children" name="Guests with children" typeRef="boolean" />
+  </dmn:inputData>
+  <dmn:businessKnowledgeModel id="BusinessKnowledgeModel_recipe_book" name="Recipe book">
+    <dmn:variable id="InformationItem_recipe_book" name="Recipe book" />
+  </dmn:businessKnowledgeModel>
+  <dmn:knowledgeSource id="KnowledgeSource_chef" name="Chef" />
+  <dmn:decision id="Decision_dish" name="Dish">
+    <dmn:variable id="InformationItem_dish" name="Dish" typeRef="string" />
+    <dmn:informationRequirement id="InformationRequirement_season__dish">
+      <dmn:requiredInput href="#InputData_season" />
+    </dmn:informationRequirement>
+    <dmn:informationRequirement id="InformationRequirement_number_of_guests__dish">
+      <dmn:requiredInput href="#InputData_number_of_guests" />
+    </dmn:informationRequirement>
+    <dmn:knowledgeRequirement id="KnowledgeRequirement_recipe_book__dish">
+      <dmn:requiredKnowledge href="#BusinessKnowledgeModel_recipe_book" />
+    </dmn:knowledgeRequirement>
+    <dmn:authorityRequirement id="AuthorityRequirement_chef__dish">
+      <dmn:requiredAuthority href="#KnowledgeSource_chef" />
+    </dmn:authorityRequirement>
+    <dmn:decisionTable id="DecisionTable_dish">
+      <dmn:input id="InputClause_dish_1">
+        <dmn:inputExpression id="InputExpression_dish_1" typeRef="string">
+          <dmn:text>Season</dmn:text>
+        </dmn:inputExpression>
+        <dmn:inputValues>
+          <dmn:text>"Winter","Summer","Spring","Autumn"</dmn:text>
+        </dmn:inputValues>
+      </dmn:input>
+      <dmn:input id="InputClause_dish_2">
+        <dmn:inputExpression id="InputExpression_dish_2" typeRef="number">
+          <dmn:text>Number of guests</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:output id="OutputClause_dish_1" name="Dish" typeRef="string" />
+      <dmn:rule id="Rule_dish_1">
+        <dmn:description>Cosy dinner</dmn:description>
+        <dmn:inputEntry id="UnaryTests_dish_1_1">
+          <dmn:text>"Winter"</dmn:text>
+        </dmn:inputEntry>
+        <dmn:inputEntry id="UnaryTests_dish_1_2">
+          <dmn:text>&lt;= 8</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_dish_1_1">
+          <dmn:text>"Roastbeef"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_dish_2">
+        <dmn:description>Feeds a crowd</dmn:description>
+        <dmn:inputEntry id="UnaryTests_dish_2_1">
+          <dmn:text>"Winter"</dmn:text>
+        </dmn:inputEntry>
+        <dmn:inputEntry id="UnaryTests_dish_2_2">
+          <dmn:text>&gt; 8</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_dish_2_1">
+          <dmn:text>"Stew"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_dish_3">
+        <dmn:inputEntry id="UnaryTests_dish_3_1">
+          <dmn:text>"Summer"</dmn:text>
+        </dmn:inputEntry>
+        <dmn:inputEntry id="UnaryTests_dish_3_2">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_dish_3_1">
+          <dmn:text>"Light salad"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_dish_4">
+        <dmn:inputEntry id="UnaryTests_dish_4_1">
+          <dmn:text>"Spring", "Autumn"</dmn:text>
+        </dmn:inputEntry>
+        <dmn:inputEntry id="UnaryTests_dish_4_2">
+          <dmn:text>&lt;= 4</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_dish_4_1">
+          <dmn:text>"Steak"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_dish_5">
+        <dmn:inputEntry id="UnaryTests_dish_5_1">
+          <dmn:text>"Spring", "Autumn"</dmn:text>
+        </dmn:inputEntry>
+        <dmn:inputEntry id="UnaryTests_dish_5_2">
+          <dmn:text>&gt; 4</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_dish_5_1">
+          <dmn:text>"Spareribs"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+    </dmn:decisionTable>
+  </dmn:decision>
+  <dmn:decision id="Decision_beverages" name="Beverages">
+    <dmn:variable id="InformationItem_beverages" name="Beverages" typeRef="string" />
+    <dmn:informationRequirement id="InformationRequirement_dish__beverages">
+      <dmn:requiredDecision href="#Decision_dish" />
+    </dmn:informationRequirement>
+    <dmn:informationRequirement id="InformationRequirement_guests_with_children__beverages">
+      <dmn:requiredInput href="#InputData_guests_with_children" />
+    </dmn:informationRequirement>
+    <dmn:decisionTable id="DecisionTable_beverages" hitPolicy="COLLECT">
+      <dmn:input id="InputClause_beverages_1">
+        <dmn:inputExpression id="InputExpression_beverages_1" typeRef="string">
+          <dmn:text>Dish</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:input id="InputClause_beverages_2">
+        <dmn:inputExpression id="InputExpression_beverages_2" typeRef="boolean">
+          <dmn:text>Guests with children</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:output id="OutputClause_beverages_1" name="Beverage" typeRef="string" />
+      <dmn:rule id="Rule_beverages_1">
+        <dmn:inputEntry id="UnaryTests_beverages_1_1">
+          <dmn:text>"Spareribs"</dmn:text>
+        </dmn:inputEntry>
+        <dmn:inputEntry id="UnaryTests_beverages_1_2">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_beverages_1_1">
+          <dmn:text>"Smoked beer"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_beverages_2">
+        <dmn:inputEntry id="UnaryTests_beverages_2_1">
+          <dmn:text>"Stew"</dmn:text>
+        </dmn:inputEntry>
+        <dmn:inputEntry id="UnaryTests_beverages_2_2">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_beverages_2_1">
+          <dmn:text>"Stout"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_beverages_3">
+        <dmn:inputEntry id="UnaryTests_beverages_3_1">
+          <dmn:text>"Roastbeef"</dmn:text>
+        </dmn:inputEntry>
+        <dmn:inputEntry id="UnaryTests_beverages_3_2">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_beverages_3_1">
+          <dmn:text>"Bordeaux"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_beverages_4">
+        <dmn:inputEntry id="UnaryTests_beverages_4_1">
+          <dmn:text>"Steak", "Light salad"</dmn:text>
+        </dmn:inputEntry>
+        <dmn:inputEntry id="UnaryTests_beverages_4_2">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_beverages_4_1">
+          <dmn:text>"Pinot Noir"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_beverages_5">
+        <dmn:description>For the children</dmn:description>
+        <dmn:inputEntry id="UnaryTests_beverages_5_1">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:inputEntry id="UnaryTests_beverages_5_2">
+          <dmn:text>true</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_beverages_5_1">
+          <dmn:text>"Apple juice"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_beverages_6">
+        <dmn:description>Always</dmn:description>
+        <dmn:inputEntry id="UnaryTests_beverages_6_1">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:inputEntry id="UnaryTests_beverages_6_2">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_beverages_6_1">
+          <dmn:text>"Water"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+    </dmn:decisionTable>
+  </dmn:decision>
+  <dmn:decision id="Decision_shopping_list" name="Shopping list">
+    <dmn:variable id="InformationItem_shopping_list" name="Shopping list" />
+    <dmn:informationRequirement id="InformationRequirement_dish__shopping_list">
+      <dmn:requiredDecision href="#Decision_dish" />
+    </dmn:informationRequirement>
+    <dmn:informationRequirement id="InformationRequirement_beverages__shopping_list">
+      <dmn:requiredDecision href="#Decision_beverages" />
+    </dmn:informationRequirement>
+    <dmn:literalExpression id="LiteralExpression_shopping_list">
+      <dmn:text>append(Beverages, Dish)</dmn:text>
+    </dmn:literalExpression>
+  </dmn:decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="DMNDiagram_1">
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_season__dish" dmnElementRef="InformationRequirement_season__dish">
+        <di:waypoint x="95" y="452" />
+        <di:waypoint x="95" y="432" />
+        <di:waypoint x="358" y="432" />
+        <di:waypoint x="358" y="392" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_number_of_guests__dish" dmnElementRef="InformationRequirement_number_of_guests__dish">
+        <di:waypoint x="260" y="452" />
+        <di:waypoint x="260" y="442" />
+        <di:waypoint x="394" y="442" />
+        <di:waypoint x="394" y="392" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_KnowledgeRequirement_recipe_book__dish" dmnElementRef="KnowledgeRequirement_recipe_book__dish">
+        <di:waypoint x="430" y="452" />
+        <di:waypoint x="430" y="392" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_AuthorityRequirement_chef__dish" dmnElementRef="AuthorityRequirement_chef__dish">
+        <di:waypoint x="587" y="452" />
+        <di:waypoint x="587" y="442" />
+        <di:waypoint x="466" y="442" />
+        <di:waypoint x="466" y="392" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_dish__beverages" dmnElementRef="InformationRequirement_dish__beverages">
+        <di:waypoint x="382" y="312" />
+        <di:waypoint x="382" y="302" />
+        <di:waypoint x="279" y="302" />
+        <di:waypoint x="279" y="252" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_guests_with_children__beverages" dmnElementRef="InformationRequirement_guests_with_children__beverages">
+        <di:waypoint x="219" y="312" />
+        <di:waypoint x="219" y="252" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_dish__shopping_list" dmnElementRef="InformationRequirement_dish__shopping_list">
+        <di:waypoint x="442" y="312" />
+        <di:waypoint x="442" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_beverages__shopping_list" dmnElementRef="InformationRequirement_beverages__shopping_list">
+        <di:waypoint x="249" y="172" />
+        <di:waypoint x="249" y="162" />
+        <di:waypoint x="382" y="162" />
+        <di:waypoint x="382" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNShape id="DMNShape_InputData_season" dmnElementRef="InputData_season">
+        <dc:Bounds height="45" width="125" x="32" y="452" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_InputData_number_of_guests" dmnElementRef="InputData_number_of_guests">
+        <dc:Bounds height="45" width="125" x="197" y="452" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_InputData_guests_with_children" dmnElementRef="InputData_guests_with_children">
+        <dc:Bounds height="45" width="125" x="157" y="312" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_BusinessKnowledgeModel_recipe_book" dmnElementRef="BusinessKnowledgeModel_recipe_book">
+        <dc:Bounds height="46" width="135" x="362" y="452" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_KnowledgeSource_chef" dmnElementRef="KnowledgeSource_chef" color:background-color="#FFE0B2">
+        <dc:Bounds height="63" width="100" x="537" y="452" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_Decision_dish" dmnElementRef="Decision_dish">
+        <dc:Bounds height="80" width="180" x="322" y="312" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_Decision_beverages" dmnElementRef="Decision_beverages">
+        <dc:Bounds height="80" width="180" x="159" y="172" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_Decision_shopping_list" dmnElementRef="Decision_shopping_list">
+        <dc:Bounds height="80" width="180" x="322" y="32" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</dmn:definitions>
+

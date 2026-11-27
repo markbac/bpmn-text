@@ -135,6 +135,8 @@ export interface FlowNode {
   default?: string;
   style?: Style;
   documentation?: string;
+  /** `[decision: …]` on a business rule task: the DMN decision it evaluates. */
+  decision?: { name: string; file?: string; range: Range };
   /** Set on join gateways the compiler inserted. */
   generated?: 'join';
   /** Inserted joins: the split (gateway, fork or boundary host) they merge. */

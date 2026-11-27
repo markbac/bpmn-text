@@ -152,8 +152,8 @@ describe('web editor', { timeout: 30_000 }, () => {
     const page = await open();
     const names: string[] = [];
     for (const format of [
-      'bpmnt',
-      'bpmn',
+      'source',
+      'xml',
       'svg',
       'png',
       'key-svg',
@@ -162,7 +162,7 @@ describe('web editor', { timeout: 30_000 }, () => {
       await page.click('#download');
       const [download] = await Promise.all([
         page.waitForEvent('download'),
-        page.click(`[data-format="${format}"]`),
+        page.click(`[data-format="${format}"]:not([hidden])`),
       ]);
       names.push(download.suggestedFilename());
       if (format === 'key-svg') {
@@ -180,5 +180,122 @@ describe('web editor', { timeout: 30_000 }, () => {
       'order-fulfilment.legend.svg',
       'order-fulfilment.legend.png',
     ]);
+  });
+
+  it('edits DMN: a rule, an overlap, and the table preview (#79)', async () => {
+    const page = await open();
+    await page.selectOption('#examples', 'dmn:01-loan-approval');
+    await page.waitForSelector(
+      '#dmn .djs-element[data-element-id="Decision_approve_loan"]',
+    );
+    expect(await page.isHidden('#diagram')).toBe(true);
+    // Into the table: the preview shows it.
+    await page.evaluate(() => {
+      const { view } = (
+        window as unknown as {
+          bpmnTextEditor: {
+            view: {
+              state: { doc: { line(n: number): { from: number; to: number } } };
+              dispatch(spec: object): void;
+            };
+          };
+        }
+      ).bpmnTextEditor;
+      const end = view.state.doc.line(16).to;
+      view.dispatch({
+        selection: { anchor: end },
+        changes: {
+          from: end,
+          insert: '\n    | >= 650 | - | false | "Overlaps" | |',
+        },
+      });
+    });
+    await page.waitForFunction(() =>
+      /^[1-9]d* errors?/.test(
+        document.querySelector('#status')?.textContent ?? '',
+      ),
+    );
+    expect(await page.$('.cm-lintRange-error')).not.toBeNull();
+    const lint = await page.evaluate(
+      () => [...document.querySelectorAll('.cm-lintRange-error')].length,
+    );
+    expect(lint).toBeGreaterThan(0);
+    // The last good table stays while there are errors; under `first`,
+    // overlaps are allowed, and the table shows the new rule.
+    await page.waitForSelector('#dmn .tjs-table');
+    await page.evaluate(() => {
+      const { view } = (
+        window as unknown as {
+          bpmnTextEditor: {
+            view: {
+              state: { doc: { toString(): string; length: number } };
+              dispatch(spec: object): void;
+            };
+          };
+        }
+      ).bpmnTextEditor;
+      const text = view.state.doc
+        .toString()
+        .replace('[hit: unique]', '[hit: first]');
+      view.dispatch({
+        changes: { from: 0, to: view.state.doc.length, insert: text },
+        selection: { anchor: text.indexOf('"Overlaps"') },
+      });
+    });
+    await page.waitForFunction(
+      () => document.querySelectorAll('#dmn .tjs-table tbody tr').length === 4,
+    );
+    expect(await page.textContent('#dmn .tjs-table')).toContain('Overlaps');
+    // Back in the DRD when the cursor leaves the decision.
+    await page.evaluate(() => {
+      const { view } = (
+        window as unknown as {
+          bpmnTextEditor: { view: { dispatch(spec: object): void } };
+        }
+      ).bpmnTextEditor;
+      view.dispatch({ selection: { anchor: 0 } });
+    });
+    await page.waitForSelector(
+      '#dmn .djs-element[data-element-id="InputData_credit_score"]',
+    );
+    // Downloads are DMN ones.
+    await page.click('#download');
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.click('[data-format="xml"]:not([hidden])'),
+    ]);
+    expect(download.suggestedFilename()).toBe('loan-approval.dmn');
+    // A share link keeps the notation.
+    await page.click('#share');
+    const hash = await page.evaluate(() => location.hash);
+    expect(hash.startsWith('#dmn=')).toBe(true);
+    const fresh = await open(`/${hash}`);
+    expect(await fresh.inputValue('#language')).toBe('dmn');
+  });
+
+  it('moves between table cells with Tab', async () => {
+    const page = await open();
+    await page.selectOption('#examples', 'dmn:01-loan-approval');
+    await page.waitForSelector('#dmn .djs-element');
+    await page.evaluate(() => {
+      const { view } = (
+        window as unknown as {
+          bpmnTextEditor: {
+            view: {
+              state: { doc: { line(n: number): { from: number } } };
+              dispatch(spec: object): void;
+              focus(): void;
+            };
+          };
+        }
+      ).bpmnTextEditor;
+      view.focus();
+      view.dispatch({
+        selection: { anchor: view.state.doc.line(14).from + 6 },
+      });
+    });
+    await page.keyboard.press('Tab');
+    const selected = await page.evaluate(() => getSelection()?.toString());
+    expect(selected).toBe('<= 50000');
   });
 });

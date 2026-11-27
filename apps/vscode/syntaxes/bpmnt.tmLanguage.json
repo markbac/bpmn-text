@@ -117,7 +117,7 @@
       },
       "patterns": [
         {
-          "match": "\\b(adhoc|collapsed|collection|color|doc|error|escalation|event|fit|id|lane|loop|message|non-interrupting|parallel|reads|rule|sequential|signal|stroke|writes)(?=\\s*(?::|,|\\]))",
+          "match": "\\b(adhoc|collapsed|collection|color|decision|doc|error|escalation|event|fit|id|lane|loop|message|non-interrupting|parallel|reads|rule|sequential|signal|stroke|writes)(?=\\s*(?::|,|\\]))",
           "name": "variable.parameter.attribute.bpmnt"
         },
         {

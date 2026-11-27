@@ -1,0 +1,12 @@
+# BT520: Cells and a literal that are not valid FEEL.
+# expect: BT520 @ 9:7
+# expect: BT520 @ 10:17
+# expect: BT520 @ 12:11
+input Score [type: number]
+decision Pass [requires: Score]
+  table
+    | Score   | -> Pass |
+    | >= 50 + | true    |
+    | < 50    | (false  |
+decision Grade [requires: Score]
+  literal if Score > 50 then "A"

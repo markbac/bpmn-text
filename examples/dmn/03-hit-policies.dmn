@@ -1,0 +1,497 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmn:definitions xmlns:dmn="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" id="Definitions_hit_policies" name="Hit policies" namespace="http://bpmn.io/schema/dmn" exporter="bpmn-text">
+  <dmn:inputData id="InputData_points" name="Points">
+    <dmn:variable id="InformationItem_points" name="Points" typeRef="number" />
+  </dmn:inputData>
+  <dmn:decision id="Decision_unique" name="Unique">
+    <dmn:variable id="InformationItem_unique" name="Unique" typeRef="string" />
+    <dmn:informationRequirement id="InformationRequirement_points__unique">
+      <dmn:requiredInput href="#InputData_points" />
+    </dmn:informationRequirement>
+    <dmn:decisionTable id="DecisionTable_unique">
+      <dmn:input id="InputClause_unique_1">
+        <dmn:inputExpression id="InputExpression_unique_1" typeRef="number">
+          <dmn:text>Points</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:output id="OutputClause_unique_1" name="Level" typeRef="string" />
+      <dmn:rule id="Rule_unique_1">
+        <dmn:inputEntry id="UnaryTests_unique_1_1">
+          <dmn:text>&lt; 10</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_unique_1_1">
+          <dmn:text>"low"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_unique_2">
+        <dmn:inputEntry id="UnaryTests_unique_2_1">
+          <dmn:text>&gt;= 10</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_unique_2_1">
+          <dmn:text>"high"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+    </dmn:decisionTable>
+  </dmn:decision>
+  <dmn:decision id="Decision_first" name="First">
+    <dmn:variable id="InformationItem_first" name="First" typeRef="string" />
+    <dmn:informationRequirement id="InformationRequirement_points__first">
+      <dmn:requiredInput href="#InputData_points" />
+    </dmn:informationRequirement>
+    <dmn:decisionTable id="DecisionTable_first" hitPolicy="FIRST">
+      <dmn:input id="InputClause_first_1">
+        <dmn:inputExpression id="InputExpression_first_1" typeRef="number">
+          <dmn:text>Points</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:output id="OutputClause_first_1" name="Level" typeRef="string" />
+      <dmn:rule id="Rule_first_1">
+        <dmn:inputEntry id="UnaryTests_first_1_1">
+          <dmn:text>&gt;= 100</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_first_1_1">
+          <dmn:text>"gold"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_first_2">
+        <dmn:inputEntry id="UnaryTests_first_2_1">
+          <dmn:text>&gt;= 10</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_first_2_1">
+          <dmn:text>"silver"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_first_3">
+        <dmn:inputEntry id="UnaryTests_first_3_1">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_first_3_1">
+          <dmn:text>"bronze"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+    </dmn:decisionTable>
+  </dmn:decision>
+  <dmn:decision id="Decision_priority" name="Priority">
+    <dmn:variable id="InformationItem_priority" name="Priority" typeRef="string" />
+    <dmn:informationRequirement id="InformationRequirement_points__priority">
+      <dmn:requiredInput href="#InputData_points" />
+    </dmn:informationRequirement>
+    <dmn:decisionTable id="DecisionTable_priority" hitPolicy="PRIORITY">
+      <dmn:input id="InputClause_priority_1">
+        <dmn:inputExpression id="InputExpression_priority_1" typeRef="number">
+          <dmn:text>Points</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:output id="OutputClause_priority_1" name="Level" typeRef="string">
+        <dmn:outputValues>
+          <dmn:text>"gold", "silver", "bronze"</dmn:text>
+        </dmn:outputValues>
+      </dmn:output>
+      <dmn:rule id="Rule_priority_1">
+        <dmn:inputEntry id="UnaryTests_priority_1_1">
+          <dmn:text>&gt;= 100</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_priority_1_1">
+          <dmn:text>"gold"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_priority_2">
+        <dmn:inputEntry id="UnaryTests_priority_2_1">
+          <dmn:text>&gt;= 10</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_priority_2_1">
+          <dmn:text>"silver"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_priority_3">
+        <dmn:inputEntry id="UnaryTests_priority_3_1">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_priority_3_1">
+          <dmn:text>"bronze"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+    </dmn:decisionTable>
+  </dmn:decision>
+  <dmn:decision id="Decision_any" name="Any">
+    <dmn:variable id="InformationItem_any" name="Any" typeRef="boolean" />
+    <dmn:informationRequirement id="InformationRequirement_points__any">
+      <dmn:requiredInput href="#InputData_points" />
+    </dmn:informationRequirement>
+    <dmn:decisionTable id="DecisionTable_any" hitPolicy="ANY">
+      <dmn:input id="InputClause_any_1">
+        <dmn:inputExpression id="InputExpression_any_1" typeRef="number">
+          <dmn:text>Points</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:output id="OutputClause_any_1" name="Eligible" typeRef="boolean" />
+      <dmn:rule id="Rule_any_1">
+        <dmn:inputEntry id="UnaryTests_any_1_1">
+          <dmn:text>&gt;= 10</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_any_1_1">
+          <dmn:text>true</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_any_2">
+        <dmn:inputEntry id="UnaryTests_any_2_1">
+          <dmn:text>&gt;= 50</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_any_2_1">
+          <dmn:text>true</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_any_3">
+        <dmn:inputEntry id="UnaryTests_any_3_1">
+          <dmn:text>&lt; 10</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_any_3_1">
+          <dmn:text>false</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+    </dmn:decisionTable>
+  </dmn:decision>
+  <dmn:decision id="Decision_collect" name="Collect">
+    <dmn:variable id="InformationItem_collect" name="Collect" typeRef="string" />
+    <dmn:informationRequirement id="InformationRequirement_points__collect">
+      <dmn:requiredInput href="#InputData_points" />
+    </dmn:informationRequirement>
+    <dmn:decisionTable id="DecisionTable_collect" hitPolicy="COLLECT">
+      <dmn:input id="InputClause_collect_1">
+        <dmn:inputExpression id="InputExpression_collect_1" typeRef="number">
+          <dmn:text>Points</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:output id="OutputClause_collect_1" name="Badge" typeRef="string" />
+      <dmn:rule id="Rule_collect_1">
+        <dmn:inputEntry id="UnaryTests_collect_1_1">
+          <dmn:text>&gt;= 10</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_collect_1_1">
+          <dmn:text>"regular"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_collect_2">
+        <dmn:inputEntry id="UnaryTests_collect_2_1">
+          <dmn:text>&gt;= 100</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_collect_2_1">
+          <dmn:text>"champion"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_collect_3">
+        <dmn:inputEntry id="UnaryTests_collect_3_1">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_collect_3_1">
+          <dmn:text>"member"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+    </dmn:decisionTable>
+  </dmn:decision>
+  <dmn:decision id="Decision_collect_sum" name="Collect sum">
+    <dmn:variable id="InformationItem_collect_sum" name="Collect sum" typeRef="number" />
+    <dmn:informationRequirement id="InformationRequirement_points__collect_sum">
+      <dmn:requiredInput href="#InputData_points" />
+    </dmn:informationRequirement>
+    <dmn:decisionTable id="DecisionTable_collect_sum" hitPolicy="COLLECT" aggregation="SUM">
+      <dmn:input id="InputClause_collect_sum_1">
+        <dmn:inputExpression id="InputExpression_collect_sum_1" typeRef="number">
+          <dmn:text>Points</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:output id="OutputClause_collect_sum_1" name="Bonus" typeRef="number" />
+      <dmn:rule id="Rule_collect_sum_1">
+        <dmn:inputEntry id="UnaryTests_collect_sum_1_1">
+          <dmn:text>&gt;= 10</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_collect_sum_1_1">
+          <dmn:text>5</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_collect_sum_2">
+        <dmn:inputEntry id="UnaryTests_collect_sum_2_1">
+          <dmn:text>&gt;= 100</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_collect_sum_2_1">
+          <dmn:text>20</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_collect_sum_3">
+        <dmn:inputEntry id="UnaryTests_collect_sum_3_1">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_collect_sum_3_1">
+          <dmn:text>1</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+    </dmn:decisionTable>
+  </dmn:decision>
+  <dmn:decision id="Decision_collect_count" name="Collect count">
+    <dmn:variable id="InformationItem_collect_count" name="Collect count" typeRef="number" />
+    <dmn:informationRequirement id="InformationRequirement_points__collect_count">
+      <dmn:requiredInput href="#InputData_points" />
+    </dmn:informationRequirement>
+    <dmn:decisionTable id="DecisionTable_collect_count" hitPolicy="COLLECT" aggregation="COUNT">
+      <dmn:input id="InputClause_collect_count_1">
+        <dmn:inputExpression id="InputExpression_collect_count_1" typeRef="number">
+          <dmn:text>Points</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:output id="OutputClause_collect_count_1" name="Matches" typeRef="number" />
+      <dmn:rule id="Rule_collect_count_1">
+        <dmn:inputEntry id="UnaryTests_collect_count_1_1">
+          <dmn:text>&gt;= 10</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_collect_count_1_1">
+          <dmn:text>1</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_collect_count_2">
+        <dmn:inputEntry id="UnaryTests_collect_count_2_1">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_collect_count_2_1">
+          <dmn:text>1</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+    </dmn:decisionTable>
+  </dmn:decision>
+  <dmn:decision id="Decision_collect_min" name="Collect min">
+    <dmn:variable id="InformationItem_collect_min" name="Collect min" typeRef="number" />
+    <dmn:informationRequirement id="InformationRequirement_points__collect_min">
+      <dmn:requiredInput href="#InputData_points" />
+    </dmn:informationRequirement>
+    <dmn:decisionTable id="DecisionTable_collect_min" hitPolicy="COLLECT" aggregation="MIN">
+      <dmn:input id="InputClause_collect_min_1">
+        <dmn:inputExpression id="InputExpression_collect_min_1" typeRef="number">
+          <dmn:text>Points</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:output id="OutputClause_collect_min_1" name="Fee" typeRef="number" />
+      <dmn:rule id="Rule_collect_min_1">
+        <dmn:inputEntry id="UnaryTests_collect_min_1_1">
+          <dmn:text>&gt;= 10</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_collect_min_1_1">
+          <dmn:text>2</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_collect_min_2">
+        <dmn:inputEntry id="UnaryTests_collect_min_2_1">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_collect_min_2_1">
+          <dmn:text>5</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+    </dmn:decisionTable>
+  </dmn:decision>
+  <dmn:decision id="Decision_collect_max" name="Collect max">
+    <dmn:variable id="InformationItem_collect_max" name="Collect max" typeRef="number" />
+    <dmn:informationRequirement id="InformationRequirement_points__collect_max">
+      <dmn:requiredInput href="#InputData_points" />
+    </dmn:informationRequirement>
+    <dmn:decisionTable id="DecisionTable_collect_max" hitPolicy="COLLECT" aggregation="MAX">
+      <dmn:input id="InputClause_collect_max_1">
+        <dmn:inputExpression id="InputExpression_collect_max_1" typeRef="number">
+          <dmn:text>Points</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:output id="OutputClause_collect_max_1" name="Limit" typeRef="number" />
+      <dmn:rule id="Rule_collect_max_1">
+        <dmn:inputEntry id="UnaryTests_collect_max_1_1">
+          <dmn:text>&gt;= 10</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_collect_max_1_1">
+          <dmn:text>500</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_collect_max_2">
+        <dmn:inputEntry id="UnaryTests_collect_max_2_1">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_collect_max_2_1">
+          <dmn:text>100</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+    </dmn:decisionTable>
+  </dmn:decision>
+  <dmn:decision id="Decision_rule_order" name="Rule order">
+    <dmn:variable id="InformationItem_rule_order" name="Rule order" typeRef="string" />
+    <dmn:informationRequirement id="InformationRequirement_points__rule_order">
+      <dmn:requiredInput href="#InputData_points" />
+    </dmn:informationRequirement>
+    <dmn:decisionTable id="DecisionTable_rule_order" hitPolicy="RULE ORDER">
+      <dmn:input id="InputClause_rule_order_1">
+        <dmn:inputExpression id="InputExpression_rule_order_1" typeRef="number">
+          <dmn:text>Points</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:output id="OutputClause_rule_order_1" name="Message" typeRef="string" />
+      <dmn:rule id="Rule_rule_order_1">
+        <dmn:inputEntry id="UnaryTests_rule_order_1_1">
+          <dmn:text>&gt;= 10</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_rule_order_1_1">
+          <dmn:text>"Thanks for coming"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_rule_order_2">
+        <dmn:inputEntry id="UnaryTests_rule_order_2_1">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_rule_order_2_1">
+          <dmn:text>"Welcome"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+    </dmn:decisionTable>
+  </dmn:decision>
+  <dmn:decision id="Decision_output_order" name="Output order">
+    <dmn:variable id="InformationItem_output_order" name="Output order" typeRef="string" />
+    <dmn:informationRequirement id="InformationRequirement_points__output_order">
+      <dmn:requiredInput href="#InputData_points" />
+    </dmn:informationRequirement>
+    <dmn:decisionTable id="DecisionTable_output_order" hitPolicy="OUTPUT ORDER">
+      <dmn:input id="InputClause_output_order_1">
+        <dmn:inputExpression id="InputExpression_output_order_1" typeRef="number">
+          <dmn:text>Points</dmn:text>
+        </dmn:inputExpression>
+      </dmn:input>
+      <dmn:output id="OutputClause_output_order_1" name="Perk" typeRef="string">
+        <dmn:outputValues>
+          <dmn:text>"lounge", "upgrade", "drink"</dmn:text>
+        </dmn:outputValues>
+      </dmn:output>
+      <dmn:rule id="Rule_output_order_1">
+        <dmn:inputEntry id="UnaryTests_output_order_1_1">
+          <dmn:text>&gt;= 100</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_output_order_1_1">
+          <dmn:text>"lounge"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_output_order_2">
+        <dmn:inputEntry id="UnaryTests_output_order_2_1">
+          <dmn:text>&gt;= 10</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_output_order_2_1">
+          <dmn:text>"upgrade"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+      <dmn:rule id="Rule_output_order_3">
+        <dmn:inputEntry id="UnaryTests_output_order_3_1">
+          <dmn:text>-</dmn:text>
+        </dmn:inputEntry>
+        <dmn:outputEntry id="LiteralExpression_output_order_3_1">
+          <dmn:text>"drink"</dmn:text>
+        </dmn:outputEntry>
+      </dmn:rule>
+    </dmn:decisionTable>
+  </dmn:decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="DMNDiagram_1">
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_points__unique" dmnElementRef="InformationRequirement_points__unique">
+        <di:waypoint x="122" y="222" />
+        <di:waypoint x="122" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_points__first" dmnElementRef="InformationRequirement_points__first">
+        <di:waypoint x="132" y="222" />
+        <di:waypoint x="132" y="122" />
+        <di:waypoint x="342" y="122" />
+        <di:waypoint x="342" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_points__priority" dmnElementRef="InformationRequirement_points__priority">
+        <di:waypoint x="143" y="222" />
+        <di:waypoint x="143" y="132" />
+        <di:waypoint x="562" y="132" />
+        <di:waypoint x="562" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_points__any" dmnElementRef="InformationRequirement_points__any">
+        <di:waypoint x="153" y="222" />
+        <di:waypoint x="153" y="142" />
+        <di:waypoint x="782" y="142" />
+        <di:waypoint x="782" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_points__collect" dmnElementRef="InformationRequirement_points__collect">
+        <di:waypoint x="164" y="222" />
+        <di:waypoint x="164" y="152" />
+        <di:waypoint x="1002" y="152" />
+        <di:waypoint x="1002" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_points__collect_sum" dmnElementRef="InformationRequirement_points__collect_sum">
+        <di:waypoint x="174" y="222" />
+        <di:waypoint x="174" y="162" />
+        <di:waypoint x="1222" y="162" />
+        <di:waypoint x="1222" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_points__collect_count" dmnElementRef="InformationRequirement_points__collect_count">
+        <di:waypoint x="185" y="222" />
+        <di:waypoint x="185" y="172" />
+        <di:waypoint x="1442" y="172" />
+        <di:waypoint x="1442" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_points__collect_min" dmnElementRef="InformationRequirement_points__collect_min">
+        <di:waypoint x="195" y="222" />
+        <di:waypoint x="195" y="182" />
+        <di:waypoint x="1662" y="182" />
+        <di:waypoint x="1662" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_points__collect_max" dmnElementRef="InformationRequirement_points__collect_max">
+        <di:waypoint x="205" y="222" />
+        <di:waypoint x="205" y="192" />
+        <di:waypoint x="1882" y="192" />
+        <di:waypoint x="1882" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_points__rule_order" dmnElementRef="InformationRequirement_points__rule_order">
+        <di:waypoint x="216" y="222" />
+        <di:waypoint x="216" y="202" />
+        <di:waypoint x="2102" y="202" />
+        <di:waypoint x="2102" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="DMNEdge_InformationRequirement_points__output_order" dmnElementRef="InformationRequirement_points__output_order">
+        <di:waypoint x="226" y="222" />
+        <di:waypoint x="226" y="212" />
+        <di:waypoint x="2322" y="212" />
+        <di:waypoint x="2322" y="112" />
+      </dmndi:DMNEdge>
+      <dmndi:DMNShape id="DMNShape_InputData_points" dmnElementRef="InputData_points">
+        <dc:Bounds height="45" width="125" x="112" y="222" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_Decision_unique" dmnElementRef="Decision_unique">
+        <dc:Bounds height="80" width="180" x="32" y="32" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_Decision_first" dmnElementRef="Decision_first">
+        <dc:Bounds height="80" width="180" x="252" y="32" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_Decision_priority" dmnElementRef="Decision_priority">
+        <dc:Bounds height="80" width="180" x="472" y="32" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_Decision_any" dmnElementRef="Decision_any">
+        <dc:Bounds height="80" width="180" x="692" y="32" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_Decision_collect" dmnElementRef="Decision_collect">
+        <dc:Bounds height="80" width="180" x="912" y="32" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_Decision_collect_sum" dmnElementRef="Decision_collect_sum">
+        <dc:Bounds height="80" width="180" x="1132" y="32" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_Decision_collect_count" dmnElementRef="Decision_collect_count">
+        <dc:Bounds height="80" width="180" x="1352" y="32" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_Decision_collect_min" dmnElementRef="Decision_collect_min">
+        <dc:Bounds height="80" width="180" x="1572" y="32" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_Decision_collect_max" dmnElementRef="Decision_collect_max">
+        <dc:Bounds height="80" width="180" x="1792" y="32" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_Decision_rule_order" dmnElementRef="Decision_rule_order">
+        <dc:Bounds height="80" width="180" x="2012" y="32" />
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="DMNShape_Decision_output_order" dmnElementRef="Decision_output_order">
+        <dc:Bounds height="80" width="180" x="2232" y="32" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</dmn:definitions>
+

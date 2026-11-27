@@ -1,0 +1,9 @@
+# BT532: Under `first`, a rule that only matches what an earlier one took.
+# expect: BT532 @ 8:5
+input Credit score [type: number]
+decision Grade [requires: Credit score]
+  table [hit: first]
+    | Credit score | -> Grade |
+    | >= 600       | "A"      |
+    | >= 700       | "B"      |
+    | -            | "C"      |

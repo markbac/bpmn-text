@@ -19,7 +19,8 @@
   },
   "dependencies": {
     "@bpmn-text/bpmn": "0.0.0",
-    "bpmn-js": "^18.31.1"
+    "bpmn-js": "^18.31.1",
+    "dmn-js": "^18.1.0"
   },
   "optionalDependencies": {
     "playwright-core": "1.63.0"

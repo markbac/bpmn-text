@@ -1,0 +1,5 @@
+# BT105: `values` only applies to input data.
+# expect: BT105 @ 4:33
+input Score [type: number]
+decision Pass [requires: Score, values: "yes", "no"]
+  literal Score >= 50

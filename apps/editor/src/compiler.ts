@@ -1,10 +1,14 @@
-import type { Compiled } from './compile.js';
+import type { Compiled, Language } from './compile.js';
 
 /** How long typing must pause before a compile starts. */
 export const DEBOUNCE_MS = 150;
 
 interface Port {
-  postMessage(message: { id: number; source: string }): void;
+  postMessage(message: {
+    id: number;
+    source: string;
+    language: Language;
+  }): void;
   onmessage: ((event: MessageEvent<Compiled & { id: number }>) => void) | null;
 }
 
@@ -19,6 +23,8 @@ export class Compiler {
   private waiting: string | undefined;
   private timer: ReturnType<typeof setTimeout> | undefined;
   private nextId = 0;
+  /** The notation the source is in; set before `update`. */
+  language: Language = 'bpmn';
 
   constructor(
     private readonly port: Port,
@@ -50,6 +56,10 @@ export class Compiler {
       return;
     }
     this.running = source;
-    this.port.postMessage({ id: this.nextId++, source });
+    this.port.postMessage({
+      id: this.nextId++,
+      source,
+      language: this.language,
+    });
   }
 }

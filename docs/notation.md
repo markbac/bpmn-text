@@ -363,6 +363,7 @@ pool Shop
 | `fit` | flag | `group` | The box hugs its members rather than spanning the pool (§9.1) |
 | `lane: X` | key/value | flow nodes in a pool with lanes | Place this element in lane X without switching (§9) |
 | `rule: …` | key/value | `complex` | Activation rule, as documentation (§7.5) |
+| `decision: …` | key/value | `rule` | The DMN decision the task evaluates, checked against the `.dmnt` files beside it ([dmn-notation §7](dmn-notation.md)) |
 | `message: x`, `signal: x`, `error: x`, `escalation: x` | key/value | events of that type; `message` also on send and receive tasks | The shared definition this refers to (§4.1) |
 | `doc: "…"` | key/value | any element, pool, lane, group | Documentation (§4.6) |
 | `color: c` | key/value | any element, pool, lane, group, `data`, `store`, `note` | Fill colour (§4.7) |
